@@ -209,8 +209,8 @@ function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, 
     g.fillRect(px, py + 16, TILE, 1);
     g.fillRect(px, py, 1, TILE);
     g.fillRect(px + 16, py, 1, TILE);
-  } else if (material === 'concrete') {
-    g.fillStyle(tone(COLORS.concrete, f * (0.97 + hash(x, y, 6) * 0.06)), 1);
+  } else if (material === 'concrete' || material === 'screed') {
+    g.fillStyle(tone(material === 'screed' ? COLORS.screed : COLORS.concrete, f * (0.97 + hash(x, y, 6) * 0.06)), 1);
     g.fillRect(px, py, TILE, TILE);
     for (let i = 0; i < 6; i++) {
       g.fillStyle(hash(x, y, 60 + i) > 0.5 ? 0xffffff : 0x000000, 0.05);
@@ -230,9 +230,10 @@ function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, 
   }
 }
 
-/** Decorative set dressing that doesn't affect play, like the van at the drop-off. */
+/** Set dressing: the van at the drop-off, cars and shipping containers. */
 function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
-  if (p.kind !== 'van') return;
+  if (p.kind === 'car') return drawCar(g, p);
+  if (p.kind === 'container') return drawContainer(g, p);
   const x = p.tx * TILE, y = p.ty * TILE, w = 4.4 * TILE, h = 2 * TILE;
   g.fillStyle(0x000000, 0.35);
   g.fillRoundedRect(x + 4, y + 5, w, h, 8);
@@ -249,6 +250,47 @@ function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   g.fillRect(x + w - 46, y + h / 2 + 1, 6, 8);
   g.fillStyle(0xf8fafc, 0.85);
   g.fillRect(x + 16, y + h / 2 - 1, w - 70, 2);
+}
+
+/** A car seen from above, two tiles by four, nose to the east (or south when vertical). */
+function drawCar(g: Phaser.GameObjects.Graphics, p: PropDef): void {
+  const x = p.tx * TILE, y = p.ty * TILE;
+  const w = (p.vertical ? 2 : 4) * TILE, h = (p.vertical ? 4 : 2) * TILE;
+  const color = p.color ?? 0x64748b;
+  const inset = 5;
+  g.fillStyle(0x000000, 0.35);
+  g.fillRoundedRect(x + inset + 3, y + inset + 4, w - inset * 2, h - inset * 2, 10);
+  g.fillStyle(color, 1);
+  g.fillRoundedRect(x + inset, y + inset, w - inset * 2, h - inset * 2, 10);
+  // Roof and glass.
+  g.fillStyle(tone(color, 0.8), 1);
+  if (p.vertical) {
+    g.fillRoundedRect(x + 12, y + h * 0.3, w - 24, h * 0.38, 6);
+    g.fillStyle(0x93c5fd, 0.45);
+    g.fillRect(x + 12, y + h * 0.26, w - 24, 6);
+    g.fillRect(x + 12, y + h * 0.68, w - 24, 5);
+  } else {
+    g.fillRoundedRect(x + w * 0.3, y + 12, w * 0.38, h - 24, 6);
+    g.fillStyle(0x93c5fd, 0.45);
+    g.fillRect(x + w * 0.68, y + 12, 6, h - 24);
+    g.fillRect(x + w * 0.26, y + 12, 5, h - 24);
+  }
+}
+
+/** A shipping container: corrugated steel, two tiles wide. */
+function drawContainer(g: Phaser.GameObjects.Graphics, p: PropDef): void {
+  const x = p.tx * TILE, y = p.ty * TILE;
+  const w = (p.vertical ? 2 : 4) * TILE, h = (p.vertical ? 4 : 2) * TILE;
+  const color = p.color ?? 0x7c2d12;
+  g.fillStyle(0x000000, 0.35);
+  g.fillRect(x + 4, y + 5, w, h);
+  g.fillStyle(color, 1);
+  g.fillRect(x, y, w, h);
+  g.fillStyle(0x000000, 0.18);
+  if (p.vertical) for (let i = 4; i < h; i += 6) g.fillRect(x, y + i, w, 2);
+  else for (let i = 4; i < w; i += 6) g.fillRect(x + i, y, 2, h);
+  g.lineStyle(1.5, tone(color, 1.4), 0.8);
+  g.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5);
 }
 
 /** Deterministic pseudo-random number in [0, 1) for a grid position. */

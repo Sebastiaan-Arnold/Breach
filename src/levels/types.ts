@@ -10,7 +10,10 @@ export interface EntryDef {
   id: string;
   /** Shown on the briefing map and in the intro, e.g. "front door". */
   name: string;
-  /** The intro walk: from the drop-off point to where the operator stands at the entry. */
+  /**
+   * The intro walk: from the drop-off point to where the operator stands at the entry. The
+   * drop-off can differ per entry, so far-side entries don't need a long walk round.
+   */
   approach: TilePos[];
 }
 
@@ -59,11 +62,17 @@ export interface MissionDef {
   debriefNote: string;
 }
 
-/** Set dressing drawn into the level art; it doesn't block movement or sight. */
+/**
+ * Set dressing drawn into the level art. Props don't block anything themselves; cars and
+ * containers sit on furniture tiles ('T') in the map, which do.
+ */
 export interface PropDef {
-  kind: 'van';
+  kind: 'van' | 'car' | 'container';
   tx: number;
   ty: number;
+  /** Cars and containers lie east-west unless vertical. */
+  vertical?: boolean;
+  color?: number;
 }
 
 export interface LevelDef {

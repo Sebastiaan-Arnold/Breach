@@ -1,0 +1,92 @@
+import type { LevelDef } from './types';
+
+/**
+ * Officer campaign, case 5: the lockup yard where the supplier's courier collects. Open ground, many doors.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '####################################################',
+  '#==================================================#',
+  '#==================================================#',
+  '#====##########################################====#',
+  '#====#;TT;#;;;;#;;;;#;;;;#;TT;#;;;;#;;;;#;TT;##====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;##====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;##====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;##====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;#;;;;##====#',
+  '#====##D####D####D####D####D####D####D####D####====#',
+  '#==================================================#',
+  '#================================TT================#',
+  '#==========TTTT=========TTTT=====TT================#',
+  '#==========TTTT=========TTTT=====TT================#',
+  '#================================TT================#',
+  '#=================TT===============================#',
+  '#===================================###########====#',
+  '#===================================#.....TTT.#====#',
+  '#====##D####D####D####D####D###=====D.........#====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#=====#.........#====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#=====#.........#====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#=====#iiiiDiiii#====#',
+  '#====#;;;;#;;;;#;;;;#;;;;#;;;;#=====#.........#====#',
+  '#====#;;;;#;TT;#;;;;#;;;;#;;;;#=====#.........#====#',
+  '#====##########################=====#.TTT.....#====#',
+  '#===================================###########====#',
+  '#==================================================#',
+  '#==================================================#',
+  '##==####################===#########################',
+  '#==================================================#',
+  '#==================================================#',
+  '#==================================================#',
+  '#==================================================#',
+  '####################################################',
+];
+
+export const WESTQUAY_LOCKUPS: LevelDef = {
+  id: 'westquay-lockups',
+  name: 'Westquay Lockups',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'van', tx: 14, ty: 30 },
+    { kind: 'container', tx: 11, ty: 12 },
+    { kind: 'container', tx: 24, ty: 12, color: 0x1e3a8a },
+    { kind: 'container', tx: 33, ty: 11, vertical: true, color: 0x365314 },
+  ],
+  entries: [
+    { id: 'gate', name: 'main gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 25.5, ty: 29.5 }, { tx: 25.5, ty: 27.4 }] },
+    { id: 'side', name: 'side gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 2.5, ty: 29.5 }, { tx: 2.5, ty: 27.4 }] },
+  ],
+  intro: [
+    'Dispatch: Unit 7, you are at the Westquay gate.',
+    'Command: The courier is inside. Go in through the {entry}.',
+    "Command: Officer, you're cleared to enter.",
+  ],
+  mission: {
+    caseLabel: 'Officer · Case 5',
+    title: 'Westquay Lockups',
+    location: 'Westquay Industrial Estate',
+    summary: [
+      'Corvan Logistics rents every lockup on the Westquay estate. Tonight a courier is due to collect.',
+      'The yard is open ground with containers and lockup doors on every side. Expect long sight lines.',
+      "We don't know which lockups are in use, or how many people are waiting for the courier.",
+      'Warrant: secure the yard, the lockups and the site office.',
+    ],
+    hostiles: { min: 4, max: 5 },
+    loadout: 'Handguns, possibly more',
+    civilians: { min: 0, max: 1, text: 'A night watchman works the yard' },
+    reliability: 'Unverified',
+    hostileSlots: [
+      { type: 'patroller', tx: 10.5, ty: 10.5, facing: 0, route: [{ tx: 44.5, ty: 10.5 }, { tx: 44.5, ty: 15.5 }, { tx: 31.5, ty: 16.5 }, { tx: 10.5, ty: 16.5 }, { tx: 10.5, ty: 10.5 }] },
+      { type: 'patroller', tx: 48.5, ty: 26.5, facing: 270, route: [{ tx: 48.5, ty: 2.5 }, { tx: 3.5, ty: 2.5 }, { tx: 3.5, ty: 26.5 }, { tx: 48.5, ty: 26.5 }] },
+      { type: 'lookout', tx: 17.5, ty: 6.5, facing: 90 },
+      { type: 'lookout', tx: 32.5, ty: 6.5, facing: 90 },
+      { type: 'lookout', tx: 15.5, ty: 13.5, facing: 90 },
+      { type: 'lookout', tx: 40.5, ty: 18.5, facing: 180 },
+      { type: 'lookout', tx: 43.5, ty: 23.5, facing: 250 },
+      { type: 'lookout', tx: 22.5, ty: 21.5, facing: 270 },
+    ],
+    civilianSlots: [{ tx: 40.5, ty: 23.5 }, { tx: 47.5, ty: 22.5 }],
+    unknownZones: [{ x0: 6, y0: 19, x1: 29, y1: 23 }],
+    debriefNote: "The courier's manifest lists a dozen Corvan Logistics depots across Port Ardley. This was never about one estate.",
+  },
+};

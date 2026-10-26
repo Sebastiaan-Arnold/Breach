@@ -29,6 +29,7 @@ export const COLORS = {
   interiorEdge: 0xd6cfc2,
   tile: 0x6f706c,
   concrete: 0x45484c,
+  screed: 0x55595e,
   grass: 0x2c4224,
   barrier: 0x6e5236,
   barrierStripe: 0xd4a017,

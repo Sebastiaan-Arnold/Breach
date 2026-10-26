@@ -118,8 +118,10 @@ export class BriefingScene extends Phaser.Scene {
       else g.fillRect(ox + d.tx * s + s / 2 - 1.5, oy + d.ty * s, 3, s);
     }
     for (const prop of this.def.props ?? []) {
-      g.fillStyle(0x1e3a8a, 1);
-      g.fillRoundedRect(ox + prop.tx * s, oy + prop.ty * s, 4.4 * s, 2 * s, 3);
+      const long = prop.kind === 'van' ? 4.4 : 4;
+      const w = prop.vertical ? 2 : long, h = prop.vertical ? long : 2;
+      g.fillStyle(prop.kind === 'van' ? 0x1e3a8a : 0x334155, 1);
+      g.fillRoundedRect(ox + prop.tx * s, oy + prop.ty * s, w * s, h * s, 3);
     }
 
     // Areas the plans don't cover.

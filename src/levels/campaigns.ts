@@ -39,12 +39,12 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     id: 'officer',
     title: 'Street crime',
     rank: 1,
-    levels: ['harbour-lane'],
+    levels: ['harbour-lane', 'tollgate-flats', 'mercer-street', 'kestrel-road', 'westquay-lockups'],
     promotion: {
-      minStars: 2,
+      minStars: 10,
       unlocks: 'smg',
       note: [
-        'Every raid this season pointed the same way, and you followed it.',
+        'Five raids, and every one of them pointed the same way: Corvan Logistics.',
         "You're promoted to Senior Officer. The armoury has signed out an SMG in your name.",
         'Supply chain unit. Starts Monday.',
       ],

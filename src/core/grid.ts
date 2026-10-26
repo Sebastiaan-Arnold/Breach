@@ -5,6 +5,7 @@
  *
  *   #  concrete / brick wall  w  plywood wall        i  interior (plaster) wall
  *   .  wood floor             ,  wood floor, dark    ~  tiled floor
+ *   :  concrete floor indoors ;  concrete floor indoors, dark
  *   =  pavement (outdoors)    "  grass (outdoors)
  *   b  low barrier / counter  T  furniture (blocks movement, not sight)
  *   D  door (orientation taken from the walls either side)
@@ -15,7 +16,7 @@
  */
 
 export type TileKind = 'wall' | 'plywood' | 'interior' | 'floor' | 'barrier' | 'furniture';
-export type FloorMaterial = 'wood' | 'tile' | 'concrete' | 'grass';
+export type FloorMaterial = 'wood' | 'tile' | 'screed' | 'concrete' | 'grass';
 export type MarkerKind = 'suspect' | 'civilian' | 'random' | 'mover';
 export type DoorOrientation = 'h' | 'v';
 
@@ -43,7 +44,8 @@ export interface ParsedLevel {
 }
 
 const MARKERS: Record<string, MarkerKind> = { S: 'suspect', C: 'civilian', '?': 'random', M: 'mover' };
-const FLOORS: Record<string, FloorMaterial> = { '.': 'wood', ',': 'wood', '~': 'tile', '=': 'concrete', '"': 'grass' };
+const FLOORS: Record<string, FloorMaterial> = { '.': 'wood', ',': 'wood', '~': 'tile', ':': 'screed', ';': 'screed', '=': 'concrete', '"': 'grass' };
+const DARK_FLOORS = new Set([',', ';']);
 
 export function blocksSight(kind: TileKind): boolean {
   return kind === 'wall' || kind === 'plywood' || kind === 'interior';
@@ -81,7 +83,7 @@ export function parseLevel(rows: readonly string[]): ParsedLevel {
         default: tiles[i] = 'floor';
       }
       if (FLOORS[ch]) material[i] = FLOORS[ch];
-      if (ch === ',') dark[i] = true;
+      if (DARK_FLOORS.has(ch)) dark[i] = true;
       if (ch === 'D') {
         const wallLeftRight = isWallChar(at(x - 1, y)) && isWallChar(at(x + 1, y));
         doors.push({ tx: x, ty: y, orientation: wallLeftRight ? 'h' : 'v' });
@@ -99,7 +101,7 @@ export function parseLevel(rows: readonly string[]): ParsedLevel {
       if (FLOORS[ch] || isWallChar(ch) || ch === 'b') continue;
       const around = [at(x - 1, y), at(x + 1, y), at(x, y - 1), at(x, y + 1)];
       const i = y * width + x;
-      if (around.includes(',')) dark[i] = true;
+      if (around.some((c) => DARK_FLOORS.has(c))) dark[i] = true;
       const floors = around.filter((c) => FLOORS[c]).map((c) => FLOORS[c]);
       const indoor = floors.find((m) => !isOutdoor(m));
       if (indoor ?? floors[0]) material[i] = indoor ?? floors[0];

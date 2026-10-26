@@ -6,10 +6,11 @@ sees, and clear every room without getting hit or harming civilians.
 
 The full design lives in [docs/concept.md](docs/concept.md).
 
-## Status: milestone 2, vertical slice
+## Status: milestone 3, MVP
 
-The build has two levels: the police academy Range (training) and the first Officer case,
-14 Harbour Lane, played from briefing to debrief.
+The build has the police academy Range (training) and the full Officer campaign: five cases
+from 14 Harbour Lane to the Westquay Lockups, each played from briefing to debrief, with saved
+progress, stars and promotion to Senior Officer.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out), command's marks,
   the case file and intel given as ranges with a reliability rating. Pick one of three entries,
@@ -103,6 +104,5 @@ when it lands on `main`.
 
 ## Next
 
-Finish milestone 2 with playtests of Harbour Lane and tuning from the feedback, then milestone 3:
-the rest of the Officer campaign, its case-file story, local saves for stars and promotion to
-Senior Officer with the SMG.
+Playtest and tune the Officer campaign, then milestone 4: the Senior Officer campaign (offices
+and warehouses of the logistics firm), the Hider enemy type, and the remaining guns.

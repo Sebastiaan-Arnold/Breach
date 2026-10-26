@@ -1,0 +1,90 @@
+import type { LevelDef } from './types';
+
+/**
+ * Officer campaign, case 3: an open garage workshop with cars for cover and two patrols.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '################################################',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#"""########D###############################===#',
+  '#"""#::::::::::::::::::::::::::i...........#===#',
+  '#"""#::::::::::::::::::::::::::i.TTT.......#===#',
+  '#"""#::::::::::::::::::::::::::i.TTT.......#===#',
+  '#"""#::::TT::::::::::TTTT::::::i...........D===#',
+  '#"""#::::TT::::::::::TTTT::::::D...........#===#',
+  '#"""#::::TT::::::::::::::::::::i........TT.#===#',
+  '#"""#::::TT::::::::::::::::::::i........TT.#===#',
+  '#"""#::::::::::::::::::::::::::i...........#===#',
+  '#"""#T:::::::::::::::::::::::::iiiiDiiiiiii#===#',
+  '#"""#T:::::::::TT::::::::::::::i;;;;;i~~~~~#===#',
+  '#"""#T:::::::::TT::::::::::::::i;;;;;i~~~~~#===#',
+  '#"""#T:::::::::TT::::::::::::::i;;;;;i~~~~~#===#',
+  '#"""#T:::::::::TT::::::TTTT::::i;;;;;i~~~~~#===#',
+  '#"""#T:::::::::::::::::TTTT::::i;;;;;i~~~~~#===#',
+  '#"""#::::::::::::::::::::::::::D;;;;;i~~~~~#===#',
+  '#"""#::::::::::::::::::::::::::i;;;;;D~~~~~#===#',
+  '#"""#:::::::::::::::::::::::TT:i;;;;;i~~~~~#===#',
+  '#"""#:::::::::::::::::::::::TT:i;TTTTi~~~~~#===#',
+  '#"""#::::::::::::::::::::::::::i;TTTTi~~~~~#===#',
+  '#"""#############D##########################===#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '################################################',
+];
+
+export const MERCER_STREET: LevelDef = {
+  id: 'mercer-street',
+  name: 'Mercer Street Garage',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'van', tx: 24, ty: 27 },
+    { kind: 'car', tx: 9, ty: 8, vertical: true, color: 0x7f1d1d },
+    { kind: 'car', tx: 15, ty: 14, vertical: true, color: 0x1e3a5f },
+    { kind: 'car', tx: 21, ty: 8, color: 0x52525b },
+    { kind: 'car', tx: 23, ty: 17, color: 0x365314 },
+  ],
+  entries: [
+    { id: 'roller', name: 'workshop door', approach: [{ tx: 30.5, ty: 27.5 }, { tx: 17.5, ty: 26.5 }, { tx: 17.5, ty: 25.4 }] },
+    { id: 'office', name: 'office door', approach: [{ tx: 30.5, ty: 27.5 }, { tx: 45.5, ty: 26.5 }, { tx: 45.5, ty: 8.5 }, { tx: 44.3, ty: 8.5 }] },
+    { id: 'yard', name: 'back door', approach: [{ tx: 40.5, ty: 2 }, { tx: 12.5, ty: 2.5 }, { tx: 12.5, ty: 3.4 }] },
+  ],
+  intro: [
+    'Dispatch: Unit 7, you are on Mercer Street.',
+    'Command: Two of them are moving around inside. Take the {entry}.',
+    "Command: Officer, you're cleared to enter.",
+  ],
+  mission: {
+    caseLabel: 'Officer · Case 3',
+    title: 'Mercer Street Garage',
+    location: 'Mercer Street, Old Docks',
+    summary: [
+      'The texts from Tollgate House named a car repair garage on Mercer Street, open late on Thursdays.',
+      'Expect an open workshop floor: cars for cover, long sight lines and more than one person on the move.',
+      'The owner has no record. The phone suggests he has new friends.',
+      'Warrant: search the garage and office, and arrest anyone involved.',
+    ],
+    hostiles: { min: 3, max: 5 },
+    loadout: 'Handguns reported',
+    civilians: { min: 0, max: 1, text: 'A mechanic may still be working late' },
+    reliability: 'Likely',
+    hostileSlots: [
+      { type: 'patroller', tx: 7.5, ty: 6.5, facing: 0, route: [{ tx: 27.5, ty: 6.5 }, { tx: 27.5, ty: 20.5 }, { tx: 7.5, ty: 20.5 }, { tx: 7.5, ty: 6.5 }] },
+      { type: 'patroller', tx: 36.5, ty: 9.5, facing: 180, route: [{ tx: 29.5, ty: 9.5 }, { tx: 19.5, ty: 13.5 }, { tx: 29.5, ty: 16.5 }, { tx: 33.5, ty: 18.5 }, { tx: 36.5, ty: 9.5 }] },
+      { type: 'lookout', tx: 17.5, ty: 20.5, facing: 90 },
+      { type: 'lookout', tx: 12.5, ty: 6.5, facing: 270 },
+      { type: 'lookout', tx: 39.5, ty: 6.5, facing: 23 },
+      { type: 'lookout', tx: 34.5, ty: 20.5, facing: 206 },
+    ],
+    civilianSlots: [{ tx: 27.5, ty: 14.5 }, { tx: 38.5, ty: 11.5 }, { tx: 40.5, ty: 17.5 }],
+    unknownZones: [{ x0: 38, y0: 14, x1: 42, y1: 23 }],
+    debriefNote: "Crates in the storeroom are stencilled 'Corvan Logistics'. Somebody is moving more than parcels.",
+  },
+};

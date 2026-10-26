@@ -3,6 +3,24 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.3.1
+
+The full Officer campaign: five cases, each introducing one new idea, with a story thread that
+runs from street-level dealing to the supplier behind it.
+
+- Case 2, Tollgate Flats: a ground-floor flat with the power cut. The whole flat is dark, so
+  you only see as far as your weapon light reaches. Enter by the lit stairwell or the garden.
+- Case 3, Mercer Street Garage: an open workshop with cars for cover, long sight lines and two
+  patrols, plus an office, a dark storeroom and toilets the plans don't show.
+- Case 4, Kestrel Road: a family home the crew has taken over. Two or three homeowners inside,
+  close to the suspects, and unverified intel: the count and the marks may be off.
+- Case 5, Westquay Lockups: the finale in a fenced lockup yard. Open ground with containers,
+  rows of lockup doors and a site office; four or five hostiles on unverified intel.
+- Promotion to Senior Officer now needs all five cases and at least 10 of 15 stars.
+- New floor materials and set dressing: indoor concrete (lit and dark), cars and containers.
+- An entry's intro can start from its own drop-off point, so far-side entries don't need a long
+  walk round.
+
 ## v0.3.0
 
 Milestone 3 begins: the campaign framework.
