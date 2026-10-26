@@ -21,6 +21,8 @@ the test bed for the core feel. Its question: does walking through a door into d
   show as vague ripples through walls.
 - **Five stations:** movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
+- **Minimal HUD and settings:** ammo, short messages and, on the Range only, tutorial text.
+  Esc pauses and opens settings (blood effects, sound) and the controls.
 
 ### Controls
 
@@ -33,6 +35,7 @@ the test bed for the core feel. Its question: does walking through a door into d
 | Reload | R |
 | Flashlight | F |
 | Switch gun (Range only, for testing handling) | 1–4 |
+| Pause, settings and controls | Esc |
 | Frame-rate readout | F3 |
 
 ## Development

@@ -178,7 +178,7 @@ Darkness carries the atmosphere. Unknown areas are near-black, remembered areas 
 
 Sound is a gameplay system, not decoration: footsteps, door creaks, radio chatter at the start ("Team, you're cleared to enter") and a short sting when the site is secured. Free libraries such as Freesound or Kenney's packs cover the basics.
 
-The tone is grounded and serious, with no gore. Downed enemies simply fall and fade. That keeps the age rating reasonable on the App Store and stays respectful given the subject. The game uses no real place names or real organisations' logos.
+The tone is grounded and serious. Blood is an optional effect, on by default: a short spray on a hit and a pool under someone who is down, never gore, and never on the training range's cardboard props. With it switched off, downed people simply fall and fade, which keeps the age rating reasonable on the App Store and stays respectful given the subject. The game uses no real place names or real organisations' logos.
 
 ## Tech plan
 
@@ -211,6 +211,8 @@ Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors
 - **Real time**, no tactical pause.
 - **Civilian hit = penalty**, not mission failure.
 - **No briefing map** during the mission.
+- **Minimal HUD:** ammo and short messages only. There is no objective checklist; every mission is to secure the area. Tutorial text appears only on the Range.
+- **Blood effects** are a setting, on by default, and never shown on training props.
 - **Five missions per campaign**, so 20 missions plus the Range for the full web release.
 - **Enemies can't see the laser.**
 - **Vision cone of about 60 degrees.**

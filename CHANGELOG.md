@@ -3,6 +3,20 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.1.4
+
+- Minimal HUD: the magazine as a row of rounds with the spare count beside it, a flashlight
+  indicator only in dark rooms, and short unobtrusive messages. The station checklist is gone;
+  every mission's objective is simply to secure the area.
+- Tutorial text appears only in the tutorial: each Range station shows its card on entry and
+  fades it out once it has had time to be read.
+- Esc pauses the game and opens a menu with settings (blood effects, sound), restart and the
+  controls. Settings are remembered between sessions.
+- Blood effects for people: a short spray that stains the floor on a hit and a pool that
+  spreads under someone who is down. On by default, toggleable in the menu, and never on the
+  Range's cardboard props. They first appear with the enemies in the next milestone.
+- Range targets now turn to face the operator when first seen.
+
 ## v0.1.3
 
 Look and feel pass on the Range.

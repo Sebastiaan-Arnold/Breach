@@ -3,21 +3,32 @@ import { TILE } from '../config';
 
 const GLOW_KEY = 'soft-glow';
 const MAX_MOVING_CASINGS = 60;
+/** Dark, desaturated red: blood should read clearly without being lurid. */
+const BLOOD = 0x7a1116;
+const POOL_GROW = 3.5;
 
 interface Hole { x: number; y: number; r: number }
 interface Casing { x: number; y: number; vx: number; vy: number; rot: number; vr: number; shell: boolean }
-interface Particle { x: number; y: number; vx: number; vy: number; age: number; life: number; color: number; size: number; streak: boolean }
+interface Particle {
+  x: number; y: number; vx: number; vy: number; age: number; life: number; color: number; size: number; streak: boolean;
+  /** If set, the particle leaves a stain of this radius where it lands. */
+  stain?: number;
+}
+interface Stain { x: number; y: number; r: number }
+interface Pool { x: number; y: number; age: number; blobs: { dx: number; dy: number; r: number }[] }
 
 /**
  * Small physical details: bullet holes that stay, sparks and cardboard chips, brass casings
- * that skid to a stop, and the brief light of a muzzle flash. Everything except the light sits
- * below the fog, so it is only seen where the operator can see.
+ * that skid to a stop, blood, and the brief light of a muzzle flash. Everything except the
+ * light sits below the fog, so it is only seen where the operator can see.
  *
- * Anything permanent (holes, casings at rest) is baked once into a decal texture, so a long
- * firefight doesn't make every frame more expensive.
+ * Anything permanent (holes, stains, casings at rest) is baked once into a decal texture, so a
+ * long firefight doesn't make every frame more expensive.
  */
 export class Effects {
   private newHoles: Hole[] = [];
+  private newStains: Stain[] = [];
+  private pools: Pool[] = [];
   private casings: Casing[] = [];
   private particles: Particle[] = [];
   private decals: Phaser.GameObjects.RenderTexture;
@@ -49,12 +60,32 @@ export class Effects {
     }
   }
 
-  targetHit(x: number, y: number, dx: number, dy: number): void {
+  cardboardHit(x: number, y: number, dx: number, dy: number): void {
     for (let i = 0; i < 6; i++) {
       const a = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-0.7, 0.7);
       const v = Phaser.Math.FloatBetween(40, 140);
       this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: 0.35, color: 0xc8a46a, size: 1.8, streak: false });
     }
+  }
+
+  /** A hit on a person: a short spray in the bullet's direction that stains the floor. */
+  bloodHit(x: number, y: number, dx: number, dy: number): void {
+    for (let i = 0; i < 7; i++) {
+      const a = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-0.45, 0.45);
+      const v = Phaser.Math.FloatBetween(60, 170);
+      this.particles.push({
+        x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: Phaser.Math.FloatBetween(0.12, 0.28),
+        color: BLOOD, size: Phaser.Math.FloatBetween(1.4, 2.4), streak: false, stain: Phaser.Math.FloatBetween(0.8, 1.8),
+      });
+    }
+  }
+
+  /** A pool that slowly spreads under someone who is down. */
+  bloodPool(x: number, y: number): void {
+    const blobs = Array.from({ length: 6 }, () => ({
+      dx: Phaser.Math.FloatBetween(-7, 7), dy: Phaser.Math.FloatBetween(-7, 7), r: Phaser.Math.FloatBetween(6, 11),
+    }));
+    this.pools.push({ x, y, age: 0, blobs });
   }
 
   /** Ejects a casing to the operator's right. */
@@ -95,19 +126,32 @@ export class Effects {
       if (Math.hypot(c.vx, c.vy) < 4) c.vx = c.vy = 0;
     }
 
+    for (const p of this.pools) p.age += dt;
+
+    this.particles = this.particles.filter((p) => {
+      p.age += dt;
+      if (p.age < p.life) return true;
+      if (p.stain) this.newStains.push({ x: p.x, y: p.y, r: p.stain });
+      return false;
+    });
+
     // Bake anything that has come to rest.
     const resting = this.casings.filter((c) => c.vx === 0 && c.vy === 0);
-    if (resting.length || this.newHoles.length) {
+    const settled = this.pools.filter((p) => p.age >= POOL_GROW);
+    if (resting.length || settled.length || this.newHoles.length || this.newStains.length) {
       const b = this.baker;
       b.clear();
+      for (const p of settled) drawPool(b, p);
+      for (const st of this.newStains) drawStain(b, st);
       for (const h of this.newHoles) drawHole(b, h);
       for (const c of resting) drawCasing(b, c);
       this.decals.draw(b);
       this.newHoles = [];
+      this.newStains = [];
+      this.pools = this.pools.filter((p) => p.age < POOL_GROW);
       this.casings = this.casings.filter((c) => c.vx !== 0 || c.vy !== 0);
     }
 
-    this.particles = this.particles.filter((p) => (p.age += dt) < p.life);
     for (const p of this.particles) {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -120,6 +164,7 @@ export class Effects {
   private draw(): void {
     const g = this.gfx;
     g.clear();
+    for (const p of this.pools) drawPool(g, p);
     for (const c of this.casings) drawCasing(g, c);
     for (const p of this.particles) {
       const a = 1 - p.age / p.life;
@@ -132,6 +177,20 @@ export class Effects {
       }
     }
   }
+}
+
+function drawPool(g: Phaser.GameObjects.Graphics, p: Pool): void {
+  const k = Phaser.Math.Easing.Cubic.Out(Math.min(1, p.age / POOL_GROW));
+  g.fillStyle(BLOOD, 0.9);
+  for (const b of p.blobs) g.fillCircle(p.x + b.dx * k, p.y + b.dy * k, Math.max(0.5, b.r * k));
+  // A darker core where it is deepest.
+  g.fillStyle(0x000000, 0.25);
+  g.fillCircle(p.x, p.y, 6 * k);
+}
+
+function drawStain(g: Phaser.GameObjects.Graphics, s: Stain): void {
+  g.fillStyle(BLOOD, 0.9);
+  g.fillCircle(s.x, s.y, s.r);
 }
 
 function drawHole(g: Phaser.GameObjects.Graphics, h: Hole): void {

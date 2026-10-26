@@ -1,29 +1,64 @@
 import Phaser from 'phaser';
 import { FONT, RENDER_SCALE, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
+import { saveSettings, settings } from '../game/settings';
 import type { RangeScene } from './RangeScene';
 
 const TEXT = '#e5e7eb';
 const DIM = '#9ca3af';
 const ACCENT = '#60a5fa';
 const GOLD = '#facc15';
+const RED = '#ef4444';
+
+/** How long a station's tutorial text stays up after entering it, then how long it fades. */
+const TUTORIAL_HOLD = 9;
+const TUTORIAL_FADE = 1.2;
+const TOAST_LIFE = 3;
+
+const CONTROLS: [string, string][] = [
+  ['Move', 'WASD'],
+  ['Sprint (loud)', 'Shift'],
+  ['Aim / fire', 'Mouse / left click'],
+  ['Open or close a door', 'E or right click'],
+  ['Reload', 'R'],
+  ['Flashlight', 'F'],
+  ['Switch gun (Range only)', '1-4'],
+  ['Frame rate', 'F3'],
+];
+
+type Style = Phaser.Types.GameObjects.Text.TextStyle;
 
 interface Toast {
   text: Phaser.GameObjects.Text;
   age: number;
 }
 
-/** Screen-space UI on top of the Range: station brief, checklist, ammo, toasts, title and debrief. */
+interface MenuItem {
+  text: Phaser.GameObjects.Text;
+  label: () => string;
+  action: () => void;
+}
+
+/**
+ * Screen-space UI on top of the game. Deliberately minimal: a small ammo readout, short toasts
+ * and, only in the tutorial, a station card that fades once read. Everything else (settings,
+ * controls) lives in the Esc menu.
+ */
 export class HudScene extends Phaser.Scene {
-  private stationTitle!: Phaser.GameObjects.Text;
-  private stationBrief!: Phaser.GameObjects.Text;
-  private checklist!: Phaser.GameObjects.Text;
+  private tutorial!: Phaser.GameObjects.Container;
+  private tutorialTitle!: Phaser.GameObjects.Text;
+  private tutorialBody!: Phaser.GameObjects.Text;
+  private tutorialAge = 0;
+  private lastStation: string | undefined;
+
   private weaponName!: Phaser.GameObjects.Text;
-  private ammo!: Phaser.GameObjects.Text;
-  private status!: Phaser.GameObjects.Text;
-  private reloadBar!: Phaser.GameObjects.Graphics;
-  private panels!: Phaser.GameObjects.Graphics;
+  private reserve!: Phaser.GameObjects.Text;
+  private light!: Phaser.GameObjects.Text;
+  private ammoGfx!: Phaser.GameObjects.Graphics;
+
   private title!: Phaser.GameObjects.Container;
+  private menu!: Phaser.GameObjects.Container;
+  private menuItems: MenuItem[] = [];
   private debrief!: Phaser.GameObjects.Container;
   private debriefBody!: Phaser.GameObjects.Text;
   private debriefStars!: Phaser.GameObjects.Text;
@@ -37,45 +72,40 @@ export class HudScene extends Phaser.Scene {
   create(): void {
     // Lay out in logical 1280x720 coordinates whatever the render scale.
     this.cameras.main.setOrigin(0, 0).setZoom(RENDER_SCALE);
-    const style = (size: number, color = TEXT, extra: Phaser.Types.GameObjects.Text.TextStyle = {}) => ({
-      fontFamily: FONT, fontSize: `${size}px`, color, resolution: 2, ...extra,
-    });
+    sfx.muted = !settings.sound;
 
-    this.panels = this.add.graphics();
-    this.add.text(24, 20, 'THE RANGE  ·  PORT ARDLEY POLICE ACADEMY', style(11, ACCENT, { fontStyle: 'bold' }));
-    this.stationTitle = this.add.text(24, 38, '', style(20, TEXT, { fontStyle: 'bold' }));
-    this.stationBrief = this.add.text(24, 66, '', style(13, DIM, { lineSpacing: 4, wordWrap: { width: 470 } }));
+    this.tutorialTitle = this.add.text(0, 0, '', style(13, ACCENT, { fontStyle: 'bold' }));
+    this.tutorialBody = this.add.text(0, 22, '', style(13, TEXT, { lineSpacing: 5, wordWrap: { width: 460 } }));
+    this.tutorial = this.add.container(28, 24, [this.tutorialTitle, this.tutorialBody]).setAlpha(0);
 
-    this.add.text(VIEW_W - 24, 20, 'QUALIFICATION', style(11, ACCENT, { fontStyle: 'bold' })).setOrigin(1, 0);
-    this.checklist = this.add.text(VIEW_W - 24, 40, '', style(13, TEXT, { align: 'right', lineSpacing: 6 })).setOrigin(1, 0);
-
-    this.add.text(24, VIEW_H - 30,
-      'WASD move · Shift sprint · Mouse aim · LMB fire · E / RMB door · R reload · F light · 1-4 guns',
-      style(11, DIM));
-
-    this.weaponName = this.add.text(VIEW_W - 24, VIEW_H - 98, '', style(12, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
-    this.ammo = this.add.text(VIEW_W - 24, VIEW_H - 82, '', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
-    this.status = this.add.text(VIEW_W - 24, VIEW_H - 40, '', style(11, DIM)).setOrigin(1, 0);
-    this.reloadBar = this.add.graphics();
+    this.ammoGfx = this.add.graphics();
+    this.weaponName = this.add.text(VIEW_W - 28, VIEW_H - 62, '', style(11, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
+    this.reserve = this.add.text(VIEW_W - 28, VIEW_H - 44, '', style(15, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
+    this.light = this.add.text(VIEW_W - 28, VIEW_H - 82, '', style(10, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
 
     // F3 toggles a frame-rate readout, handy for checking performance on different machines.
-    this.fps = this.add.text(VIEW_W / 2, VIEW_H - 30, '', style(11, DIM)).setOrigin(0.5, 0).setVisible(false);
+    this.fps = this.add.text(VIEW_W - 16, 12, '', style(11, DIM)).setOrigin(1, 0).setVisible(false);
     this.input.keyboard?.addCapture('F3');
     this.input.keyboard?.on('keydown-F3', () => this.fps.setVisible(!this.fps.visible));
+    this.input.keyboard?.on('keydown-ESC', () => this.toggleMenu());
 
-    this.title = this.buildTitle(style);
-    this.debrief = this.buildDebrief(style);
+    this.title = this.buildTitle();
+    this.menu = this.buildMenu();
+    this.debrief = this.buildDebrief();
     if (this.registry.get('started') === true) this.title.setVisible(false);
 
-    const onToast = (text: string) => this.showToast(text, style(15, TEXT));
+    const onToast = (text: string) => this.showToast(text);
     this.game.events.on('toast', onToast);
     this.events.once('shutdown', () => this.game.events.off('toast', onToast));
 
-    this.input.on('pointerup', () => {
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.hoverMenu(p));
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (this.title.visible) {
         sfx.unlock();
         this.registry.set('started', true);
         this.title.setVisible(false);
+      } else if (this.menu.visible) {
+        this.clickMenu(p);
       } else if (this.debrief.visible) {
         this.scene.get('range').scene.restart();
       }
@@ -83,60 +113,132 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
-    const range = this.scene.get('range') as RangeScene;
-    const s = range.hud;
+    const dt = deltaMs / 1000;
+    const s = (this.scene.get('range') as RangeScene).hud;
     if (!s) return;
 
-    this.stationTitle.setText(s.station?.name ?? '');
-    this.stationBrief.setText(s.station?.brief.join('\n') ?? '');
-    this.checklist.setText(s.checklist.map((c) => `${c.name}  ${c.detail}  ${c.done ? '✓' : '○'}`).join('\n'));
+    // Tutorial card: appears on entering a station, fades once it has had time to be read.
+    const station = s.tutorial ? s.station : undefined;
+    if (station?.id !== this.lastStation) {
+      this.lastStation = station?.id;
+      this.tutorialAge = 0;
+      if (station) {
+        this.tutorialTitle.setText(station.name.toUpperCase());
+        this.tutorialBody.setText(station.brief.join('\n'));
+      }
+    }
+    if (!this.menu.visible) this.tutorialAge += dt;
+    const fade = 1 - Phaser.Math.Clamp((this.tutorialAge - TUTORIAL_HOLD) / TUTORIAL_FADE, 0, 1);
+    this.tutorial.setAlpha(station ? fade : 0);
 
     if (this.fps.visible) this.fps.setText(`${Math.round(this.game.loop.actualFps)} fps  ·  ${this.scale.width}x${this.scale.height}`);
-
-    const w = s.weapon;
-    this.weaponName.setText(w.name.toUpperCase());
-    this.ammo.setText(`${w.mag} / ${w.reserve}`);
-    this.ammo.setColor(w.mag === 0 ? '#ef4444' : TEXT);
-    this.status.setText(`${s.flashlight ? 'LIGHT ON' : 'LIGHT OFF'}${s.dark ? '  ·  DARK ROOM' : ''}`);
-
-    const g = this.reloadBar;
-    g.clear();
-    if (w.reload !== null) {
-      g.fillStyle(0x1f2937, 1);
-      g.fillRect(VIEW_W - 184, VIEW_H - 48, 160, 4);
-      g.fillStyle(0x60a5fa, 1);
-      g.fillRect(VIEW_W - 184, VIEW_H - 48, 160 * w.reload, 4);
-    }
-
-    const p = this.panels;
-    p.clear();
-    p.fillStyle(0x05070a, 0.72);
-    const briefH = 58 + this.stationBrief.height;
-    p.fillRoundedRect(12, 12, 500, s.station ? briefH : 30, 6);
-    p.fillRoundedRect(VIEW_W - 12 - (this.checklist.width + 24), 12, this.checklist.width + 24, 36 + this.checklist.height, 6);
-    p.fillRoundedRect(VIEW_W - 204, VIEW_H - 106, 192, 94, 6);
+    this.drawAmmo(s.weapon);
+    this.light.setText(s.dark ? (s.flashlight ? 'LIGHT ON' : 'LIGHT OFF') : '');
+    this.light.setColor(s.flashlight ? DIM : RED);
 
     this.toasts = this.toasts.filter((t) => {
-      t.age += deltaMs / 1000;
-      t.text.setAlpha(Math.min(1, (3.2 - t.age) / 0.5));
-      if (t.age >= 3.2) t.text.destroy();
-      return t.age < 3.2;
+      t.age += dt;
+      t.text.setAlpha(Math.min(1, t.age / 0.15, (TOAST_LIFE - t.age) / 0.6));
+      if (t.age >= TOAST_LIFE) t.text.destroy();
+      return t.age < TOAST_LIFE;
     });
-    this.toasts.forEach((t, i) => t.text.setY(150 + i * 26));
+    this.toasts.forEach((t, i) => t.text.setY(VIEW_H * 0.72 + i * 22));
 
     if (s.debrief && !this.debrief.visible) this.showDebrief(s.debrief);
     if (!s.debrief && this.debrief.visible) this.debrief.setVisible(false);
   }
 
-  private showToast(text: string, style: Phaser.Types.GameObjects.Text.TextStyle): void {
-    const t = this.add.text(VIEW_W / 2, 150, text, { ...style, backgroundColor: '#05070acc', padding: { x: 10, y: 4 } }).setOrigin(0.5, 0);
-    this.toasts.push({ text: t, age: 0 });
-    if (this.toasts.length > 4) {
-      this.toasts.shift()!.text.destroy();
+  /** The magazine as a row of rounds, with the spare rounds as a number beside it. */
+  private drawAmmo(w: RangeScene['hud']['weapon']): void {
+    const g = this.ammoGfx;
+    g.clear();
+    const round = w.magSize > 15 ? 3 : 4;
+    const gap = 2;
+    const right = VIEW_W - 28 - this.reserve.width - 12;
+    const y = VIEW_H - 41;
+    const shown = w.reload !== null ? Math.round(w.magSize * w.reload) : w.mag;
+    for (let i = 0; i < w.magSize; i++) {
+      const x = right - (w.magSize - i) * (round + gap);
+      const loaded = i < shown;
+      const color = w.reload !== null ? 0x60a5fa : w.mag === 0 ? 0xef4444 : 0xe5e7eb;
+      g.fillStyle(0x000000, 0.45);
+      g.fillRect(x + 1, y + 1, round, 14);
+      g.fillStyle(color, loaded ? 0.95 : 0.15);
+      g.fillRect(x, y, round, 14);
     }
+    this.weaponName.setText(w.name.toUpperCase());
+    this.reserve.setText(`${w.reserve}`);
   }
 
-  private buildTitle(style: (size: number, color?: string, extra?: Phaser.Types.GameObjects.Text.TextStyle) => Phaser.Types.GameObjects.Text.TextStyle): Phaser.GameObjects.Container {
+  private showToast(text: string): void {
+    const t = this.add.text(VIEW_W / 2, VIEW_H * 0.72, text, style(14, TEXT)).setOrigin(0.5, 0).setAlpha(0);
+    this.toasts.push({ text: t, age: 0 });
+    if (this.toasts.length > 3) this.toasts.shift()!.text.destroy();
+  }
+
+  // ---------------------------------------------------------------- menu
+
+  private toggleMenu(): void {
+    if (this.title.visible || this.debrief.visible) return;
+    const open = !this.menu.visible;
+    this.menu.setVisible(open);
+    if (open) this.scene.pause('range');
+    else this.scene.resume('range');
+  }
+
+  private buildMenu(): Phaser.GameObjects.Container {
+    const cx = VIEW_W / 2;
+    const bg = this.add.graphics();
+    bg.fillStyle(0x05070a, 0.82);
+    bg.fillRect(0, 0, VIEW_W, VIEW_H);
+    const items: Phaser.GameObjects.GameObject[] = [
+      bg,
+      this.add.text(cx, 150, 'PAUSED', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
+    ];
+
+    const entries: [() => string, () => void][] = [
+      [() => 'Resume', () => this.toggleMenu()],
+      [() => `Blood effects: ${settings.blood ? 'On' : 'Off'}`, () => { settings.blood = !settings.blood; saveSettings(); }],
+      [() => `Sound: ${settings.sound ? 'On' : 'Off'}`, () => { settings.sound = !settings.sound; sfx.muted = !settings.sound; saveSettings(); }],
+      [() => 'Restart', () => { this.toggleMenu(); this.scene.get('range').scene.restart(); }],
+    ];
+    this.menuItems = entries.map(([label, action], i) => {
+      const text = this.add.text(cx, 220 + i * 40, label(), style(18, TEXT)).setOrigin(0.5);
+      items.push(text);
+      return { text, label, action };
+    });
+
+    items.push(this.add.text(cx, 400, 'CONTROLS', style(11, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5));
+    CONTROLS.forEach(([what, key], i) => {
+      items.push(this.add.text(cx - 12, 426 + i * 22, what, style(13, DIM)).setOrigin(1, 0));
+      items.push(this.add.text(cx + 12, 426 + i * 22, key, style(13, TEXT)));
+    });
+    items.push(this.add.text(cx, VIEW_H - 40, 'Esc to resume', style(11, DIM)).setOrigin(0.5));
+    return this.add.container(0, 0, items).setDepth(80).setVisible(false);
+  }
+
+  private menuItemAt(p: Phaser.Input.Pointer): MenuItem | undefined {
+    // The HUD camera is zoomed, so convert from screen to layout coordinates.
+    const x = p.x / RENDER_SCALE, y = p.y / RENDER_SCALE;
+    return this.menuItems.find((m) => m.text.getBounds().contains(x, y));
+  }
+
+  private hoverMenu(p: Phaser.Input.Pointer): void {
+    if (!this.menu.visible) return;
+    const hovered = this.menuItemAt(p);
+    for (const m of this.menuItems) m.text.setColor(m === hovered ? ACCENT : TEXT);
+  }
+
+  private clickMenu(p: Phaser.Input.Pointer): void {
+    const item = this.menuItemAt(p);
+    if (!item) return;
+    item.action();
+    for (const m of this.menuItems) m.text.setText(m.label());
+  }
+
+  // ---------------------------------------------------------------- title and debrief
+
+  private buildTitle(): Phaser.GameObjects.Container {
     const bg = this.add.graphics();
     bg.fillStyle(0x05070a, 0.86);
     bg.fillRect(0, 0, VIEW_W, VIEW_H);
@@ -152,12 +254,13 @@ export class HudScene extends Phaser.Scene {
         'You only know what you see. Slow is smooth.',
       ].join('\n'), style(15, DIM, { align: 'center', lineSpacing: 6 })).setOrigin(0.5, 0),
       this.add.text(cx, 500, 'CLICK TO BEGIN', style(18, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 540, `v${__APP_VERSION__}  ·  Prototype: the Range`, style(11, DIM)).setOrigin(0.5),
+      this.add.text(cx, 530, 'Esc for settings and controls', style(12, DIM)).setOrigin(0.5),
+      this.add.text(cx, VIEW_H - 40, `v${__APP_VERSION__}  ·  Prototype: the Range`, style(11, DIM)).setOrigin(0.5),
     ];
     return this.add.container(0, 0, items).setDepth(100);
   }
 
-  private buildDebrief(style: (size: number, color?: string, extra?: Phaser.Types.GameObjects.Text.TextStyle) => Phaser.Types.GameObjects.Text.TextStyle): Phaser.GameObjects.Container {
+  private buildDebrief(): Phaser.GameObjects.Container {
     const bg = this.add.graphics();
     bg.fillStyle(0x05070a, 0.75);
     bg.fillRect(0, 0, VIEW_W, VIEW_H);
@@ -194,4 +297,13 @@ export class HudScene extends Phaser.Scene {
     ].join('\n'));
     this.debrief.setVisible(true);
   }
+}
+
+/** HUD text style: crisp at any render scale, with a soft shadow so it reads over the game. */
+function style(size: number, color = TEXT, extra: Style = {}): Style {
+  return {
+    fontFamily: FONT, fontSize: `${size}px`, color, resolution: 2,
+    shadow: { offsetX: 0, offsetY: 1, color: '#000000', blur: 4, fill: true },
+    ...extra,
+  };
 }

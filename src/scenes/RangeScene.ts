@@ -5,13 +5,14 @@ import { blocksMovement, blocksSight, parseLevel, type ParsedLevel, type TileKin
 import { buildWallSegments, castRay, visibilityPolygon, type RayHit } from '../core/visibility';
 import { KILLHOUSE_ROLL, RANGE_LABELS, RANGE_MAP, stationAt, type StationDef } from '../levels/range';
 import { sfx } from '../game/audio';
+import { settings } from '../game/settings';
 import { Door } from '../game/Door';
 import { Effects } from '../game/Effects';
 import { Fog } from '../game/Fog';
 import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem } from '../game/Noise';
 import { Player } from '../game/Player';
-import { RangeStations, type ChecklistItem } from '../game/RangeStations';
+import { RangeStations } from '../game/RangeStations';
 import { Target, type TargetKind } from '../game/Target';
 import type { WeaponId } from '../game/weapons';
 
@@ -28,8 +29,9 @@ export interface Debrief {
 }
 
 export interface HudState {
+  /** True on the Range, where each station shows its tutorial text. */
+  tutorial: boolean;
   station: StationDef | undefined;
-  checklist: ChecklistItem[];
   weapon: { name: string; mag: number; magSize: number; reserve: number; reload: number | null };
   flashlight: boolean;
   dark: boolean;
@@ -346,7 +348,7 @@ export class RangeScene extends Phaser.Scene {
       const dx = Math.cos(a), dy = Math.sin(a);
       const shot = this.traceShot(a, w.def.range);
       if (shot.target) {
-        this.effects.targetHit(shot.x, shot.y, dx, dy);
+        this.hitEffect(shot.target, shot.x, shot.y, dx, dy);
         this.onTargetHit(shot.target);
         landed = true;
       } else if (shot.dist < w.def.range) {
@@ -361,6 +363,16 @@ export class RangeScene extends Phaser.Scene {
     this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
     sfx.shot(w.def.id !== 'pistol');
     this.noise.emit({ x: p.x, y: p.y, radius: w.def.noise, source: 'player' }, p.x, p.y);
+  }
+
+  private hitEffect(t: Target, x: number, y: number, dx: number, dy: number): void {
+    if (t.prop) {
+      this.effects.cardboardHit(x, y, dx, dy);
+      return;
+    }
+    if (!settings.blood) return;
+    this.effects.bloodHit(x, y, dx, dy);
+    if (t.state === 'up') this.effects.bloodPool(t.x, t.y);
   }
 
   private onTargetHit(t: Target): void {
@@ -545,8 +557,8 @@ export class RangeScene extends Phaser.Scene {
     const w = p.weapon;
     const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
     this.hud = {
+      tutorial: true,
       station: stationAt(ptx, pty),
-      checklist: this.stations.checklist(),
       weapon: {
         name: w.def.name,
         mag: w.mag,

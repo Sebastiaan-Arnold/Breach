@@ -23,6 +23,8 @@ const RAIL_TICK = 0.55;
 
 /** A cardboard target on the Range. Real enemies will share its visibility and hit rules. */
 export class Target {
+  /** Cardboard props never bleed; people (enemies and civilians, from the first mission) do. */
+  readonly prop: boolean = true;
   readonly kind: TargetKind;
   readonly station: StationId;
   state: TargetState;
@@ -37,6 +39,7 @@ export class Target {
   private downTimer = 0;
   private railDir = 1;
   private railTimer = 0;
+  private seen = false;
 
   constructor(private scene: Phaser.Scene, private opts: TargetOpts, depth: number) {
     this.kind = opts.kind;
@@ -46,7 +49,6 @@ export class Target {
     this.state = opts.popup ? 'hidden' : 'up';
     this.gfx = scene.add.graphics();
     this.container = scene.add.container(this.x, this.y, [this.gfx]).setDepth(depth).setVisible(false);
-    this.container.rotation = Math.PI;
     this.redraw();
   }
 
@@ -75,6 +77,11 @@ export class Target {
    */
   update(dt: number, visible: boolean, px: number, py: number): boolean {
     this.container.setVisible(visible);
+    // Targets are set up facing the shooter: turn towards the operator the first time they're seen.
+    if (visible && !this.seen) {
+      this.seen = true;
+      this.container.rotation = Math.atan2(py - this.y, px - this.x);
+    }
     let noisy = false;
 
     if (this.state === 'hidden') {
