@@ -37,7 +37,7 @@ export const COLORS = {
 } as const;
 
 export const VISION = {
-  halfFov: 50 * DEG,
+  halfFov: 30 * DEG,
   rangeLit: 680,
   rangeDarkFlashlight: 300,
   rangeDarkNoLight: 90,
@@ -59,10 +59,8 @@ export const MOVE = {
 /** Noise radii in px. Enemy AI will listen for these; for now they drive the on-screen ripples. */
 export const NOISE = {
   sprintStep: 280,
-  doorSlow: 110,
+  doorOpen: 110,
   doorClose: 110,
-  peek: 45,
-  kick: 760,
   reload: 70,
 };
 

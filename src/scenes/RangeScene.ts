@@ -5,8 +5,7 @@ import { blocksMovement, blocksSight, parseLevel, type ParsedLevel, type TileKin
 import { buildWallSegments, castRay, visibilityPolygon, type RayHit } from '../core/visibility';
 import { KILLHOUSE_ROLL, RANGE_LABELS, RANGE_MAP, stationAt, type StationDef } from '../levels/range';
 import { sfx } from '../game/audio';
-import { Door, type DoorAction } from '../game/Door';
-import { DoorMenu } from '../game/DoorMenu';
+import { Door } from '../game/Door';
 import { Fog } from '../game/Fog';
 import { NoiseSystem } from '../game/Noise';
 import { Player } from '../game/Player';
@@ -14,7 +13,7 @@ import { RangeStations, type ChecklistItem } from '../game/RangeStations';
 import { Target, type TargetKind } from '../game/Target';
 import type { WeaponId } from '../game/weapons';
 
-const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, player: 6, glow: 7, fog: 10, ripples: 20, laser: 21, menu: 30 };
+const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, player: 6, glow: 7, fog: 10, ripples: 20, laser: 21 };
 const RAIL_NOISE = 250;
 const CAMERA_LOOKAHEAD = 70;
 
@@ -54,7 +53,6 @@ export class RangeScene extends Phaser.Scene {
   private player!: Player;
   private fog!: Fog;
   private noise!: NoiseSystem;
-  private menu!: DoorMenu;
   private stations!: RangeStations;
   private laserGfx!: Phaser.GameObjects.Graphics;
   private decalGfx!: Phaser.GameObjects.Graphics;
@@ -65,7 +63,6 @@ export class RangeScene extends Phaser.Scene {
   private impacts: Impact[] = [];
   private muzzleFlash = 0;
   private triggerPressed = false;
-  private suppressUntilRelease = false;
   private lookX = 0;
   private lookY = 0;
   private lastStation: StationDef | undefined;
@@ -85,7 +82,6 @@ export class RangeScene extends Phaser.Scene {
     this.impacts = [];
     this.muzzleFlash = 0;
     this.triggerPressed = false;
-    this.suppressUntilRelease = false;
     this.lastStation = undefined;
     this.announced = false;
     this.stats = { shots: 0, hits: 0 };
@@ -112,7 +108,6 @@ export class RangeScene extends Phaser.Scene {
     this.noise = new NoiseSystem(this, DEPTH.ripples);
     this.laserGfx = this.add.graphics().setDepth(DEPTH.laser);
     this.decalGfx = this.add.graphics().setDepth(DEPTH.decals);
-    this.menu = new DoorMenu(this, DEPTH.menu);
     this.stations = new RangeStations(this.targets);
 
     // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
@@ -154,8 +149,6 @@ export class RangeScene extends Phaser.Scene {
     if (p.sprinting) this.stations.onSprint(dt, ptx, pty);
 
     for (const d of this.doors) d.update(dt);
-    if (this.menu.door && Phaser.Math.Distance.Between(p.x, p.y, this.menu.door.cx, this.menu.door.cy) > REACH + 24) this.menu.close();
-    this.menu.setHover(this.menu.optionAt(wp.x, wp.y));
 
     this.updateVision(ptx, pty);
 
@@ -164,8 +157,7 @@ export class RangeScene extends Phaser.Scene {
     }
 
     // Shooting: semi-auto fires per click, automatics while held.
-    if (!pointer.leftButtonDown()) this.suppressUntilRelease = false;
-    if (active && !this.menu.isOpen && !this.suppressUntilRelease) {
+    if (active) {
       if (this.triggerPressed || (pointer.leftButtonDown() && p.weapon.def.auto)) this.tryFire(this.triggerPressed);
     }
     this.triggerPressed = false;
@@ -514,26 +506,15 @@ export class RangeScene extends Phaser.Scene {
     return Phaser.Math.Distance.Between(this.player.x, this.player.y, d.cx, d.cy) <= REACH;
   }
 
-  private doorAction(door: Door, action: DoorAction): void {
+  private toggleDoor(door: Door): void {
     const p = this.player;
-    if (action === 'close' && circleIntersectsRect(p.x, p.y, MOVE.radius + 1, { x: door.tx * TILE, y: door.ty * TILE, w: TILE, h: TILE })) {
+    if (door.state === 'open' && circleIntersectsRect(p.x, p.y, MOVE.radius + 1, { x: door.tx * TILE, y: door.ty * TILE, w: TILE, h: TILE })) {
       this.toast('Step out of the doorway first');
       return;
     }
-    const radius = door.act(action, p.x, p.y);
+    const radius = door.toggle(p.x, p.y);
     this.noise.emit({ x: door.cx, y: door.cy, radius, source: 'player' }, p.x, p.y);
-    if (action === 'kick') {
-      sfx.kick();
-      this.cameras.main.shake(120, 0.004);
-      // Anyone right behind a kicked door is stunned.
-      const far = door.farSide();
-      for (const t of this.targets) {
-        if (Phaser.Math.Distance.Between(t.x, t.y, far.x, far.y) < TILE * 1.4) t.stun();
-      }
-    } else {
-      sfx.creak({ vol: action === 'peek' ? 0.6 : 1 });
-    }
-    this.stations.onDoor(stationAt(door.tx, door.ty)?.id, action);
+    sfx.creak();
   }
 
   // ---------------------------------------------------------------- input
@@ -550,17 +531,8 @@ export class RangeScene extends Phaser.Scene {
       if (pointer.rightButtonDown()) {
         const under = this.doorUnder(wp.x, wp.y);
         const door = under && this.inReach(under) ? under : this.nearestDoor();
-        if (door) this.menu.open(door, wp.x, wp.y);
+        if (door) this.toggleDoor(door);
         else if (under) this.toast('Get closer to the door');
-        else this.menu.close();
-        return;
-      }
-
-      if (this.menu.isOpen) {
-        const action = this.menu.optionFor(this.menu.optionAt(wp.x, wp.y));
-        if (action && this.menu.door) this.doorAction(this.menu.door, action);
-        this.menu.close();
-        this.suppressUntilRelease = true;
         return;
       }
       this.triggerPressed = true;
@@ -573,12 +545,6 @@ export class RangeScene extends Phaser.Scene {
         return;
       }
       const digit = /^Digit([1-4])$/.exec(e.code);
-      if (digit && this.menu.isOpen) {
-        const action = this.menu.optionFor(Number(digit[1]) - 1);
-        if (action && this.menu.door) this.doorAction(this.menu.door, action);
-        this.menu.close();
-        return;
-      }
       if (digit) {
         this.switchWeapon((['pistol', 'smg', 'shotgun', 'rifle'] as WeaponId[])[Number(digit[1]) - 1]);
         return;
@@ -586,7 +552,7 @@ export class RangeScene extends Phaser.Scene {
       switch (e.code) {
         case 'KeyE': {
           const d = this.nearestDoor();
-          if (d) this.doorAction(d, d.state === 'open' ? 'close' : 'slow');
+          if (d) this.toggleDoor(d);
           break;
         }
         case 'KeyR':
@@ -595,9 +561,6 @@ export class RangeScene extends Phaser.Scene {
         case 'KeyF':
           this.player.flashlight = !this.player.flashlight;
           sfx.toggle();
-          break;
-        case 'Escape':
-          this.menu.close();
           break;
       }
     });
@@ -628,7 +591,6 @@ export class RangeScene extends Phaser.Scene {
       civiliansHit,
       stars: [true, civiliansHit === 0, true],
     };
-    this.menu.close();
     sfx.secured();
   }
 

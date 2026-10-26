@@ -1,5 +1,4 @@
 import { RANGE_STATIONS, stationAt, type StationDef, type StationId } from '../levels/range';
-import type { DoorAction } from './Door';
 import type { Target } from './Target';
 
 export interface ChecklistItem {
@@ -18,7 +17,6 @@ export class RangeStations {
   private sprintTime = 0;
   private reachedEnd = false;
   private laneHits = 0;
-  private doorMethods = new Set<DoorAction>();
 
   constructor(private targets: readonly Target[]) {}
 
@@ -32,10 +30,6 @@ export class RangeStations {
 
   onTargetHit(t: Target): void {
     if (t.station === 'targets') this.laneHits++;
-  }
-
-  onDoor(station: StationId | undefined, action: DoorAction): void {
-    if (station === 'doors') this.doorMethods.add(action);
   }
 
   /** Returns stations that were completed by this check. */
@@ -65,10 +59,7 @@ export class RangeStations {
         return this.reachedEnd && this.sprintTime >= SPRINT_NEEDED;
       case 'targets':
         return this.laneHits >= LANE_HITS_NEEDED;
-      case 'doors': {
-        const s = this.suspects('doors');
-        return this.doorMethods.has('peek') && this.doorMethods.has('kick') && this.doorMethods.has('slow') && s.down === s.total;
-      }
+      case 'doors':
       case 'shoot':
       case 'killhouse': {
         const s = this.suspects(id);
@@ -84,13 +75,9 @@ export class RangeStations {
         return `sprint ${tick(this.sprintTime >= SPRINT_NEEDED)}  end ${tick(this.reachedEnd)}`;
       case 'targets':
         return `hits ${Math.min(this.laneHits, LANE_HITS_NEEDED)}/${LANE_HITS_NEEDED}`;
-      case 'doors': {
-        const s = this.suspects('doors');
-        const m = this.doorMethods;
-        return `peek ${tick(m.has('peek'))} kick ${tick(m.has('kick'))} slow ${tick(m.has('slow'))}  ${s.down}/${s.total}`;
-      }
+      case 'doors':
       case 'shoot': {
-        const s = this.suspects('shoot');
+        const s = this.suspects(id);
         return `suspects ${s.down}/${s.total}`;
       }
       case 'killhouse':

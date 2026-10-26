@@ -3,18 +3,15 @@ import { COLORS, NOISE, TILE } from '../config';
 import { DEG, type Segment } from '../core/geometry';
 import type { DoorSpec } from '../core/grid';
 
-export type DoorState = 'closed' | 'peek' | 'open';
-export type DoorAction = 'slow' | 'kick' | 'peek' | 'close';
+export type DoorState = 'closed' | 'open';
 
-const PEEK_ANGLE = 22 * DEG;
 const PASSABLE_ANGLE = 70 * DEG;
-const SPEED: Record<DoorAction, number> = { slow: 1.7, kick: 16, peek: 1.0, close: 2.6 };
-const NOISE_FOR: Record<DoorAction, number> = { slow: NOISE.doorSlow, kick: NOISE.kick, peek: NOISE.peek, close: NOISE.doorClose };
+const OPEN_SPEED = 2.2;
+const CLOSE_SPEED = 2.6;
 
 /**
  * A door is a leaf pivoting on a hinge at one side of its tile. Its leaf is a real line segment
- * in the line-of-sight system, so cracking it open (peek) naturally reveals a thin slice of the
- * room behind it.
+ * in the line-of-sight system, so the room behind it opens up gradually as it swings.
  */
 export class Door {
   readonly tx: number;
@@ -25,8 +22,6 @@ export class Door {
   readonly cx: number;
   readonly cy: number;
   state: DoorState = 'closed';
-  /** Set when the door was kicked open; enemies right behind it are stunned. */
-  lastAction: DoorAction | null = null;
 
   private angle: number;
   private targetAngle: number;
@@ -57,17 +52,6 @@ export class Door {
     return Math.abs(this.angle - this.closedAngle) < PASSABLE_ANGLE;
   }
 
-  get moving(): boolean {
-    return this.angle !== this.targetAngle;
-  }
-
-  /** The actions that make sense for the door's current state, in menu order. */
-  options(): DoorAction[] {
-    if (this.state === 'closed') return ['slow', 'kick', 'peek'];
-    if (this.state === 'peek') return ['slow', 'kick', 'close'];
-    return ['close'];
-  }
-
   segment(): Segment {
     return {
       ax: this.hingeX,
@@ -77,37 +61,21 @@ export class Door {
     };
   }
 
-  /** Applies an action from someone standing at (fromX, fromY). Returns the noise radius. */
-  act(action: DoorAction, fromX: number, fromY: number): number {
-    if (this.state === 'closed' && action !== 'close') {
+  /** Opens or closes the door for someone standing at (fromX, fromY). Returns the noise radius. */
+  toggle(fromX: number, fromY: number): number {
+    if (this.state === 'closed') {
       // Doors swing away from whoever opens them.
       if (this.spec.orientation === 'h') this.swingDir = fromY < this.cy ? 1 : -1;
       else this.swingDir = fromX < this.cx ? -1 : 1;
+      this.state = 'open';
+      this.targetAngle = this.closedAngle + this.swingDir * 90 * DEG;
+      this.speed = OPEN_SPEED;
+      return NOISE.doorOpen;
     }
-    this.lastAction = action;
-    this.speed = SPEED[action];
-    switch (action) {
-      case 'slow':
-      case 'kick':
-        this.state = 'open';
-        this.targetAngle = this.closedAngle + this.swingDir * 90 * DEG;
-        break;
-      case 'peek':
-        this.state = 'peek';
-        this.targetAngle = this.closedAngle + this.swingDir * PEEK_ANGLE;
-        break;
-      case 'close':
-        this.state = 'closed';
-        this.targetAngle = this.closedAngle;
-        break;
-    }
-    return NOISE_FOR[action];
-  }
-
-  /** Rough position just past the door on the side it swings into. */
-  farSide(): { x: number; y: number } {
-    if (this.spec.orientation === 'h') return { x: this.cx, y: this.cy + this.swingDir * TILE };
-    return { x: this.cx - this.swingDir * TILE, y: this.cy };
+    this.state = 'closed';
+    this.targetAngle = this.closedAngle;
+    this.speed = CLOSE_SPEED;
+    return NOISE.doorClose;
   }
 
   update(dt: number): void {

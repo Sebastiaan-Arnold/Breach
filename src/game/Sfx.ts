@@ -46,11 +46,6 @@ export class Sfx {
     this.noise(0.05, 2200, 'bandpass', 0.4, o, 0.35);
   }
 
-  kick(o: SfxOpts = {}): void {
-    this.tone(95, 38, 0.28, 'sine', 1, o);
-    this.noise(0.22, 900, 'lowpass', 0.7, o);
-  }
-
   creak(o: SfxOpts = {}): void {
     const vol = 0.06 * (o.vol ?? 1);
     this.sweep(170, 260, 0.55, vol, o.pan);

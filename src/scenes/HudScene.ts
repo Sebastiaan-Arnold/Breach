@@ -47,7 +47,7 @@ export class HudScene extends Phaser.Scene {
     this.checklist = this.add.text(VIEW_W - 24, 40, '', style(13, TEXT, { align: 'right', lineSpacing: 6 })).setOrigin(1, 0);
 
     this.add.text(24, VIEW_H - 30,
-      'WASD move · Shift sprint · Mouse aim · LMB fire · RMB door menu · E door · R reload · F light · 1-4 guns',
+      'WASD move · Shift sprint · Mouse aim · LMB fire · E / RMB door · R reload · F light · 1-4 guns',
       style(11, DIM));
 
     this.weaponName = this.add.text(VIEW_W - 24, VIEW_H - 98, '', style(12, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);

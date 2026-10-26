@@ -35,7 +35,6 @@ export class Target {
   private gfx: Phaser.GameObjects.Graphics;
   private popTimer = -1;
   private downTimer = 0;
-  private stunTimer = 0;
   private railDir = 1;
   private railTimer = 0;
 
@@ -70,10 +69,6 @@ export class Target {
     this.scene.tweens.add({ targets: this.container, scale: 0.8, duration: 160, ease: 'Quad.Out' });
   }
 
-  stun(): void {
-    this.stunTimer = 1.4;
-  }
-
   /**
    * @param visible whether the operator can currently see this spot
    * @returns true when the rail target made a noise this frame
@@ -83,7 +78,7 @@ export class Target {
     let noisy = false;
 
     if (this.state === 'hidden') {
-      if (visible && this.popTimer < 0) this.popTimer = 0.22 + this.stunTimer;
+      if (visible && this.popTimer < 0) this.popTimer = 0.22;
       if (this.popTimer >= 0 && (this.popTimer -= dt) <= 0) {
         this.state = 'up';
         this.container.rotation = Math.atan2(py - this.y, px - this.x);
@@ -112,13 +107,7 @@ export class Target {
         noisy = true;
       }
       this.container.x = this.x;
-      if (this.state === 'up' && this.stunTimer <= 0) this.container.rotation = Math.atan2(py - this.y, px - this.x);
-    }
-
-    if (this.stunTimer > 0) {
-      this.stunTimer -= dt;
-      this.gfx.rotation = this.state === 'up' ? Math.sin(this.stunTimer * 40) * 0.25 : 0;
-      if (this.stunTimer <= 0) this.gfx.rotation = 0;
+      if (this.state === 'up') this.container.rotation = Math.atan2(py - this.y, px - this.x);
     }
     return noisy;
   }

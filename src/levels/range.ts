@@ -73,7 +73,7 @@ export const RANGE_STATIONS: readonly StationDef[] = [
   {
     id: 'doors',
     name: 'Door station',
-    brief: ['Right click a door: open slowly, kick or peek.', 'Kicking is fast but alerts the whole floor. E opens or closes the nearest door.', 'Use all three on the booths and clear them.'],
+    brief: ['E or right click opens or closes a door.', 'Stop before a door: the room opens up as it swings.', 'Clear all three booths.'],
     zone: { x0: 41, y0: 15, x1: 58, y1: 32 },
   },
   {
@@ -108,9 +108,6 @@ export const RANGE_LABELS: readonly FloorLabel[] = [
   { text: 'MOVEMENT LANE  >>>', tx: 22, ty: 2.1, size: 22 },
   { text: 'TARGET LANE', tx: 52.2, ty: 6, size: 16 },
   { text: 'FIRING LINE', tx: 51.2, ty: 13.6, size: 11 },
-  { text: 'PEEK', tx: 54.2, ty: 17.1, size: 16 },
-  { text: 'KICK', tx: 54.2, ty: 22.1, size: 16 },
-  { text: 'SLOW', tx: 54.2, ty: 27.1, size: 16 },
   { text: "<<<  SHOOT OR DON'T", tx: 49.5, ty: 37.2, size: 18 },
   { text: 'KILL HOUSE', tx: 10.5, ty: 29.4, size: 22 },
 ];

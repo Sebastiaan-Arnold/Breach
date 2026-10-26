@@ -11,12 +11,12 @@ The full design lives in [docs/concept.md](docs/concept.md).
 The current build is the prototype from the roadmap: the police academy Range, which doubles as
 the test bed for the core feel. Its question: does walking through a door into darkness feel tense?
 
-- **Vision and fog of war:** a 100° raycast vision cone plus a short peripheral radius, blocked by
+- **Vision and fog of war:** a 60° raycast vision cone plus a short peripheral radius, blocked by
   walls and door leaves. Three layers: visible, remembered (dim, no live entities) and unknown (black).
 - **Laser aim:** the laser shows exactly where a shot lands. It wobbles while you move or turn
   and steadies when you stand still. Heavier guns wobble more and turn more slowly.
-- **Doors:** right-click for open slowly, kick (loud, stuns anyone right behind it) or peek (a
-  cracked door reveals a thin slice of the room). E opens or closes the nearest door.
+- **Doors:** E or right-click opens or closes a door. The leaf is part of line of sight, so the
+  room opens up as the door swings. (Kick and peek from the concept are parked for later.)
 - **Sound as information:** your own noise shows as a ring of how far it carries. World sounds
   show as vague ripples through walls.
 - **Five stations:** movement lane, target lane, door station, shoot or don't, and a dark kill
@@ -29,8 +29,7 @@ the test bed for the core feel. Its question: does walking through a door into d
 | Move | WASD (or arrows) |
 | Sprint (loud) | Shift |
 | Aim / fire | Mouse / left click |
-| Door menu | Right click on a door |
-| Open or close nearest door | E |
+| Open or close a door | E (nearest) or right click on it |
 | Reload | R |
 | Flashlight | F |
 | Switch gun (Range only, for testing handling) | 1–4 |
