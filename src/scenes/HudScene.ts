@@ -1,48 +1,44 @@
 import Phaser from 'phaser';
-import { FONT, RENDER_SCALE, VIEW_H, VIEW_W } from '../config';
+import { RENDER_SCALE, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
 import { saveSettings, settings } from '../game/settings';
-import type { RangeScene } from './RangeScene';
-
-const TEXT = '#e5e7eb';
-const DIM = '#9ca3af';
-const ACCENT = '#60a5fa';
-const GOLD = '#facc15';
-const RED = '#ef4444';
+import type { GameScene, HudState, Outcome } from './GameScene';
+import { ACCENT, DIM, GOLD, RED, setupScreenCamera, style, TEXT } from './ui';
 
 /** How long a station's tutorial text stays up after entering it, then how long it fades. */
 const TUTORIAL_HOLD = 9;
 const TUTORIAL_FADE = 1.2;
 const TOAST_LIFE = 3;
+const BAR_HEIGHT = 74;
 
 const CONTROLS: [string, string][] = [
   ['Move', 'WASD'],
   ['Sprint (loud)', 'Shift'],
   ['Aim / fire', 'Mouse / left click'],
   ['Open or close a door', 'E or right click'],
+  ['Secure a civilian', 'Hold E next to them'],
   ['Reload', 'R'],
-  ['Flashlight', 'F'],
   ['Switch gun (Range only)', '1-4'],
+  ['Skip intro', 'Space'],
   ['Frame rate', 'F3'],
 ];
-
-type Style = Phaser.Types.GameObjects.Text.TextStyle;
 
 interface Toast {
   text: Phaser.GameObjects.Text;
   age: number;
 }
 
-interface MenuItem {
+interface Button {
   text: Phaser.GameObjects.Text;
   label: () => string;
   action: () => void;
+  owner: Phaser.GameObjects.Container;
 }
 
 /**
- * Screen-space UI on top of the game. Deliberately minimal: a small ammo readout, short toasts
- * and, only in the tutorial, a station card that fades once read. Everything else (settings,
- * controls) lives in the Esc menu.
+ * Screen-space UI on top of the game. Deliberately minimal: ammo and armour in a corner, short
+ * messages and, only in the tutorial, a station card that fades once read. Settings and
+ * controls live in the Esc menu.
  */
 export class HudScene extends Phaser.Scene {
   private tutorial!: Phaser.GameObjects.Container;
@@ -53,15 +49,21 @@ export class HudScene extends Phaser.Scene {
 
   private weaponName!: Phaser.GameObjects.Text;
   private reserve!: Phaser.GameObjects.Text;
-  private light!: Phaser.GameObjects.Text;
-  private ammoGfx!: Phaser.GameObjects.Graphics;
+  private gfx!: Phaser.GameObjects.Graphics;
+  private overlay!: Phaser.GameObjects.Graphics;
+  private subtitle!: Phaser.GameObjects.Text;
+  private skipHint!: Phaser.GameObjects.Text;
+  private securing!: Phaser.GameObjects.Text;
 
-  private title!: Phaser.GameObjects.Container;
   private menu!: Phaser.GameObjects.Container;
-  private menuItems: MenuItem[] = [];
   private debrief!: Phaser.GameObjects.Container;
-  private debriefBody!: Phaser.GameObjects.Text;
+  private debriefTitle!: Phaser.GameObjects.Text;
   private debriefStars!: Phaser.GameObjects.Text;
+  private debriefBody!: Phaser.GameObjects.Text;
+  private debriefNote!: Phaser.GameObjects.Text;
+  private debriefBg!: Phaser.GameObjects.Graphics;
+  private shownOutcome: Outcome | null = null;
+  private buttons: Button[] = [];
   private toasts: Toast[] = [];
   private fps!: Phaser.GameObjects.Text;
 
@@ -69,54 +71,90 @@ export class HudScene extends Phaser.Scene {
     super('hud');
   }
 
-  create(): void {
-    // Lay out in logical 1280x720 coordinates whatever the render scale.
-    this.cameras.main.setOrigin(0, 0).setZoom(RENDER_SCALE);
-    sfx.muted = !settings.sound;
+  private get game_(): GameScene {
+    return this.scene.get('game') as GameScene;
+  }
 
+  create(): void {
+    setupScreenCamera(this);
+    this.tutorialAge = 0;
+    this.lastStation = undefined;
+    this.shownOutcome = null;
+    this.buttons = [];
+    this.toasts = [];
+
+    this.overlay = this.add.graphics();
     this.tutorialTitle = this.add.text(0, 0, '', style(13, ACCENT, { fontStyle: 'bold' }));
     this.tutorialBody = this.add.text(0, 22, '', style(13, TEXT, { lineSpacing: 5, wordWrap: { width: 460 } }));
     this.tutorial = this.add.container(28, 24, [this.tutorialTitle, this.tutorialBody]).setAlpha(0);
 
-    this.ammoGfx = this.add.graphics();
+    this.gfx = this.add.graphics();
     this.weaponName = this.add.text(VIEW_W - 28, VIEW_H - 62, '', style(11, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
     this.reserve = this.add.text(VIEW_W - 28, VIEW_H - 44, '', style(15, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
-    this.light = this.add.text(VIEW_W - 28, VIEW_H - 82, '', style(10, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
+    this.subtitle = this.add.text(VIEW_W / 2, VIEW_H - BAR_HEIGHT - 34, '', style(16, TEXT)).setOrigin(0.5, 0);
+    this.skipHint = this.add.text(VIEW_W - 28, VIEW_H - 44, 'Space to skip', style(11, DIM)).setOrigin(1, 0);
+    this.securing = this.add.text(VIEW_W / 2, VIEW_H * 0.62, 'Securing', style(12, TEXT)).setOrigin(0.5, 0);
 
     // F3 toggles a frame-rate readout, handy for checking performance on different machines.
     this.fps = this.add.text(VIEW_W - 16, 12, '', style(11, DIM)).setOrigin(1, 0).setVisible(false);
     this.input.keyboard?.addCapture('F3');
     this.input.keyboard?.on('keydown-F3', () => this.fps.setVisible(!this.fps.visible));
     this.input.keyboard?.on('keydown-ESC', () => this.toggleMenu());
+    this.input.keyboard?.on('keydown-ENTER', () => {
+      if (this.debrief.visible) this.buttons.find((b) => b.owner === this.debrief)?.action();
+    });
 
-    this.title = this.buildTitle();
     this.menu = this.buildMenu();
     this.debrief = this.buildDebrief();
-    if (this.registry.get('started') === true) this.title.setVisible(false);
 
     const onToast = (text: string) => this.showToast(text);
     this.game.events.on('toast', onToast);
     this.events.once('shutdown', () => this.game.events.off('toast', onToast));
 
-    this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.hoverMenu(p));
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      const hovered = this.buttonAt(p);
+      for (const b of this.buttons) b.text.setColor(b === hovered ? ACCENT : TEXT);
+    });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
-      if (this.title.visible) {
-        sfx.unlock();
-        this.registry.set('started', true);
-        this.title.setVisible(false);
-      } else if (this.menu.visible) {
-        this.clickMenu(p);
-      } else if (this.debrief.visible) {
-        this.scene.get('range').scene.restart();
-      }
+      const b = this.buttonAt(p);
+      if (!b) return;
+      b.action();
+      for (const x of this.buttons) x.text.setText(x.label());
     });
   }
 
   update(_time: number, deltaMs: number): void {
     const dt = deltaMs / 1000;
-    const s = (this.scene.get('range') as RangeScene).hud;
+    const s = this.game_.hud;
     if (!s) return;
 
+    this.updateTutorial(s, dt);
+    if (this.fps.visible) this.fps.setText(`${Math.round(this.game.loop.actualFps)} fps  ·  ${this.scale.width}x${this.scale.height}`);
+
+    const cut = s.cutscene;
+    this.gfx.clear();
+    this.overlay.clear();
+    if (!cut) this.drawStatus(s);
+    for (const t of [this.weaponName, this.reserve]) t.setVisible(!cut);
+    this.drawOverlay(s);
+    this.subtitle.setText(cut?.subtitle ?? '');
+    this.skipHint.setVisible(!!cut);
+    this.securing.setVisible(s.securing !== null);
+
+    this.toasts = this.toasts.filter((t) => {
+      t.age += dt;
+      t.text.setAlpha(Math.min(1, t.age / 0.15, (TOAST_LIFE - t.age) / 0.6));
+      if (t.age >= TOAST_LIFE) t.text.destroy();
+      return t.age < TOAST_LIFE;
+    });
+    this.toasts.forEach((t, i) => t.text.setY(VIEW_H * 0.72 + i * 22));
+
+    if (s.outcome && s.outcome !== this.shownOutcome) this.showDebrief(s.outcome);
+  }
+
+  // ---------------------------------------------------------------- in-game readouts
+
+  private updateTutorial(s: HudState, dt: number): void {
     // Tutorial card: appears on entering a station, fades once it has had time to be read.
     const station = s.tutorial ? s.station : undefined;
     if (station?.id !== this.lastStation) {
@@ -130,28 +168,12 @@ export class HudScene extends Phaser.Scene {
     if (!this.menu.visible) this.tutorialAge += dt;
     const fade = 1 - Phaser.Math.Clamp((this.tutorialAge - TUTORIAL_HOLD) / TUTORIAL_FADE, 0, 1);
     this.tutorial.setAlpha(station ? fade : 0);
-
-    if (this.fps.visible) this.fps.setText(`${Math.round(this.game.loop.actualFps)} fps  ·  ${this.scale.width}x${this.scale.height}`);
-    this.drawAmmo(s.weapon);
-    this.light.setText(s.dark ? (s.flashlight ? 'LIGHT ON' : 'LIGHT OFF') : '');
-    this.light.setColor(s.flashlight ? DIM : RED);
-
-    this.toasts = this.toasts.filter((t) => {
-      t.age += dt;
-      t.text.setAlpha(Math.min(1, t.age / 0.15, (TOAST_LIFE - t.age) / 0.6));
-      if (t.age >= TOAST_LIFE) t.text.destroy();
-      return t.age < TOAST_LIFE;
-    });
-    this.toasts.forEach((t, i) => t.text.setY(VIEW_H * 0.72 + i * 22));
-
-    if (s.debrief && !this.debrief.visible) this.showDebrief(s.debrief);
-    if (!s.debrief && this.debrief.visible) this.debrief.setVisible(false);
   }
 
-  /** The magazine as a row of rounds, with the spare rounds as a number beside it. */
-  private drawAmmo(w: RangeScene['hud']['weapon']): void {
-    const g = this.ammoGfx;
-    g.clear();
+  /** Ammo as a row of rounds with spare rounds beside it; armour and health above. */
+  private drawStatus(s: HudState): void {
+    const g = this.gfx;
+    const w = s.weapon;
     const round = w.magSize > 15 ? 3 : 4;
     const gap = 2;
     const right = VIEW_W - 28 - this.reserve.width - 12;
@@ -159,15 +181,50 @@ export class HudScene extends Phaser.Scene {
     const shown = w.reload !== null ? Math.round(w.magSize * w.reload) : w.mag;
     for (let i = 0; i < w.magSize; i++) {
       const x = right - (w.magSize - i) * (round + gap);
-      const loaded = i < shown;
       const color = w.reload !== null ? 0x60a5fa : w.mag === 0 ? 0xef4444 : 0xe5e7eb;
       g.fillStyle(0x000000, 0.45);
       g.fillRect(x + 1, y + 1, round, 14);
-      g.fillStyle(color, loaded ? 0.95 : 0.15);
+      g.fillStyle(color, i < shown ? 0.95 : 0.15);
       g.fillRect(x, y, round, 14);
     }
     this.weaponName.setText(w.name.toUpperCase());
     this.reserve.setText(`${w.reserve}`);
+
+    // Armour (blue) then health (white), right-aligned above the weapon name.
+    const pips = [{ on: s.armor > 0, color: 0x60a5fa }, { on: s.health > 1, color: 0xe5e7eb }, { on: s.health > 0, color: 0xe5e7eb }];
+    pips.forEach((p, i) => {
+      const x = VIEW_W - 28 - (pips.length - i) * 22 + 4;
+      g.fillStyle(0x000000, 0.45);
+      g.fillRect(x + 1, VIEW_H - 83, 18, 6);
+      g.fillStyle(p.on ? p.color : 0xef4444, p.on ? 0.95 : 0.35);
+      g.fillRect(x, VIEW_H - 84, 18, 6);
+    });
+
+    if (s.securing !== null) {
+      g.fillStyle(0x000000, 0.5);
+      g.fillRect(VIEW_W / 2 - 60, VIEW_H * 0.62 + 20, 120, 4);
+      g.fillStyle(0xfacc15, 1);
+      g.fillRect(VIEW_W / 2 - 60, VIEW_H * 0.62 + 20, 120 * s.securing, 4);
+    }
+  }
+
+  private drawOverlay(s: HudState): void {
+    const g = this.overlay;
+    // A red flash at the edges of the screen when hit.
+    if (s.hurt > 0) {
+      for (let i = 0; i < 6; i++) {
+        const inset = i * 14;
+        g.lineStyle(14, 0xb91c1c, s.hurt * (0.4 - i * 0.06));
+        g.strokeRect(inset + 7, inset + 7, VIEW_W - inset * 2 - 14, VIEW_H - inset * 2 - 14);
+      }
+    }
+    // Letterbox bars for the intro.
+    const bars = s.cutscene?.bars ?? 0;
+    if (bars > 0) {
+      g.fillStyle(0x000000, 1);
+      g.fillRect(0, 0, VIEW_W, BAR_HEIGHT * bars);
+      g.fillRect(0, VIEW_H - BAR_HEIGHT * bars, VIEW_W, BAR_HEIGHT * bars);
+    }
   }
 
   private showToast(text: string): void {
@@ -176,14 +233,26 @@ export class HudScene extends Phaser.Scene {
     if (this.toasts.length > 3) this.toasts.shift()!.text.destroy();
   }
 
-  // ---------------------------------------------------------------- menu
+  // ---------------------------------------------------------------- menu and debrief
 
   private toggleMenu(): void {
-    if (this.title.visible || this.debrief.visible) return;
+    if (this.debrief.visible) return;
     const open = !this.menu.visible;
     this.menu.setVisible(open);
-    if (open) this.scene.pause('range');
-    else this.scene.resume('range');
+    if (open) this.scene.pause('game');
+    else this.scene.resume('game');
+  }
+
+  private addButton(owner: Phaser.GameObjects.Container, x: number, y: number, label: () => string, action: () => void, size = 18): void {
+    const text = this.add.text(x, y, label(), style(size, TEXT)).setOrigin(0.5);
+    owner.add(text);
+    this.buttons.push({ text, label, action, owner });
+  }
+
+  private buttonAt(p: Phaser.Input.Pointer): Button | undefined {
+    // The HUD camera is zoomed, so convert from screen to layout coordinates.
+    const x = p.x / RENDER_SCALE, y = p.y / RENDER_SCALE;
+    return this.buttons.find((b) => b.owner.visible && b.text.getBounds().contains(x, y));
   }
 
   private buildMenu(): Phaser.GameObjects.Container {
@@ -191,119 +260,73 @@ export class HudScene extends Phaser.Scene {
     const bg = this.add.graphics();
     bg.fillStyle(0x05070a, 0.82);
     bg.fillRect(0, 0, VIEW_W, VIEW_H);
-    const items: Phaser.GameObjects.GameObject[] = [
-      bg,
-      this.add.text(cx, 150, 'PAUSED', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-    ];
+    const menu = this.add.container(0, 0, [bg, this.add.text(cx, 130, 'PAUSED', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(0.5)]);
+    menu.setDepth(80).setVisible(false);
 
-    const entries: [() => string, () => void][] = [
+    const items: [() => string, () => void][] = [
       [() => 'Resume', () => this.toggleMenu()],
       [() => `Blood effects: ${settings.blood ? 'On' : 'Off'}`, () => { settings.blood = !settings.blood; saveSettings(); }],
       [() => `Sound: ${settings.sound ? 'On' : 'Off'}`, () => { settings.sound = !settings.sound; sfx.muted = !settings.sound; saveSettings(); }],
-      [() => 'Restart', () => { this.toggleMenu(); this.scene.get('range').scene.restart(); }],
+      [() => 'Restart', () => { this.scene.resume('game'); this.game_.retry(); }],
+      [() => 'Quit to menu', () => { this.scene.resume('game'); this.game_.toMenu(); }],
     ];
-    this.menuItems = entries.map(([label, action], i) => {
-      const text = this.add.text(cx, 220 + i * 40, label(), style(18, TEXT)).setOrigin(0.5);
-      items.push(text);
-      return { text, label, action };
-    });
+    items.forEach(([label, action], i) => this.addButton(menu, cx, 190 + i * 38, label, action));
 
-    items.push(this.add.text(cx, 400, 'CONTROLS', style(11, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5));
+    menu.add(this.add.text(cx, 392, 'CONTROLS', style(11, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5));
     CONTROLS.forEach(([what, key], i) => {
-      items.push(this.add.text(cx - 12, 426 + i * 22, what, style(13, DIM)).setOrigin(1, 0));
-      items.push(this.add.text(cx + 12, 426 + i * 22, key, style(13, TEXT)));
+      menu.add(this.add.text(cx - 12, 416 + i * 22, what, style(13, DIM)).setOrigin(1, 0));
+      menu.add(this.add.text(cx + 12, 416 + i * 22, key, style(13, TEXT)));
     });
-    items.push(this.add.text(cx, VIEW_H - 40, 'Esc to resume', style(11, DIM)).setOrigin(0.5));
-    return this.add.container(0, 0, items).setDepth(80).setVisible(false);
-  }
-
-  private menuItemAt(p: Phaser.Input.Pointer): MenuItem | undefined {
-    // The HUD camera is zoomed, so convert from screen to layout coordinates.
-    const x = p.x / RENDER_SCALE, y = p.y / RENDER_SCALE;
-    return this.menuItems.find((m) => m.text.getBounds().contains(x, y));
-  }
-
-  private hoverMenu(p: Phaser.Input.Pointer): void {
-    if (!this.menu.visible) return;
-    const hovered = this.menuItemAt(p);
-    for (const m of this.menuItems) m.text.setColor(m === hovered ? ACCENT : TEXT);
-  }
-
-  private clickMenu(p: Phaser.Input.Pointer): void {
-    const item = this.menuItemAt(p);
-    if (!item) return;
-    item.action();
-    for (const m of this.menuItems) m.text.setText(m.label());
-  }
-
-  // ---------------------------------------------------------------- title and debrief
-
-  private buildTitle(): Phaser.GameObjects.Container {
-    const bg = this.add.graphics();
-    bg.fillStyle(0x05070a, 0.86);
-    bg.fillRect(0, 0, VIEW_W, VIEW_H);
-    const cx = VIEW_W / 2;
-    const items: Phaser.GameObjects.GameObject[] = [
-      bg,
-      this.add.text(cx, 190, 'BREACH', style(84, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 262, 'PORT ARDLEY POLICE DEPARTMENT  ·  ACADEMY', style(14, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 330, [
-        'Recruit, this is the Range. Five stations teach you the job:',
-        'movement, the laser, doors, when not to shoot, and a dark kill house.',
-        '',
-        'You only know what you see. Slow is smooth.',
-      ].join('\n'), style(15, DIM, { align: 'center', lineSpacing: 6 })).setOrigin(0.5, 0),
-      this.add.text(cx, 500, 'CLICK TO BEGIN', style(18, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 530, 'Esc for settings and controls', style(12, DIM)).setOrigin(0.5),
-      this.add.text(cx, VIEW_H - 40, `v${__APP_VERSION__}  ·  Prototype: the Range`, style(11, DIM)).setOrigin(0.5),
-    ];
-    return this.add.container(0, 0, items).setDepth(100);
+    return menu;
   }
 
   private buildDebrief(): Phaser.GameObjects.Container {
+    const cx = VIEW_W / 2;
     const bg = this.add.graphics();
+    this.debriefBg = bg;
+    this.debriefTitle = this.add.text(cx, 175, '', style(24, TEXT, { fontStyle: 'bold' })).setOrigin(0.5);
+    this.debriefStars = this.add.text(cx, 222, '', style(40, GOLD)).setOrigin(0.5);
+    this.debriefBody = this.add.text(cx - 220, 262, '', style(14, TEXT, { lineSpacing: 7 }));
+    this.debriefNote = this.add.text(cx - 220, 0, '', style(13, DIM, { fontStyle: 'italic', wordWrap: { width: 440 } }));
+    const box = this.add.container(0, 0, [
+      bg,
+      this.add.text(cx, 145, 'DEBRIEF', style(12, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5),
+      this.debriefTitle, this.debriefStars, this.debriefBody, this.debriefNote,
+    ]).setDepth(90).setVisible(false);
+    return box;
+  }
+
+  private showDebrief(o: Outcome): void {
+    this.shownOutcome = o;
+    this.menu.setVisible(false);
+    for (const b of this.buttons.filter((x) => x.owner === this.debrief)) b.text.destroy();
+    this.buttons = this.buttons.filter((x) => x.owner !== this.debrief);
+
+    this.debriefTitle.setText(o.title).setColor(o.success ? TEXT : RED);
+    this.debriefStars.setText(o.stars ? o.stars.map((b) => (b ? '★' : '☆')).join(' ') : '');
+    this.debriefBody.setY(o.stars ? 262 : 222).setText(o.lines.join('\n'));
+    this.debriefNote.setY(this.debriefBody.y + this.debriefBody.height + 18).setText(o.note ?? '');
+
+    // Size the panel to its content.
+    const cx = VIEW_W / 2;
+    const contentBottom = o.note ? this.debriefNote.y + this.debriefNote.height : this.debriefBody.y + this.debriefBody.height;
+    const buttonsY = contentBottom + 44;
+    const bg = this.debriefBg;
+    bg.clear();
     bg.fillStyle(0x05070a, 0.75);
     bg.fillRect(0, 0, VIEW_W, VIEW_H);
     bg.fillStyle(0x0b1220, 0.97);
-    bg.fillRoundedRect(VIEW_W / 2 - 260, 150, 520, 400, 10);
+    bg.fillRoundedRect(cx - 280, 120, 560, buttonsY + 36 - 120, 10);
     bg.lineStyle(1, 0x60a5fa, 0.6);
-    bg.strokeRoundedRect(VIEW_W / 2 - 260, 150, 520, 400, 10);
-    const cx = VIEW_W / 2;
-    this.debriefStars = this.add.text(cx, 250, '', style(42, GOLD)).setOrigin(0.5);
-    this.debriefBody = this.add.text(cx - 200, 300, '', style(15, TEXT, { lineSpacing: 8 }));
-    const items = [
-      bg,
-      this.add.text(cx, 180, 'DEBRIEF', style(12, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 205, 'Range qualification complete', style(22, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.debriefStars,
-      this.debriefBody,
-      this.add.text(cx, 515, 'Click or press Enter to run the Range again', style(13, DIM)).setOrigin(0.5),
-    ];
-    return this.add.container(0, 0, items).setDepth(90).setVisible(false);
-  }
+    bg.strokeRoundedRect(cx - 280, 120, 560, buttonsY + 36 - 120, 10);
 
-  private showDebrief(d: NonNullable<RangeScene['hud']['debrief']>): void {
-    const star = (b: boolean) => (b ? '★' : '☆');
-    const line = (b: boolean, label: string) => `${b ? '✓' : '✗'}  ${label}`;
-    this.debriefStars.setText(d.stars.map(star).join(' '));
-    const acc = d.shots ? Math.round((d.hits / d.shots) * 100) : 0;
-    this.debriefBody.setText([
-      line(d.stars[0], 'All stations completed'),
-      line(d.stars[1], d.civiliansHit ? `Civilians hit: ${d.civiliansHit}` : 'No civilians hit'),
-      line(d.stars[2], 'No damage taken'),
-      '',
-      `Shots fired   ${d.shots}`,
-      `Hits          ${d.hits}   (${acc}% accuracy)`,
-    ].join('\n'));
+    if (o.success) {
+      this.addButton(this.debrief, cx - 90, buttonsY, () => 'Continue', () => this.game_.toMenu(), 16);
+      this.addButton(this.debrief, cx + 90, buttonsY, () => 'Play again', () => this.game_.retry(), 16);
+    } else {
+      this.addButton(this.debrief, cx - 90, buttonsY, () => 'Retry', () => this.game_.retry(), 16);
+      this.addButton(this.debrief, cx + 90, buttonsY, () => 'Menu', () => this.game_.toMenu(), 16);
+    }
     this.debrief.setVisible(true);
   }
-}
-
-/** HUD text style: crisp at any render scale, with a soft shadow so it reads over the game. */
-function style(size: number, color = TEXT, extra: Style = {}): Style {
-  return {
-    fontFamily: FONT, fontSize: `${size}px`, color, resolution: 2,
-    shadow: { offsetX: 0, offsetY: 1, color: '#000000', blur: 4, fill: true },
-    ...extra,
-  };
 }

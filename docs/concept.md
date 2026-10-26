@@ -119,7 +119,7 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 
 - **Pistol** with 3 spare magazines: accurate, low capacity. Always carried as a sidearm.
 - **Light body armour:** absorbs one hit.
-- **Flashlight:** extends the vision cone in dark rooms.
+- **Weapon light:** always on. In dark rooms the operator sees as far as it reaches, which is much less than in lit rooms.
 
 **Gun unlocks**
 
@@ -174,7 +174,7 @@ Levels will be built in Tiled, a free map editor. A custom editor can wait.
 
 The art is top-down and readable first, with restrained material detail: wooden floors, concrete and plywood walls, soft contact shadows, and simple figure silhouettes. Colour coding stays strict: blue for the player, red for hostiles, yellow for civilians. That reads well on a small phone screen, and the briefing map keeps its clean blueprint style, so the mission feels like the plan coming to life.
 
-Darkness carries the atmosphere. Unknown areas are near-black, remembered areas dim, and vision fades out towards the edge of its range, so a flashlight in a dark room reads as a beam. Small physical details (bullet holes, spent casings, muzzle flashes) make each room feel used.
+Darkness carries the atmosphere. Unknown areas are near-black, remembered areas dim, and vision fades out towards the edge of its range, so the weapon light in a dark room reads as a beam. Small physical details (bullet holes, spent casings, muzzle flashes) make each room feel used.
 
 Sound is a gameplay system, not decoration: footsteps, door creaks, radio chatter at the start ("Team, you're cleared to enter") and a short sting when the site is secured. Free libraries such as Freesound or Kenney's packs cover the basics.
 
@@ -213,6 +213,8 @@ Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors
 - **No briefing map** during the mission.
 - **Minimal HUD:** ammo and short messages only. There is no objective checklist; every mission is to secure the area. Tutorial text appears only on the Range.
 - **Blood effects** are a setting, on by default, and never shown on training props.
+- **No flashlight toggle:** the weapon light is always on; dark rooms simply limit how far you see.
+- **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
 - **Five missions per campaign**, so 20 missions plus the Range for the full web release.
 - **Enemies can't see the laser.**
 - **Vision cone of about 60 degrees.**

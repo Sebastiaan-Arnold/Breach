@@ -6,6 +6,7 @@ export interface NoiseEvent {
   /** How far away the sound can be heard, in px. */
   radius: number;
   source: 'player' | 'world';
+  kind: 'step' | 'door' | 'shot' | 'shout' | 'reload' | 'other';
 }
 
 interface Ripple {
@@ -40,6 +41,8 @@ export class NoiseSystem {
   emit(e: NoiseEvent, listenerX: number, listenerY: number): void {
     for (const fn of this.listeners) fn(e);
     if (e.source === 'player') {
+      // Quiet sounds (walking) don't get a ring; the ring is there to show what's loud.
+      if (e.radius < 100) return;
       this.ripples.push({ x: e.x, y: e.y, r0: 12, r1: e.radius, age: 0, life: 0.45, color: 0x93c5fd, alpha: 0.35 });
       return;
     }

@@ -32,7 +32,9 @@ export class Player {
   instability = 0;
   sprinting = false;
   moving = false;
-  flashlight = true;
+  /** Light body armour absorbs the first hit; two more take the operator down. */
+  armor = 1;
+  health = 2;
   weapon: WeaponState;
 
   private vx = 0;
@@ -43,6 +45,7 @@ export class Player {
   private gunGfx: Phaser.GameObjects.Graphics;
   private stepTimer = 0;
   private time = 0;
+  private hurtTimer = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, depth: number) {
     this.x = x;
@@ -78,6 +81,22 @@ export class Player {
     return this.container;
   }
 
+  get alive(): boolean {
+    return this.health > 0;
+  }
+
+  /** Takes a hit. Returns true if it took the operator down. */
+  damage(): boolean {
+    // A shotgun's pellets or two shots in the same instant count as one hit.
+    if (!this.alive || this.hurtTimer > 0) return false;
+    this.hurtTimer = 0.25;
+    if (this.armor > 0) this.armor--;
+    else this.health--;
+    this.kick(0.6);
+    if (!this.alive) this.container.setAlpha(0.6).setScale(0.9);
+    return !this.alive;
+  }
+
   /** The angle the laser (and every shot) actually points: facing plus a slow drift. */
   get aimAngle(): number {
     const t = this.time;
@@ -104,6 +123,7 @@ export class Player {
 
   update(dt: number, input: PlayerInput, solid: (tx: number, ty: number) => boolean): StepEvent | null {
     this.time += dt;
+    this.hurtTimer = Math.max(0, this.hurtTimer - dt);
     const len = Math.hypot(input.moveX, input.moveY);
     const wantsToMove = len > 0;
     const speed = wantsToMove && input.sprint ? MOVE.sprint : MOVE.walk;

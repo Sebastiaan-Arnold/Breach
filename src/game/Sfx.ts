@@ -67,6 +67,18 @@ export class Sfx {
     this.noise(0.05, 3000, 'highpass', 0.15, o);
   }
 
+  /** The operator takes a hit. */
+  hurt(): void {
+    this.tone(120, 60, 0.25, 'sine', 0.9);
+    this.noise(0.12, 700, 'lowpass', 0.6);
+  }
+
+  /** An enemy shouting a warning: a short, rough burst. */
+  shout(o: SfxOpts = {}): void {
+    this.tone(260, 180, 0.3, 'sawtooth', 0.08, o);
+    this.tone(330, 220, 0.25, 'square', 0.04, o, 0.05);
+  }
+
   penalty(): void {
     this.tone(220, 200, 0.35, 'square', 0.12);
     this.tone(160, 150, 0.45, 'square', 0.12, {}, 0.12);
@@ -79,10 +91,6 @@ export class Sfx {
 
   secured(): void {
     [523, 659, 784, 1046].forEach((f, i) => this.tone(f, f, 0.35, 'triangle', 0.22, {}, i * 0.12));
-  }
-
-  toggle(): void {
-    this.noise(0.02, 4000, 'highpass', 0.3);
   }
 
   private out(pan: number | undefined): AudioNode | undefined {

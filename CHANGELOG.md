@@ -3,6 +3,31 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.2.0
+
+Milestone 2, vertical slice: the first Officer case, played from briefing to debrief.
+
+- New main menu with level select and settings.
+- Briefing screen styled as a police tablet: floor plan with areas the plans don't cover,
+  command's marks for last known suspect positions and reported civilians, the case file and
+  intel (hostiles as a range, loadout, civilians, reliability). Choose one of three entries.
+- The situation inside is rolled from the intel on every deploy: the hostile count stays in
+  the briefed range (unverified intel can be off by one), positions vary, the layout doesn't.
+- First mission, 14 Harbour Lane: a terraced house with a street, garden and three entries.
+- Every level opens with a skippable intro: letterbox bars, the camera pulled back, the operator
+  walking to the entry while radio lines play.
+- Enemies: Lookouts and Patrollers with an Idle / Alert / Combat state machine, a vision cone
+  with line of sight, hearing, pathfinding through the house (opening doors) and return fire.
+  Lookouts shout to alert the others; patrollers' footsteps can be heard through walls.
+- Civilians freeze or flee when shooting starts and can be secured by holding E. A mission is
+  complete once every suspect is down and every civilian is secured.
+- Operator damage: armour absorbs the first hit, two more take you down. Retry goes back to the
+  briefing with a fresh roll. The HUD shows armour and health, and flashes red on a hit.
+- Debrief shows stars, suspects down, civilians secured, accuracy and a case note.
+- Floor materials (wood, tile, pavement, grass), plaster interior walls and a police van.
+- The flashlight toggle is gone: the weapon light is always on, and dark rooms limit how far
+  you see.
+
 ## v0.1.4
 
 - Minimal HUD: the magazine as a row of rounds with the spare count beside it, a flashlight

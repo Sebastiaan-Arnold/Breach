@@ -1,3 +1,5 @@
+import type { LevelDef } from './types';
+
 /**
  * The Range: the police academy training ground. A sequence of stations that teaches every
  * mechanic without walls of text, ending in a dark kill house.
@@ -6,7 +8,7 @@
 export const RANGE_MAP: readonly string[] = [
   '############################################################',
   '#..........................................................#',
-  '#.P........................................................#',
+  '#..........................................................#',
   '#..........................................................#',
   '#######################################################....#',
   '#............................#....................b........#',
@@ -85,7 +87,7 @@ export const RANGE_STATIONS: readonly StationDef[] = [
   {
     id: 'killhouse',
     name: 'Kill house',
-    brief: ['The lights are off. F toggles your flashlight.', 'Ripples show sounds through walls. Something in there moves.', 'Clear every room. The layout is fixed, the targets are not.'],
+    brief: ['The lights are off: you only see as far as your weapon light reaches.', 'Ripples show sounds through walls. Something in there moves.', 'Clear every room. The layout is fixed, the targets are not.'],
     zone: { x0: 1, y0: 5, x1: 28, y1: 31 },
   },
 ];
@@ -114,3 +116,16 @@ export const RANGE_LABELS: readonly FloorLabel[] = [
 
 /** How many of the kill house's random slots become suspects and civilians on each run. */
 export const KILLHOUSE_ROLL = { minSuspects: 3, maxSuspects: 5, minCivilians: 1, maxCivilians: 2 };
+
+export const RANGE: LevelDef = {
+  id: 'range',
+  name: 'The Range',
+  map: RANGE_MAP,
+  labels: RANGE_LABELS,
+  entries: [{ id: 'gate', name: 'the Range', approach: [{ tx: 1.5, ty: 2.5 }, { tx: 5.5, ty: 2.5 }] }],
+  intro: [
+    'Range control: Morning, recruit. Welcome to the Range.',
+    'Range control: Work through the stations in order. The range is hot.',
+  ],
+  stations: RANGE_STATIONS,
+};

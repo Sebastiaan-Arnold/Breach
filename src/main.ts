@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { COLORS, RENDER_SCALE, VIEW_H, VIEW_W } from './config';
+import { BriefingScene } from './scenes/BriefingScene';
+import { GameScene } from './scenes/GameScene';
 import { HudScene } from './scenes/HudScene';
-import { RangeScene } from './scenes/RangeScene';
+import { MenuScene } from './scenes/MenuScene';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -13,7 +15,7 @@ const game = new Phaser.Game({
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   render: { antialias: true },
   input: { activePointers: 2 },
-  scene: [RangeScene, HudScene],
+  scene: [MenuScene, BriefingScene, GameScene, HudScene],
 });
 
 if (import.meta.env.DEV) (window as unknown as { game: Phaser.Game }).game = game;

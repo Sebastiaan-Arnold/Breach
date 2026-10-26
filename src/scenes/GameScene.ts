@@ -1,0 +1,780 @@
+import Phaser from 'phaser';
+import { COLORS, MOVE, NOISE, REACH, RENDER_SCALE, TILE, VISION } from '../config';
+import { moveCircle } from '../core/collision';
+import { circleIntersectsRect, DEG, pointInPolygon, rayCircle } from '../core/geometry';
+import { blocksSight, parseLevel } from '../core/grid';
+import { visibilityPolygon, type RayHit } from '../core/visibility';
+import { levelById } from '../levels';
+import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
+import type { EntryDef, LevelDef } from '../levels/types';
+import { sfx } from '../game/audio';
+import { Civilian, SECURE_TIME } from '../game/Civilian';
+import type { Door } from '../game/Door';
+import { Effects } from '../game/Effects';
+import { Enemy, type EnemyContext } from '../game/Enemy';
+import { Fog } from '../game/Fog';
+import { Intro } from '../game/Intro';
+import { drawLevelArt } from '../game/LevelArt';
+import { NoiseSystem, type NoiseEvent } from '../game/Noise';
+import { Player } from '../game/Player';
+import { RangeStations } from '../game/RangeStations';
+import { settings } from '../game/settings';
+import { rollSituation, type Situation } from '../game/situation';
+import { Target, type TargetKind } from '../game/Target';
+import type { WeaponId } from '../game/weapons';
+import { World } from '../game/World';
+
+const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, people: 5, player: 6, glow: 7, fog: 10, light: 12, ripples: 20, laser: 21 };
+const RAIL_NOISE = 250;
+const CAMERA_LOOKAHEAD = 70;
+const ENEMY_SHOT_NOISE = 520;
+/** Pause between the last hostile going down (or the operator) and the debrief. */
+const OUTCOME_DELAY = 1.6;
+
+export interface GameData {
+  levelId: string;
+  entryId?: string;
+  /** Rolled on the briefing screen; rolled here when a level has no briefing. */
+  situation?: Situation;
+}
+
+export interface Outcome {
+  success: boolean;
+  title: string;
+  /** Completed, no civilian hit, no damage taken. Null when the operator went down. */
+  stars: [boolean, boolean, boolean] | null;
+  lines: string[];
+  note?: string;
+}
+
+export interface HudState {
+  /** True on the Range, where each station shows its tutorial text. */
+  tutorial: boolean;
+  station: StationDef | undefined;
+  weapon: { name: string; mag: number; magSize: number; reserve: number; reload: number | null };
+  dark: boolean;
+  armor: number;
+  health: number;
+  /** 1 right after taking a hit, fading to 0. */
+  hurt: number;
+  cutscene: { bars: number; subtitle: string | null } | null;
+  /** 0..1 while holding E on a civilian. */
+  securing: number | null;
+  outcome: Outcome | null;
+}
+
+/** Anything a bullet can hit besides walls. */
+type Hittable = Target | Enemy | Civilian;
+
+interface Tracer { x0: number; y0: number; x1: number; y1: number; age: number; color: number }
+type Keys = Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E', Phaser.Input.Keyboard.Key>;
+
+/**
+ * Plays one level: the Range (stations and cardboard targets) or a mission (enemies and
+ * civilians). Starts with the intro walk and ends with a debrief or "operator down".
+ */
+export class GameScene extends Phaser.Scene {
+  hud!: HudState;
+  private params!: GameData;
+
+  private def!: LevelDef;
+  private world!: World;
+  private targets: Target[] = [];
+  private enemies: Enemy[] = [];
+  private civilians: Civilian[] = [];
+  private player!: Player;
+  private fog!: Fog;
+  private noise!: NoiseSystem;
+  private stations: RangeStations | null = null;
+  private intro!: Intro;
+  private laserGfx!: Phaser.GameObjects.Graphics;
+  private effects!: Effects;
+  private keys!: Keys;
+
+  private visionPolys: number[][] = [];
+  private tracers: Tracer[] = [];
+  private muzzleFlash = 0;
+  private triggerPressed = false;
+  private lookX = 0;
+  private lookY = 0;
+  private lastStation: StationDef | undefined;
+  private stats = { shots: 0, hits: 0 };
+  private damaged = false;
+  private hurt = 0;
+  private securing: Civilian | null = null;
+  private outcomeTimer = -1;
+  private outcome: Outcome | null = null;
+  private remindedCivilians = false;
+
+  constructor() {
+    super('game');
+  }
+
+  init(data: GameData): void {
+    this.params = data;
+    this.targets = [];
+    this.enemies = [];
+    this.civilians = [];
+    this.tracers = [];
+    this.muzzleFlash = 0;
+    this.triggerPressed = false;
+    this.lookX = this.lookY = 0;
+    this.lastStation = undefined;
+    this.stats = { shots: 0, hits: 0 };
+    this.damaged = false;
+    this.hurt = 0;
+    this.securing = null;
+    this.outcomeTimer = -1;
+    this.outcome = null;
+    this.remindedCivilians = false;
+  }
+
+  create(): void {
+    this.def = levelById(this.params.levelId);
+    const entry: EntryDef = this.def.entries.find((e) => e.id === this.params.entryId) ?? this.def.entries[0];
+    const level = parseLevel(this.def.map);
+    this.cameras.main.setBackgroundColor(COLORS.void);
+
+    const rails = level.markers.filter((m) => m.kind === 'mover')
+      .map((m) => ({ x0: (m.tx + 0.3) * TILE, x1: (m.tx + 7.7) * TILE, y: (m.ty + 0.5) * TILE }));
+    drawLevelArt(this, level, this.def.labels, rails, this.def.props ?? [], DEPTH.world, RENDER_SCALE);
+    this.world = new World(this, level, DEPTH.doors);
+
+    if (this.def.stations) this.spawnTargets(level.markers);
+    const situation = this.params.situation ?? (this.def.mission ? rollSituation(this.def.mission) : null);
+    if (situation) {
+      this.enemies = situation.hostiles.map((s) => new Enemy(this, s.type, s, DEPTH.people));
+      this.civilians = situation.civilians.map((s) => new Civilian(this, s, DEPTH.people));
+    }
+
+    this.intro = new Intro(entry.approach, this.def.intro.map((l) => l.replace('{entry}', entry.name)));
+    this.player = new Player(this, this.intro.start.x, this.intro.start.y, DEPTH.player);
+    this.player.facing = this.intro.finalFacing;
+    this.fog = new Fog(this, level.width * TILE, level.height * TILE, DEPTH.glow, DEPTH.fog);
+    this.noise = new NoiseSystem(this, DEPTH.ripples);
+    this.noise.onNoise((e) => this.onNoise(e));
+    this.laserGfx = this.add.graphics().setDepth(DEPTH.laser);
+    this.effects = new Effects(this, level.width * TILE, level.height * TILE, RENDER_SCALE, DEPTH.decals, DEPTH.light);
+    this.stations = this.def.stations ? new RangeStations(this.targets) : null;
+
+    // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
+    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom).startFollow(this.player.displayObject, false, 0.1, 0.1);
+
+    this.setupInput();
+    if (!this.scene.isActive('hud')) this.scene.launch('hud');
+    this.scene.bringToTop('hud');
+    this.updateHud();
+  }
+
+  update(_time: number, deltaMs: number): void {
+    const dt = Math.min(deltaMs, 50) / 1000;
+    const p = this.player;
+    const k = this.keys;
+    const inIntro = this.intro.active;
+    const active = !inIntro && !this.outcome && p.alive;
+
+    // Movement and aim: scripted during the intro, from the player afterwards.
+    let mx = 0, my = 0, aimAt = p.facing;
+    if (inIntro) {
+      const steer = this.intro.update(dt, p.x, p.y);
+      mx = steer.moveX;
+      my = steer.moveY;
+      aimAt = mx || my ? Math.atan2(my, mx) : this.intro.finalFacing;
+    } else if (active) {
+      if (k.A.isDown || k.LEFT.isDown) mx -= 1;
+      if (k.D.isDown || k.RIGHT.isDown) mx += 1;
+      if (k.W.isDown || k.UP.isDown) my -= 1;
+      if (k.S.isDown || k.DOWN.isDown) my += 1;
+      const wp = this.input.activePointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+      aimAt = Math.atan2(wp.y - p.y, wp.x - p.x);
+    }
+    const step = p.update(dt, { moveX: mx, moveY: my, sprint: active && k.SHIFT.isDown, aimAt }, this.world.solid);
+    this.separateBodies();
+    const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
+    if (step) {
+      sfx.footstep(step.loud);
+      this.noise.emit({ x: p.x, y: p.y, radius: step.loud ? NOISE.sprintStep : NOISE.walkStep, source: 'player', kind: 'step' }, p.x, p.y);
+    }
+    if (p.sprinting) this.stations?.onSprint(dt, ptx, pty);
+
+    this.world.update(dt);
+    this.updateVision(ptx, pty);
+
+    for (const t of this.targets) {
+      if (t.update(dt, this.canSee(t.x, t.y), p.x, p.y)) this.worldNoise(t.x, t.y, RAIL_NOISE);
+    }
+    const ctx = this.enemyContext(ptx, pty);
+    for (const e of this.enemies) e.update(dt, ctx, this.canSee(e.x, e.y));
+    for (const c of this.civilians) c.update(dt, this.world, this.canSee(c.x, c.y), p.x, p.y);
+    this.updateSecuring(dt);
+
+    // Shooting: semi-auto fires per click, automatics while held.
+    if (active && (this.triggerPressed || (this.input.activePointer.leftButtonDown() && p.weapon.def.auto))) this.tryFire(this.triggerPressed);
+    this.triggerPressed = false;
+
+    this.effects.update(dt, this.world.solid);
+    this.drawLaserAndFx(dt, active);
+    this.noise.update(dt);
+    this.hurt = Math.max(0, this.hurt - dt * 1.5);
+
+    // Camera: pulled back during the intro, then a little ahead of where the operator aims.
+    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom);
+    const look = inIntro ? 0 : CAMERA_LOOKAHEAD;
+    this.lookX += (Math.cos(p.facing) * look - this.lookX) * Math.min(1, dt * 4);
+    this.lookY += (Math.sin(p.facing) * look - this.lookY) * Math.min(1, dt * 4);
+    this.cameras.main.setFollowOffset(-this.lookX, -this.lookY);
+
+    if (!inIntro) this.updateProgress(dt, ptx, pty);
+    this.updateHud();
+  }
+
+  /** People don't walk through each other: push the operator out of anyone standing. */
+  private separateBodies(): void {
+    const p = this.player;
+    const minDist = MOVE.radius * 2 + 2;
+    for (const o of [...this.enemies, ...this.civilians]) {
+      if (!o.alive) continue;
+      const dx = p.x - o.x, dy = p.y - o.y, d = Math.hypot(dx, dy);
+      if (d >= minDist || d < 0.01) continue;
+      const push = moveCircle(p.x, p.y, (dx / d) * (minDist - d), (dy / d) * (minDist - d), MOVE.radius, TILE, this.world.solid);
+      p.x = push.x;
+      p.y = push.y;
+    }
+  }
+
+  // ---------------------------------------------------------------- level contents
+
+  private spawnTargets(markers: ReturnType<typeof parseLevel>['markers']): void {
+    const slots: { x: number; y: number }[] = [];
+    for (const m of markers) {
+      const x = (m.tx + 0.5) * TILE;
+      const y = (m.ty + 0.5) * TILE;
+      const station = stationAt(m.tx, m.ty)?.id ?? 'killhouse';
+      if (m.kind === 'suspect' || m.kind === 'civilian') {
+        const lane = station === 'targets';
+        this.addTarget(m.kind, x, y, station, !lane, lane ? 1.6 : 0);
+      } else if (m.kind === 'random') {
+        slots.push({ x, y });
+      } else if (m.kind === 'mover') {
+        this.targets.push(new Target(this, {
+          kind: 'suspect', x, y, station, popup: false, respawn: 0,
+          rail: { x0: x, x1: x + 7 * TILE, speed: 36 },
+        }, DEPTH.targets));
+      }
+    }
+
+    // The kill house layout is fixed; who is in it is rolled on every run.
+    Phaser.Utils.Array.Shuffle(slots);
+    const r = KILLHOUSE_ROLL;
+    const nS = Phaser.Math.Between(r.minSuspects, r.maxSuspects);
+    const nC = Phaser.Math.Between(r.minCivilians, r.maxCivilians);
+    slots.forEach((s, i) => {
+      if (i < nS) this.addTarget('suspect', s.x, s.y, 'killhouse', true, 0);
+      else if (i < nS + nC) this.addTarget('civilian', s.x, s.y, 'killhouse', true, 0);
+    });
+  }
+
+  private addTarget(kind: TargetKind, x: number, y: number, station: StationDef['id'], popup: boolean, respawn: number): void {
+    this.targets.push(new Target(this, { kind, x, y, station, popup, respawn }, DEPTH.targets));
+  }
+
+  private enemyContext(ptx: number, pty: number): EnemyContext {
+    const p = this.player;
+    return {
+      world: this.world,
+      player: { x: p.x, y: p.y, alive: p.alive, inDark: this.world.isDark(ptx, pty) },
+      shoot: (e, angle) => this.enemyShoot(e, angle),
+      noise: (e, radius, kind) => {
+        this.worldNoise(e.x, e.y, radius, kind);
+        if (kind === 'shout') sfx.shout(this.soundAt(e.x, e.y, radius));
+        if (kind === 'door') sfx.creak(this.soundAt(e.x, e.y, radius));
+      },
+    };
+  }
+
+  private onNoise(e: NoiseEvent): void {
+    for (const en of this.enemies) en.hear(e);
+    for (const c of this.civilians) c.hear(e, this.world);
+  }
+
+  // ---------------------------------------------------------------- vision
+
+  private updateVision(ptx: number, pty: number): void {
+    const p = this.player;
+    const segs = this.world.segments();
+    const dark = this.world.isDark(ptx, pty);
+    const range = dark ? VISION.rangeDark : VISION.rangeLit;
+    const cone = visibilityPolygon(p.x, p.y, p.facing, VISION.halfFov, range, segs, VISION.sweepStep);
+    const peri = visibilityPolygon(p.x, p.y, 0, Math.PI, VISION.peripheral, segs, 8 * DEG);
+    this.visionPolys = [cone.polygon, peri.polygon];
+
+    // Walls the rays struck get remembered too, otherwise rooms would have no outline.
+    const seen = new Set<number>();
+    const wallTiles: { tx: number; ty: number }[] = [];
+    const markTile = (tx: number, ty: number) => {
+      const key = ty * this.world.width + tx;
+      if (seen.has(key) || !blocksSight(this.world.tileAt(tx, ty))) return;
+      seen.add(key);
+      wallTiles.push({ tx, ty });
+    };
+    const mark = (hits: RayHit[]) => {
+      for (let i = 0; i < hits.length; i++) {
+        const a = hits[i];
+        if (!a.blocked) continue;
+        markTile(Math.floor((a.x + a.dx * 2) / TILE), Math.floor((a.y + a.dy * 2) / TILE));
+        // At grazing angles neighbouring rays land far apart on the same wall face; the face
+        // between them is visible too, so fill it in.
+        const b = hits[i + 1];
+        if (!b?.blocked) continue;
+        if (Math.abs(a.y - b.y) < 0.01 && Math.abs(a.y / TILE - Math.round(a.y / TILE)) < 0.001) {
+          const ty = Math.round(a.y / TILE) - (a.dy < 0 ? 1 : 0);
+          for (let tx = Math.floor(Math.min(a.x, b.x) / TILE); tx <= Math.floor(Math.max(a.x, b.x) / TILE); tx++) markTile(tx, ty);
+        } else if (Math.abs(a.x - b.x) < 0.01 && Math.abs(a.x / TILE - Math.round(a.x / TILE)) < 0.001) {
+          const tx = Math.round(a.x / TILE) - (a.dx < 0 ? 1 : 0);
+          for (let ty = Math.floor(Math.min(a.y, b.y) / TILE); ty <= Math.floor(Math.max(a.y, b.y) / TILE); ty++) markTile(tx, ty);
+        }
+      }
+    };
+    mark(cone.hits);
+    mark(peri.hits);
+
+    this.fog.update(this.visionPolys, wallTiles, {
+      x: p.x,
+      y: p.y,
+      range,
+      falloff: dark ? VISION.falloffDark : VISION.falloffLit,
+      warmth: dark ? 0.08 : 0.035,
+    });
+  }
+
+  /** True if the operator can currently see any part of something at (x, y). */
+  private canSee(x: number, y: number): boolean {
+    const r = 7;
+    const pts = [[x, y], [x + r, y], [x - r, y], [x, y + r], [x, y - r]];
+    return this.visionPolys.some((poly) => pts.some(([px, py]) => pointInPolygon(px, py, poly)));
+  }
+
+  // ---------------------------------------------------------------- combat
+
+  private hittables(): Hittable[] {
+    return [...this.targets, ...this.enemies, ...this.civilians];
+  }
+
+  private traceShot(angle: number, range: number): { x: number; y: number; dist: number; target?: Hittable } {
+    const p = this.player;
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    let dist = this.world.castRay(p.x, p.y, dx, dy, range);
+    let target: Hittable | undefined;
+    for (const t of this.hittables()) {
+      const d = t.hitTest(p.x, p.y, dx, dy);
+      if (d < dist) {
+        dist = d;
+        target = t;
+      }
+    }
+    return { x: p.x + dx * dist, y: p.y + dy * dist, dist, target };
+  }
+
+  private tryFire(pressed: boolean): void {
+    const p = this.player;
+    const w = p.weapon;
+    if (w.reloading) return;
+    if (w.mag <= 0) {
+      if (!pressed) return;
+      sfx.dryFire();
+      if (!this.reload()) this.toast('Out of ammo');
+      return;
+    }
+    if (!w.canFire()) return;
+
+    w.fire();
+    this.stats.shots++;
+    const base = p.aimAngle;
+    const muzzle = p.muzzle;
+    let landed = false;
+    for (let i = 0; i < w.def.pellets; i++) {
+      const a = base + (w.def.pellets > 1 ? Phaser.Math.FloatBetween(-1, 1) * w.def.spread * DEG : 0);
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const shot = this.traceShot(a, w.def.range);
+      if (shot.target) {
+        this.hitEffect(shot.target, shot.x, shot.y, dx, dy);
+        this.onHit(shot.target);
+        landed = true;
+      } else if (shot.dist < w.def.range) {
+        this.effects.bulletHole(shot.x, shot.y, dx, dy);
+      }
+      this.tracers.push({ x0: muzzle.x, y0: muzzle.y, x1: shot.x, y1: shot.y, age: 0, color: 0xfff1b8 });
+    }
+    if (landed) this.stats.hits++;
+    p.kick(w.def.recoil);
+    this.muzzleFlash = 0.05;
+    this.effects.muzzle(muzzle.x, muzzle.y, w.def.id !== 'pistol');
+    this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
+    sfx.shot(w.def.id !== 'pistol');
+    this.noise.emit({ x: p.x, y: p.y, radius: w.def.noise, source: 'player', kind: 'shot' }, p.x, p.y);
+  }
+
+  private hitEffect(t: Hittable, x: number, y: number, dx: number, dy: number): void {
+    if (t.prop) {
+      this.effects.cardboardHit(x, y, dx, dy);
+      return;
+    }
+    if (!settings.blood) return;
+    this.effects.bloodHit(x, y, dx, dy);
+    if (t.alive) this.effects.bloodPool(t.x, t.y);
+  }
+
+  private onHit(t: Hittable): void {
+    if (!t.alive) return;
+    t.hit();
+    if (t instanceof Target) this.stations?.onTargetHit(t);
+    if (t.kind === 'civilian') {
+      sfx.penalty();
+      this.toast('Civilian hit. That costs you a star.');
+    } else {
+      sfx.hit();
+    }
+  }
+
+  private enemyShoot(e: Enemy, angle: number): void {
+    const p = this.player;
+    const dx = Math.cos(angle), dy = Math.sin(angle);
+    const mx = e.x + dx * 16, my = e.y + dy * 16;
+    const wall = this.world.castRay(mx, my, dx, dy, 900);
+    const toPlayer = p.alive ? rayCircle(mx, my, dx, dy, p.x, p.y, MOVE.radius) : Infinity;
+    const dist = Math.min(wall, toPlayer);
+    const hx = mx + dx * dist, hy = my + dy * dist;
+    if (toPlayer < wall) {
+      this.damaged = true;
+      this.hurt = 1;
+      if (p.damage()) this.toast('Operator down');
+      sfx.hurt();
+      this.cameras.main.shake(140, 0.006);
+      if (settings.blood) this.effects.bloodHit(p.x, p.y, dx, dy);
+    } else {
+      this.effects.bulletHole(hx, hy, dx, dy);
+    }
+    const seen = this.canSee(e.x, e.y);
+    if (seen) {
+      this.tracers.push({ x0: mx, y0: my, x1: hx, y1: hy, age: 0, color: 0xffb4a8 });
+      this.effects.muzzle(mx, my, false);
+    }
+    sfx.shot(false, this.soundAt(e.x, e.y, 1200));
+    this.worldNoise(e.x, e.y, ENEMY_SHOT_NOISE, 'shot');
+  }
+
+  private reload(): boolean {
+    const w = this.player.weapon;
+    if (w.reserve <= 0 && w.mag < w.def.magSize && !w.reloading) {
+      this.toast('No spare magazines');
+      return false;
+    }
+    if (!w.startReload()) return false;
+    sfx.reload();
+    this.noise.emit({ x: this.player.x, y: this.player.y, radius: NOISE.reload, source: 'player', kind: 'reload' }, this.player.x, this.player.y);
+    return true;
+  }
+
+  private drawLaserAndFx(dt: number, showLaser: boolean): void {
+    const p = this.player;
+    const g = this.laserGfx;
+    g.clear();
+
+    if (showLaser) {
+      const aim = this.traceShot(p.aimAngle, p.weapon.def.range);
+      const muzzleLen = Math.hypot(p.muzzle.x - p.x, p.muzzle.y - p.y);
+      if (aim.dist > muzzleLen) {
+        const dx = Math.cos(p.aimAngle), dy = Math.sin(p.aimAngle);
+        const sx = p.x + dx * muzzleLen, sy = p.y + dy * muzzleLen;
+        const alpha = p.weapon.reloading ? 0.3 : 1;
+        g.lineStyle(4, COLORS.laser, 0.07 * alpha);
+        g.lineBetween(sx, sy, aim.x, aim.y);
+        g.lineStyle(1.1, COLORS.laser, 0.8 * alpha);
+        g.lineBetween(sx, sy, aim.x, aim.y);
+        g.fillStyle(COLORS.laser, 0.25 * alpha);
+        g.fillCircle(aim.x, aim.y, 4.5);
+        g.fillStyle(0xffd0d0, alpha);
+        g.fillCircle(aim.x, aim.y, 1.6);
+      }
+    }
+
+    if (this.muzzleFlash > 0) {
+      this.muzzleFlash -= dt;
+      const m = p.muzzle;
+      const fx = Math.cos(p.facing), fy = Math.sin(p.facing);
+      g.fillStyle(0xffe6a8, 0.95);
+      g.fillTriangle(m.x - fy * 3, m.y + fx * 3, m.x + fy * 3, m.y - fx * 3, m.x + fx * 14, m.y + fy * 14);
+      g.fillStyle(0xffffff, 0.9);
+      g.fillCircle(m.x + fx * 2, m.y + fy * 2, 2.5);
+    }
+    this.tracers = this.tracers.filter((t) => (t.age += dt) < 0.06);
+    for (const t of this.tracers) {
+      g.lineStyle(1.2, t.color, 0.6 * (1 - t.age / 0.06));
+      g.lineBetween(t.x0, t.y0, t.x1, t.y1);
+    }
+  }
+
+  // ---------------------------------------------------------------- doors and civilians
+
+  private doorUnder(wx: number, wy: number): Door | undefined {
+    return this.world.doorAtTile(Math.floor(wx / TILE), Math.floor(wy / TILE));
+  }
+
+  private nearestDoor(): Door | undefined {
+    const p = this.player;
+    let best: Door | undefined;
+    let bestD = REACH;
+    for (const d of this.world.doors) {
+      const dist = Phaser.Math.Distance.Between(p.x, p.y, d.cx, d.cy);
+      if (dist <= bestD) {
+        bestD = dist;
+        best = d;
+      }
+    }
+    return best;
+  }
+
+  private inReach(d: Door): boolean {
+    return Phaser.Math.Distance.Between(this.player.x, this.player.y, d.cx, d.cy) <= REACH;
+  }
+
+  private toggleDoor(door: Door): void {
+    const p = this.player;
+    if (door.state === 'open' && circleIntersectsRect(p.x, p.y, MOVE.radius + 1, { x: door.tx * TILE, y: door.ty * TILE, w: TILE, h: TILE })) {
+      this.toast('Step out of the doorway first');
+      return;
+    }
+    const radius = door.toggle(p.x, p.y);
+    this.noise.emit({ x: door.cx, y: door.cy, radius, source: 'player', kind: 'door' }, p.x, p.y);
+    sfx.creak();
+  }
+
+  private nearestSecurable(): Civilian | undefined {
+    const p = this.player;
+    return this.civilians.find((c) => c.canBeSecured && Math.hypot(c.x - p.x, c.y - p.y) < 44);
+  }
+
+  /** Holding E next to a civilian gets them on the ground and out of the line of fire. */
+  private updateSecuring(dt: number): void {
+    const c = this.securing;
+    if (!c) return;
+    const p = this.player;
+    if (!this.keys.E.isDown || !c.canBeSecured || Math.hypot(c.x - p.x, c.y - p.y) > 50) {
+      c.secureProgress = 0;
+      this.securing = null;
+      return;
+    }
+    c.secureProgress += dt / SECURE_TIME;
+    if (c.secureProgress >= 1) {
+      c.secure();
+      this.securing = null;
+      sfx.ok();
+      this.toast('Civilian secured');
+    }
+  }
+
+  // ---------------------------------------------------------------- input
+
+  private setupInput(): void {
+    const kb = this.input.keyboard!;
+    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,E') as Keys;
+    this.input.mouse?.disableContextMenu();
+
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (this.intro.active) {
+        this.skipIntro();
+        return;
+      }
+      if (this.outcome || !this.player.alive) return;
+      if (pointer.rightButtonDown()) {
+        const wp = pointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
+        const under = this.doorUnder(wp.x, wp.y);
+        const door = under && this.inReach(under) ? under : this.nearestDoor();
+        if (door) this.toggleDoor(door);
+        else if (under) this.toast('Get closer to the door');
+        return;
+      }
+      this.triggerPressed = true;
+    });
+
+    kb.on('keydown', (e: KeyboardEvent) => {
+      if (this.intro.active) {
+        if (e.code === 'Space' || e.code === 'Enter') this.skipIntro();
+        return;
+      }
+      if (this.outcome || !this.player.alive) return;
+      const digit = /^Digit([1-4])$/.exec(e.code);
+      if (digit && this.def.stations) {
+        this.switchWeapon((['pistol', 'smg', 'shotgun', 'rifle'] as WeaponId[])[Number(digit[1]) - 1]);
+        return;
+      }
+      switch (e.code) {
+        case 'KeyE': {
+          const civilian = this.nearestSecurable();
+          if (civilian) {
+            this.securing = civilian;
+            break;
+          }
+          const d = this.nearestDoor();
+          if (d) this.toggleDoor(d);
+          break;
+        }
+        case 'KeyR':
+          this.reload();
+          break;
+      }
+    });
+  }
+
+  private skipIntro(): void {
+    const end = this.intro.skip();
+    this.player.x = end.x;
+    this.player.y = end.y;
+    this.player.facing = this.intro.finalFacing;
+  }
+
+  private switchWeapon(id: WeaponId): void {
+    if (this.player.weapon.def.id === id) return;
+    const w = this.player.equip(id);
+    sfx.reload();
+    this.toast(`${w.def.name} (Range only: every gun is on the rack for testing)`);
+  }
+
+  // ---------------------------------------------------------------- flow
+
+  private worldNoise(x: number, y: number, radius: number, kind: NoiseEvent['kind'] = 'other'): void {
+    const p = this.player;
+    this.noise.emit({ x, y, radius, source: 'world', kind }, p.x, p.y);
+    if (kind === 'other' || kind === 'step') {
+      const d = Phaser.Math.Distance.Between(x, y, p.x, p.y);
+      if (d < radius) sfx.railTick({ pan: (x - p.x) / 400, vol: 1 - d / radius });
+    }
+  }
+
+  /** Stereo pan and distance falloff for a sound at (x, y). */
+  private soundAt(x: number, y: number, radius: number): { pan: number; vol: number } {
+    const p = this.player;
+    const d = Math.hypot(x - p.x, y - p.y);
+    return { pan: (x - p.x) / 500, vol: Phaser.Math.Clamp(1 - d / radius, 0.15, 1) };
+  }
+
+  private updateProgress(dt: number, ptx: number, pty: number): void {
+    const p = this.player;
+    if (this.stations) {
+      const station = stationAt(ptx, pty);
+      if (station && station !== this.lastStation) {
+        if (this.lastStation && p.weapon.reserve < p.weapon.def.magSize * p.weapon.def.spareMags) {
+          p.weapon.refill();
+          this.toast('Ammo restocked');
+        }
+        this.lastStation = station;
+      }
+      if (!this.outcome) {
+        for (const s of this.stations.update(ptx, pty)) {
+          sfx.ok();
+          this.toast(`${s.name} complete`);
+        }
+      }
+    }
+
+    if (this.outcome) return;
+    // The area is secure once every suspect is down and every civilian is secured (or hit).
+    const suspectsDown = this.enemies.length > 0 && this.enemies.every((e) => !e.alive);
+    const civiliansSafe = this.civilians.every((c) => c.state === 'secured' || c.state === 'down');
+    if (suspectsDown && !civiliansSafe && !this.remindedCivilians) {
+      this.remindedCivilians = true;
+      this.toast('All suspects down. Secure the civilians.');
+    }
+    const done = this.stations ? this.stations.allDone : suspectsDown && civiliansSafe;
+    if ((done || !p.alive) && this.outcomeTimer < 0) {
+      this.outcomeTimer = 0;
+      if (done && !this.stations) {
+        sfx.secured();
+        this.toast('Site secured');
+      }
+    }
+    if (this.outcomeTimer >= 0) {
+      this.outcomeTimer += dt;
+      if (this.outcomeTimer >= OUTCOME_DELAY) this.outcome = p.alive ? this.successOutcome() : this.failedOutcome();
+    }
+  }
+
+  private successOutcome(): Outcome {
+    const civiliansHit = [...this.targets, ...this.civilians].filter((t) => t.kind === 'civilian' && t.wasHit).length;
+    const accuracy = this.stats.shots ? Math.round((this.stats.hits / this.stats.shots) * 100) : 0;
+    const lines: string[] = [];
+    if (this.def.mission) {
+      const secured = this.civilians.filter((c) => c.state === 'secured').length;
+      lines.push(`Suspects down       ${this.enemies.filter((e) => !e.alive).length} of ${this.enemies.length}`);
+      if (this.civilians.length) lines.push(`Civilians secured   ${secured} of ${this.civilians.length}`);
+    }
+    lines.push(`Shots fired         ${this.stats.shots}`, `Accuracy            ${accuracy}%`);
+    if (this.stations) sfx.secured();
+    return {
+      success: true,
+      title: this.def.mission ? 'Site secured' : 'Range qualification complete',
+      stars: [true, civiliansHit === 0, !this.damaged],
+      lines: [
+        civiliansHit ? `Civilians hit: ${civiliansHit}` : 'No civilians hit',
+        this.damaged ? 'Took damage' : 'No damage taken',
+        '',
+        ...lines,
+      ],
+      note: this.def.mission?.debriefNote,
+    };
+  }
+
+  private failedOutcome(): Outcome {
+    return {
+      success: false,
+      title: 'Operator down',
+      stars: null,
+      lines: this.def.mission
+        ? ['The intel stays the same.', 'The situation inside will be different next time.']
+        : ['Back to the start of the Range.'],
+    };
+  }
+
+  /** Retry: missions go back to the briefing (and a fresh roll), the Range restarts. */
+  retry(): void {
+    if (this.def.mission) this.leave('briefing', { levelId: this.def.id });
+    else this.scene.restart({ levelId: this.def.id });
+  }
+
+  toMenu(): void {
+    this.leave('menu', {});
+  }
+
+  private leave(key: string, data: object): void {
+    this.scene.stop('hud');
+    this.scene.start(key, data);
+  }
+
+  private toast(text: string): void {
+    this.game.events.emit('toast', text);
+  }
+
+  private updateHud(): void {
+    const p = this.player;
+    const w = p.weapon;
+    const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
+    this.hud = {
+      tutorial: !!this.stations && !this.intro.active,
+      station: this.stations ? stationAt(ptx, pty) : undefined,
+      weapon: {
+        name: w.def.name,
+        mag: w.mag,
+        magSize: w.def.magSize,
+        reserve: w.reserve,
+        reload: w.reloading ? 1 - w.reloadLeft / w.def.reloadTime : null,
+      },
+      dark: this.world.isDark(ptx, pty),
+      armor: p.armor,
+      health: p.health,
+      hurt: this.hurt,
+      cutscene: this.intro.active ? { bars: this.intro.bars, subtitle: this.intro.subtitle } : null,
+      securing: this.securing ? this.securing.secureProgress : null,
+      outcome: this.outcome,
+    };
+  }
+}

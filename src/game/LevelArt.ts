@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, FONT, TILE } from '../config';
 import { blocksSight, type ParsedLevel, type TileKind } from '../core/grid';
 import type { FloorLabel } from '../levels/range';
+import type { PropDef } from '../levels/types';
 
 const PLANK_H = 8;
 const PLANK_LEN = 96;
@@ -17,6 +18,7 @@ export function drawLevelArt(
   level: ParsedLevel,
   labels: readonly FloorLabel[],
   rails: readonly { x0: number; x1: number; y: number }[],
+  props: readonly PropDef[],
   depth: number,
   scale: number,
 ): Phaser.GameObjects.RenderTexture {
@@ -35,10 +37,15 @@ export function drawLevelArt(
     if (exposed(kindAt(x + 1, y))) g.fillRect(px + TILE - w, py, w, TILE);
   };
 
-  // Floors: continuous wooden planks, each with its own tone.
+  // Floors: wooden planks, ceramic tiles, pavement or grass.
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (blocksSight(kindAt(x, y))) continue;
+      const material = level.material[y * width + x];
+      if (material !== 'wood') {
+        drawFloor(g, material, x, y, darkAt(x, y));
+        continue;
+      }
       const base = darkAt(x, y) ? COLORS.floorDark : COLORS.floor;
       for (let r = 0; r < TILE / PLANK_H; r++) {
         const row = y * (TILE / PLANK_H) + r;
@@ -133,7 +140,7 @@ export function drawLevelArt(
           g.fillStyle(hash(x, y, 20 + i) > 0.5 ? 0xffffff : 0x000000, 0.06);
           g.fillRect(px + hash(x, y, 30 + i) * (TILE - 3), py + hash(x, y, 40 + i) * (TILE - 3), 2 + hash(x, y, 50 + i) * 3, 2);
         }
-      } else {
+      } else if (kind === 'plywood') {
         g.fillStyle(COLORS.plywood, 1);
         g.fillRect(px, py, TILE, TILE);
         const along = kindAt(x - 1, y) === 'plywood' || kindAt(x + 1, y) === 'plywood';
@@ -142,8 +149,13 @@ export function drawLevelArt(
           if (along) g.fillRect(px, py + i, TILE, 1);
           else g.fillRect(px + i, py, 1, TILE);
         }
+      } else {
+        // Plaster interior wall: smooth, light, with a faint skirting line.
+        g.fillStyle(tone(COLORS.interior, 0.98 + hash(x, y, 2) * 0.04), 1);
+        g.fillRect(px, py, TILE, TILE);
       }
-      edges(x, y, (k) => !blocksSight(k), kind === 'wall' ? COLORS.wallEdge : COLORS.plywoodEdge, 1.5);
+      const edge = kind === 'wall' ? COLORS.wallEdge : kind === 'plywood' ? COLORS.plywoodEdge : COLORS.interiorEdge;
+      edges(x, y, (k) => !blocksSight(k), edge, 1.5);
     }
   }
 
@@ -154,6 +166,8 @@ export function drawLevelArt(
     if (d.orientation === 'h') g.fillRect(px, py + TILE / 2 - 4, TILE, 8);
     else g.fillRect(px + TILE / 2 - 4, py, 8, TILE);
   }
+
+  for (const p of props) drawProp(g, p);
 
   for (const r of rails) {
     g.fillStyle(0x000000, 0.35);
@@ -177,6 +191,64 @@ export function drawLevelArt(
     t.destroy();
   }
   return rt;
+}
+
+function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, y: number, dark: boolean): void {
+  const px = x * TILE, py = y * TILE;
+  const f = dark ? 0.6 : 1;
+  if (material === 'tile') {
+    // 16 px ceramic tiles with grout lines.
+    for (let ty = 0; ty < 2; ty++) {
+      for (let tx = 0; tx < 2; tx++) {
+        g.fillStyle(tone(COLORS.tile, f * (0.95 + hash(x * 2 + tx, y * 2 + ty, 5) * 0.08)), 1);
+        g.fillRect(px + tx * 16, py + ty * 16, 16, 16);
+      }
+    }
+    g.fillStyle(0x000000, 0.22);
+    g.fillRect(px, py, TILE, 1);
+    g.fillRect(px, py + 16, TILE, 1);
+    g.fillRect(px, py, 1, TILE);
+    g.fillRect(px + 16, py, 1, TILE);
+  } else if (material === 'concrete') {
+    g.fillStyle(tone(COLORS.concrete, f * (0.97 + hash(x, y, 6) * 0.06)), 1);
+    g.fillRect(px, py, TILE, TILE);
+    for (let i = 0; i < 6; i++) {
+      g.fillStyle(hash(x, y, 60 + i) > 0.5 ? 0xffffff : 0x000000, 0.05);
+      g.fillRect(px + hash(x, y, 70 + i) * 30, py + hash(x, y, 80 + i) * 30, 2, 2);
+    }
+    // Expansion joints every two tiles.
+    g.fillStyle(0x000000, 0.2);
+    if (x % 2 === 0) g.fillRect(px, py, 1, TILE);
+    if (y % 2 === 0) g.fillRect(px, py, TILE, 1);
+  } else {
+    g.fillStyle(tone(COLORS.grass, f * (0.92 + hash(x, y, 7) * 0.12)), 1);
+    g.fillRect(px, py, TILE, TILE);
+    for (let i = 0; i < 14; i++) {
+      g.fillStyle(hash(x, y, 90 + i) > 0.5 ? 0x9ccf7a : 0x0d1f0a, 0.12);
+      g.fillRect(px + hash(x, y, 110 + i) * 31, py + hash(x, y, 130 + i) * 30, 1, 2);
+    }
+  }
+}
+
+/** Decorative set dressing that doesn't affect play, like the van at the drop-off. */
+function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
+  if (p.kind !== 'van') return;
+  const x = p.tx * TILE, y = p.ty * TILE, w = 4.4 * TILE, h = 2 * TILE;
+  g.fillStyle(0x000000, 0.35);
+  g.fillRoundedRect(x + 4, y + 5, w, h, 8);
+  g.fillStyle(0x1e293b, 1);
+  g.fillRoundedRect(x, y, w, h, 8);
+  g.fillStyle(0x334155, 1);
+  g.fillRoundedRect(x + 8, y + 6, w - 40, h - 12, 4);
+  // Windscreen at the front (east), light bar on the roof.
+  g.fillStyle(0x93c5fd, 0.55);
+  g.fillRoundedRect(x + w - 30, y + 6, 14, h - 12, 3);
+  g.fillStyle(0xdc2626, 1);
+  g.fillRect(x + w - 46, y + h / 2 - 9, 6, 8);
+  g.fillStyle(0x2563eb, 1);
+  g.fillRect(x + w - 46, y + h / 2 + 1, 6, 8);
+  g.fillStyle(0xf8fafc, 0.85);
+  g.fillRect(x + 16, y + h / 2 - 1, w - 70, 2);
 }
 
 /** Deterministic pseudo-random number in [0, 1) for a grid position. */

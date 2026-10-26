@@ -3,7 +3,11 @@ import { DEG, pointInPolygon, rayCircle, raySegment, rotateTowards, wrapAngle } 
 import { buildWallSegments, castRay, visibilityPolygon } from '../src/core/visibility';
 import { parseLevel, blocksSight } from '../src/core/grid';
 import { moveCircle } from '../src/core/collision';
+import { findPath } from '../src/core/pathfinding';
+import { rollSituation } from '../src/game/situation';
+import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
+import { LEVELS } from '../src/levels';
 
 describe('geometry', () => {
   it('wraps angles into [-PI, PI)', () => {
@@ -87,7 +91,6 @@ describe('level parsing', () => {
   it('parses the Range', () => {
     const lvl = parseLevel(RANGE_MAP);
     expect(RANGE_MAP.every((r) => r.length === lvl.width)).toBe(true);
-    expect(lvl.markers.filter((m) => m.kind === 'player')).toHaveLength(1);
     expect(lvl.doors.length).toBeGreaterThan(5);
     // Kill house markers sit on dark floor.
     const mover = lvl.markers.find((m) => m.kind === 'mover')!;
@@ -109,4 +112,95 @@ describe('collision', () => {
     expect(p.x).toBeCloseTo(86);
     expect(p.y).toBeCloseTo(100);
   });
+});
+
+describe('floor materials', () => {
+  it('parses materials and gives doors the indoor floor', () => {
+    const lvl = parseLevel(['#####', '#="~#', '##D##', '#...#', '#####']);
+    const m = (x: number, y: number) => lvl.material[y * lvl.width + x];
+    expect([m(1, 1), m(2, 1), m(3, 1)]).toEqual(['concrete', 'grass', 'tile']);
+    expect(m(2, 2)).toBe('wood');
+    expect(lvl.tiles[2 * lvl.width + 2]).toBe('floor');
+  });
+});
+
+describe('pathfinding', () => {
+  // 0 = open, 1 = wall.
+  const grid = [
+    '00000',
+    '01110',
+    '00010',
+    '11010',
+    '00000',
+  ];
+  const open = (x: number, y: number) => grid[y]?.[x] === '0';
+
+  it('finds a route around walls', () => {
+    const path = findPath(5, 5, { tx: 0, ty: 2 }, { tx: 2, ty: 2 }, open)!;
+    expect(path.at(-1)).toEqual({ tx: 2, ty: 2 });
+    for (const p of path) expect(open(p.tx, p.ty)).toBe(true);
+  });
+
+  it('never cuts a wall corner diagonally', () => {
+    const path = findPath(5, 5, { tx: 0, ty: 0 }, { tx: 4, ty: 4 }, open)!;
+    let prev = { tx: 0, ty: 0 };
+    for (const p of path) {
+      if (p.tx !== prev.tx && p.ty !== prev.ty) {
+        expect(open(p.tx, prev.ty) && open(prev.tx, p.ty)).toBe(true);
+      }
+      prev = p;
+    }
+  });
+
+  it('returns null when the goal is unreachable', () => {
+    expect(findPath(5, 5, { tx: 0, ty: 0 }, { tx: 2, ty: 1 }, open)).toBeNull();
+  });
+});
+
+describe('situation roll', () => {
+  const m = HARBOUR_LANE.mission!;
+  const seq = (values: number[]) => { let i = 0; return () => values[i++ % values.length]; };
+
+  it('keeps the hostile count within the briefed range and always includes the patroller', () => {
+    for (let i = 0; i < 50; i++) {
+      const s = rollSituation(m);
+      expect(s.hostiles.length).toBeGreaterThanOrEqual(m.hostiles.min);
+      expect(s.hostiles.length).toBeLessThanOrEqual(m.hostiles.max);
+      expect(s.hostiles.some((h) => h.type === 'patroller')).toBe(true);
+      expect(s.civilians.length).toBe(1);
+    }
+  });
+
+  it('can exceed the range by one on unverified intel', () => {
+    const s = rollSituation({ ...m, reliability: 'Unverified' }, seq([0.99, 0.1, 0.5]));
+    expect(s.hostiles.length).toBe(m.hostiles.max + 1);
+  });
+});
+
+describe('level data', () => {
+  for (const def of LEVELS) {
+    const lvl = parseLevel(def.map);
+    const walkable = (tx: number, ty: number) => lvl.tiles[Math.floor(ty) * lvl.width + Math.floor(tx)] === 'floor';
+
+    it(`${def.id}: rows are equal width and entries start on walkable floor`, () => {
+      expect(def.map.every((r) => r.length === lvl.width)).toBe(true);
+      for (const e of def.entries) for (const p of e.approach) expect(walkable(p.tx, p.ty)).toBe(true);
+    });
+
+    if (def.mission) {
+      it(`${def.id}: every spawn slot and patrol point is on floor and reachable from each entry`, () => {
+        const m = def.mission!;
+        const points = [...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? [])];
+        const passable = (x: number, y: number) => lvl.tiles[y * lvl.width + x] === 'floor';
+        for (const p of points) expect(walkable(p.tx, p.ty)).toBe(true);
+        for (const e of def.entries) {
+          const end = e.approach.at(-1)!;
+          for (const p of points) {
+            const path = findPath(lvl.width, lvl.height, { tx: Math.floor(end.tx), ty: Math.floor(end.ty) }, { tx: Math.floor(p.tx), ty: Math.floor(p.ty) }, passable);
+            expect(path).not.toBeNull();
+          }
+        }
+      });
+    }
+  }
 });

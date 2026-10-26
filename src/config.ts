@@ -25,6 +25,11 @@ export const COLORS = {
   wallEdge: 0x9aa6b8,
   plywood: 0x6f5232,
   plywoodEdge: 0xc79c68,
+  interior: 0x7d776d,
+  interiorEdge: 0xd6cfc2,
+  tile: 0x6f706c,
+  concrete: 0x45484c,
+  grass: 0x2c4224,
   barrier: 0x6e5236,
   barrierStripe: 0xd4a017,
   furniture: 0x3d342b,
@@ -41,8 +46,8 @@ export const COLORS = {
 export const VISION = {
   halfFov: 30 * DEG,
   rangeLit: 680,
-  rangeDarkFlashlight: 320,
-  rangeDarkNoLight: 90,
+  /** In dark rooms the operator sees as far as their weapon light reaches. */
+  rangeDark: 320,
   peripheral: 56,
   sweepStep: 0.8 * DEG,
   /** How dark remembered-but-not-visible areas are. */
@@ -63,6 +68,8 @@ export const MOVE = {
 
 /** Noise radii in px. Enemy AI will listen for these; for now they drive the on-screen ripples. */
 export const NOISE = {
+  /** Walking is quiet: only heard from right next to you. */
+  walkStep: 70,
   sprintStep: 280,
   doorOpen: 110,
   doorClose: 110,
