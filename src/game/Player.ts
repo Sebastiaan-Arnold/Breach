@@ -10,6 +10,8 @@ export interface PlayerInput {
   sprint: boolean;
   /** World-space angle towards the cursor. */
   aimAt: number;
+  /** Speed multiplier, e.g. for the brisk walk in the intro. Doesn't make footsteps louder. */
+  pace?: number;
 }
 
 export interface StepEvent {
@@ -126,7 +128,7 @@ export class Player {
     this.hurtTimer = Math.max(0, this.hurtTimer - dt);
     const len = Math.hypot(input.moveX, input.moveY);
     const wantsToMove = len > 0;
-    const speed = wantsToMove && input.sprint ? MOVE.sprint : MOVE.walk;
+    const speed = (wantsToMove && input.sprint ? MOVE.sprint : MOVE.walk) * (input.pace ?? 1);
     const tvx = wantsToMove ? (input.moveX / len) * speed : 0;
     const tvy = wantsToMove ? (input.moveY / len) * speed : 0;
     const k = 1 - Math.exp(-(wantsToMove ? ACCEL : DECEL) * dt);

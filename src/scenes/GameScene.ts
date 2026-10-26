@@ -13,7 +13,7 @@ import type { Door } from '../game/Door';
 import { Effects } from '../game/Effects';
 import { Enemy, type EnemyContext } from '../game/Enemy';
 import { Fog } from '../game/Fog';
-import { Intro } from '../game/Intro';
+import { Intro, INTRO_PACE } from '../game/Intro';
 import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem, type NoiseEvent } from '../game/Noise';
 import { Player } from '../game/Player';
@@ -27,7 +27,8 @@ import { World } from '../game/World';
 const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, people: 5, player: 6, glow: 7, fog: 10, light: 12, ripples: 20, laser: 21 };
 const RAIL_NOISE = 250;
 const CAMERA_LOOKAHEAD = 70;
-const ENEMY_SHOT_NOISE = 520;
+/** Enemies' handguns are unsuppressed too: the whole house hears them. */
+const ENEMY_SHOT_NOISE = 1000;
 /** Pause between the last hostile going down (or the operator) and the debrief. */
 const OUTCOME_DELAY = 1.6;
 
@@ -188,7 +189,7 @@ export class GameScene extends Phaser.Scene {
       const wp = this.input.activePointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
       aimAt = Math.atan2(wp.y - p.y, wp.x - p.x);
     }
-    const step = p.update(dt, { moveX: mx, moveY: my, sprint: active && k.SHIFT.isDown, aimAt }, this.world.solid);
+    const step = p.update(dt, { moveX: mx, moveY: my, sprint: active && k.SHIFT.isDown, aimAt, pace: inIntro ? INTRO_PACE : 1 }, this.world.solid);
     this.separateBodies();
     const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
     if (step) {
@@ -410,8 +411,8 @@ export class GameScene extends Phaser.Scene {
     this.muzzleFlash = 0.05;
     this.effects.muzzle(muzzle.x, muzzle.y, w.def.id !== 'pistol');
     this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
-    sfx.shot(w.def.id !== 'pistol');
-    this.noise.emit({ x: p.x, y: p.y, radius: w.def.noise, source: 'player', kind: 'shot' }, p.x, p.y);
+    sfx.shot(w.def.id !== 'pistol', {}, w.suppressed);
+    this.noise.emit({ x: p.x, y: p.y, radius: w.noise, source: 'player', kind: 'shot' }, p.x, p.y);
   }
 
   private hitEffect(t: Hittable, x: number, y: number, dx: number, dy: number): void {

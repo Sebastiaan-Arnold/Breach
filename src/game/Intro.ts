@@ -1,12 +1,16 @@
 import { TILE } from '../config';
 import type { TilePos } from '../levels/types';
 
-const LINE_TIME = 2.8;
-const FIRST_LINE = 0.5;
+const LINE_TIME = 1.8;
+const FIRST_LINE = 0.25;
+/** How long the last radio line stays up before the intro may end. */
+const LAST_LINE_HOLD = 1.3;
 /** How long the letterbox bars take to come in and go out. */
-const BAR_TIME = 0.6;
+const BAR_TIME = 0.4;
 /** Camera zoom relative to normal at the start of the walk. */
-const START_ZOOM = 0.6;
+const START_ZOOM = 0.65;
+/** The operator walks briskly to the entry, faster than a normal walk. */
+export const INTRO_PACE = 1.45;
 
 /**
  * The short cutscene at the start of a level: letterbox bars, the camera pulled back, the
@@ -40,14 +44,14 @@ export class Intro {
   }
 
   private get linesDone(): boolean {
-    return this.time >= FIRST_LINE + this.lines.length * LINE_TIME;
+    return this.time >= FIRST_LINE + (this.lines.length - 1) * LINE_TIME + LAST_LINE_HOLD;
   }
 
   /** The radio line currently on screen, if any. */
   get subtitle(): string | null {
     if (this.outTime >= 0) return null;
-    const i = Math.floor((this.time - FIRST_LINE) / LINE_TIME);
-    return i >= 0 && i < this.lines.length ? this.lines[i] : null;
+    const i = Math.min(this.lines.length - 1, Math.floor((this.time - FIRST_LINE) / LINE_TIME));
+    return i >= 0 ? this.lines[i] : null;
   }
 
   /** 0..1, how far the letterbox bars are in. */

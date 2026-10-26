@@ -3,6 +3,21 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.2.1
+
+Tuning from the first Harbour Lane playtest.
+
+- Guns are unsuppressed: a shot is heard through the whole building, by enemies and civilians
+  alike. Weapons now carry a suppressor flag (shots heard at 30% of the distance, with a muffled
+  sound), ready for a later unlock.
+- Faster intro: a brisker walk to the entry and tighter radio lines; the longest intro went from
+  about 9.5 to 5.5 seconds.
+- Clearer entry choice on the briefing: bigger numbered markers with names on the map, the chosen
+  route drawn bright, a "Choose entry" list on the right and a Deploy button that names the
+  entry.
+- Fixed overlapping text in the briefing's intel rows and around the "no plans" area; the
+  property boundary is drawn quieter than the building's walls.
+
 ## v0.2.0
 
 Milestone 2, vertical slice: the first Officer case, played from briefing to debrief.

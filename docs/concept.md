@@ -61,7 +61,7 @@ Memorising the briefing map isn't required, because the game draws what you've s
 
 **Sound as information**
 
-Sound fills the gaps that vision leaves. Footsteps, a door creaking or a suspect shouting appear as a brief ripple on screen at roughly the right position, even through walls. It's vague on purpose: you know something is in the next room, not exactly where. The operator's own actions make noise too. Running is loud, walking is quiet and kicking a door alerts the whole floor.
+Sound fills the gaps that vision leaves. Footsteps, a door creaking or a suspect shouting appear as a brief ripple on screen at roughly the right position, even through walls. It's vague on purpose: you know something is in the next room, not exactly where. The operator's own actions make noise too. Running is loud, walking is quiet, and gunfire is unsuppressed, so a single shot alerts the whole building.
 
 **No map during the mission**
 
@@ -217,6 +217,7 @@ Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors
 - **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
 - **Five missions per campaign**, so 20 missions plus the Range for the full web release.
 - **Enemies can't see the laser.**
+- **Guns are unsuppressed** for now; a suppressor comes later as an unlock and cuts how far shots are heard.
 - **Vision cone of about 60 degrees.**
 - **Doors open and close only** in the first version; kick and peek come later.
 - **Port Ardley**, a fictional harbour city, with Breach as the working title.

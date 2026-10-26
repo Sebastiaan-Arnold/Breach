@@ -32,7 +32,13 @@ export class Sfx {
     void this.ctx.resume();
   }
 
-  shot(heavy = false, o: SfxOpts = {}): void {
+  shot(heavy = false, o: SfxOpts = {}, suppressed = false): void {
+    if (suppressed) {
+      // A muffled cough rather than a crack.
+      this.noise(0.08, 900, 'lowpass', 0.5, o);
+      this.tone(110, 50, 0.08, 'sine', 0.4, o);
+      return;
+    }
     this.noise(heavy ? 0.22 : 0.15, heavy ? 1600 : 2600, 'lowpass', 0.9, o);
     this.tone(heavy ? 120 : 160, 45, 0.14, 'sine', 0.7, o);
   }
@@ -65,6 +71,11 @@ export class Sfx {
 
   impact(o: SfxOpts = {}): void {
     this.noise(0.05, 3000, 'highpass', 0.15, o);
+  }
+
+  /** A UI selection tick. */
+  select(): void {
+    this.noise(0.02, 4000, 'highpass', 0.3);
   }
 
   /** The operator takes a hit. */
