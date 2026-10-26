@@ -103,6 +103,8 @@ The AI doesn't need to be clever; it needs to be readable. Players should be abl
 
 Each enemy runs a simple state machine with three states: Idle (standing or patrolling), Alert (heard something, moves to investigate) and Combat (sees you, shoots or takes cover). Noise pushes nearby enemies from Idle to Alert, which is what makes careful play pay off.
 
+A fight splits them by temperament. **Pushers** come for you, fast and loud, so you can hear them coming. **Holders** dig in: they take a spot a few tiles back from the door you'd come through, aim at it and wait. Going loud never empties a building by itself; the rooms with someone covering the door still have to be cleared.
+
 **Civilians**
 
 Civilians panic, run or freeze and sometimes block a doorway. Hitting one costs a large score penalty and the second star, but the mission carries on. Securing them adds to the score. On early levels they wear bright clothing and stay clearly visible, so players aren't punished for things they couldn't read.

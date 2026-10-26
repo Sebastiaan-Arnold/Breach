@@ -3,6 +3,14 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.2.2
+
+- Enemies no longer all walk towards gunfire. Each has a temperament: pushers (most
+  patrollers) come for you fast and loud; holders (most lookouts) dig in a few tiles back from
+  the door you'd come through, aim at it and wait. Holders notice and react faster while dug in,
+  and go back to their spot instead of chasing when they lose sight of you. Levels can fix a
+  hostile's temperament; otherwise it's rolled on every deploy.
+
 ## v0.2.1
 
 Tuning from the first Harbour Lane playtest.

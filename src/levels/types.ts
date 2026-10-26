@@ -16,6 +16,12 @@ export interface EntryDef {
 
 export type HostileType = 'lookout' | 'patroller';
 
+/**
+ * How a hostile reacts to a fight it hears: pushers come for you, holders dig in and cover the
+ * door you'd come through.
+ */
+export type Temperament = 'pusher' | 'holder';
+
 export interface HostileSlot {
   type: HostileType;
   tx: number;
@@ -24,6 +30,8 @@ export interface HostileSlot {
   facing: number;
   /** Patrollers walk this loop. */
   route?: TilePos[];
+  /** Fixes the reaction to a fight; rolled per deploy when left out. */
+  temperament?: Temperament;
 }
 
 export interface CivilianSlot {

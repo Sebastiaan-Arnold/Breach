@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { MOVE, TILE } from '../config';
 import { moveCircle } from '../core/collision';
 import { DEG, rayCircle, wrapAngle } from '../core/geometry';
-import type { HostileSlot, HostileType } from '../levels/types';
+import type { HostileSlot, HostileType, Temperament } from '../levels/types';
+import type { Door } from './Door';
 import { drawDowned, drawFigure, type FigureStyle } from './figures';
 import type { NoiseEvent } from './Noise';
 import type { World } from './World';
@@ -27,8 +28,18 @@ const VIEW_DARK = 190;
 const VIEW_CLOSE = 46;
 const SPEED_PATROL = 52;
 const SPEED_ALERT = 88;
+/** Pushers move fast (and loud) towards a fight. */
+const SPEED_PUSH = 108;
 const TURN = 4.5;
 const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6 };
+/** Someone already aimed at a doorway reacts quicker. */
+const REACTION_HOLDING = 0.28;
+/** Chance to hold rather than push, when not set by the level. */
+const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3 };
+/** How far (in tiles) a holder looks for a spot covering its door, and the distances it likes. */
+const HOLD_SEARCH = 5;
+const HOLD_MIN = 2.5 * TILE;
+const HOLD_MAX = 6.5 * TILE;
 const LOOK_AROUND = 2.6;
 /** Angular error of an enemy's shot, in radians (about 4 degrees). */
 const SPREAD = 4 * DEG;
@@ -39,6 +50,9 @@ const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gu
  * A hostile. Readable rather than clever: Idle (post or patrol), Alert (investigates a noise)
  * and Combat (sees you: turns, reacts, shoots). Noise moves them from Idle to Alert, which is
  * what makes careful play pay off.
+ *
+ * Gunfire and shouts split them by temperament: pushers come for you, holders take a spot
+ * covering the door you'd come through and wait for you there.
  */
 export class Enemy {
   readonly prop = false;
@@ -48,6 +62,7 @@ export class Enemy {
   y: number;
   facing: number;
   wasHit = false;
+  readonly temperament: Temperament;
 
   private post: { x: number; y: number; facing: number };
   private route: { x: number; y: number }[];
@@ -55,6 +70,11 @@ export class Enemy {
   private path: { x: number; y: number }[] = [];
   private goal: { x: number; y: number } | null = null;
   private investigate: { x: number; y: number } | null = null;
+  private pushing = false;
+  /** A fight heard by a holder, waiting for a spot to be chosen. */
+  private threat: { x: number; y: number } | null = null;
+  /** Where a holder has dug in, and the doorway it watches. */
+  private hold: { x: number; y: number; facing: number } | null = null;
   private lastSeen: { x: number; y: number } | null = null;
   private sightTime = 0;
   private lostTime = 0;
@@ -74,6 +94,7 @@ export class Enemy {
     this.facing = slot.facing * DEG;
     this.post = { x: this.x, y: this.y, facing: this.facing };
     this.route = (slot.route ?? []).map((p) => ({ x: p.tx * TILE, y: p.ty * TILE }));
+    this.temperament = slot.temperament ?? (Math.random() < HOLD_CHANCE[type] ? 'holder' : 'pusher');
     this.gfx = scene.add.graphics();
     drawFigure(this.gfx, STYLE);
     this.container = scene.add.container(this.x, this.y, [this.gfx]).setDepth(depth).setVisible(false);
@@ -101,10 +122,24 @@ export class Enemy {
     // Their own side's footsteps aren't interesting; shouts, shots, doors and you are.
     if (e.source === 'world' && e.kind !== 'shout' && e.kind !== 'shot') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
+    // Once dug in, a holder stays put whatever it hears.
+    if (this.hold) return;
+    const fight = e.kind === 'shot' || e.kind === 'shout';
     this.state = 'alert';
-    this.investigate = { x: e.x + Phaser.Math.Between(-12, 12), y: e.y + Phaser.Math.Between(-12, 12) };
     this.goal = null;
     this.lookTimer = 0;
+    if (fight && this.temperament === 'holder') {
+      this.threat = { x: e.x, y: e.y };
+      this.investigate = null;
+      return;
+    }
+    this.pushing = fight;
+    this.investigate = { x: e.x + Phaser.Math.Between(-12, 12), y: e.y + Phaser.Math.Between(-12, 12) };
+  }
+
+  /** True while dug in at its spot, aimed at the doorway. */
+  private get dugIn(): boolean {
+    return !!this.hold && Math.hypot(this.hold.x - this.x, this.hold.y - this.y) < 8;
   }
 
   /** @param visible whether the operator can currently see this enemy */
@@ -131,8 +166,8 @@ export class Enemy {
     if (sees) {
       this.lastSeen = { x: p.x, y: p.y };
       this.lostTime = 0;
-      // Closer and already alert means noticing faster.
-      const notice = (this.state === 'alert' ? 0.12 : 0.35) + dist / 1600;
+      // Closer, already alert or dug in and aimed means noticing faster.
+      const notice = this.dugIn ? 0.06 + dist / 2400 : (this.state === 'alert' ? 0.12 : 0.35) + dist / 1600;
       this.sightTime += dt;
       if (this.state !== 'combat' && this.sightTime >= notice) this.enterCombat(ctx);
     } else {
@@ -157,7 +192,7 @@ export class Enemy {
 
   private enterCombat(ctx: EnemyContext): void {
     this.state = 'combat';
-    this.reactTimer = REACTION[this.type];
+    this.reactTimer = this.dugIn ? REACTION_HOLDING : REACTION[this.type];
     this.fireTimer = 0;
     this.path = [];
     this.goal = null;
@@ -180,8 +215,18 @@ export class Enemy {
   }
 
   private updateAlert(dt: number, ctx: EnemyContext): void {
+    if (this.threat) {
+      this.hold = this.chooseHold(this.threat, ctx.world);
+      this.threat = null;
+    }
+    if (this.hold) {
+      // Get into position, then stay aimed at the doorway with only a slight scan.
+      if (!this.walkTo(this.hold, SPEED_ALERT, dt, ctx)) return;
+      this.turnTo(this.hold.facing + Math.sin(this.time * 1.1) * 10 * DEG, dt, 3);
+      return;
+    }
     if (this.investigate) {
-      if (this.walkTo(this.investigate, SPEED_ALERT, dt, ctx)) {
+      if (this.walkTo(this.investigate, this.pushing ? SPEED_PUSH : SPEED_ALERT, dt, ctx)) {
         this.investigate = null;
         this.lookTimer = LOOK_AROUND;
       }
@@ -194,16 +239,20 @@ export class Enemy {
     }
     this.state = 'idle';
     this.goal = null;
+    this.pushing = false;
   }
 
   private updateCombat(dt: number, ctx: EnemyContext, sees: boolean, toPlayer: number): void {
     if (!sees) {
       this.lostTime += dt;
       if (this.lostTime > 0.7 && this.lastSeen) {
-        // Lost them: go to where they were last seen.
+        // Lost them: holders go back to covering their door, pushers chase.
         this.state = 'alert';
-        this.investigate = this.lastSeen;
         this.goal = null;
+        if (!this.hold) {
+          this.investigate = this.lastSeen;
+          this.pushing = true;
+        }
       }
       return;
     }
@@ -217,6 +266,42 @@ export class Enemy {
       const error = (Math.random() + Math.random() - 1) * SPREAD;
       ctx.shoot(this, this.facing + error);
     }
+  }
+
+  /**
+   * Picks a spot to dig in: on this side of the door a threat would come through, a few tiles
+   * back from it, with a clear view of the doorway. With no door in between, it covers the
+   * direction of the noise from where it stands.
+   */
+  private chooseHold(threat: { x: number; y: number }, world: World): { x: number; y: number; facing: number } {
+    const route = world.findPath(this.x, this.y, threat.x, threat.y) ?? [];
+    let door: Door | undefined;
+    for (const p of route) {
+      door = world.doorAtTile(Math.floor(p.x / TILE), Math.floor(p.y / TILE));
+      if (door) break;
+    }
+    if (!door) return { x: this.x, y: this.y, facing: Math.atan2(threat.y - this.y, threat.x - this.x) };
+
+    const side = (x: number, y: number) => Math.sign(door!.spec.orientation === 'h' ? y - door!.cy : x - door!.cx);
+    const mySide = side(this.x, this.y);
+    let best = { x: this.x, y: this.y, score: -Infinity };
+    const tx0 = Math.floor(this.x / TILE), ty0 = Math.floor(this.y / TILE);
+    for (let ty = ty0 - HOLD_SEARCH; ty <= ty0 + HOLD_SEARCH; ty++) {
+      for (let tx = tx0 - HOLD_SEARCH; tx <= tx0 + HOLD_SEARCH; tx++) {
+        if (world.solid(tx, ty) || world.doorAtTile(tx, ty) || world.isOutdoor(tx, ty)) continue;
+        const cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE;
+        if (side(cx, cy) !== mySide) continue;
+        const d = Math.hypot(cx - door.cx, cy - door.cy);
+        if (d < HOLD_MIN || d > HOLD_MAX) continue;
+        // Sight line to a point just short of the door leaf, on our side of it.
+        const ax = door.cx + ((cx - door.cx) / d) * 10, ay = door.cy + ((cy - door.cy) / d) * 10;
+        if (!world.lineOfSight(cx, cy, ax, ay)) continue;
+        // Prefer further back from the door, close to where they already are, with some variety.
+        const score = d - Math.hypot(cx - this.x, cy - this.y) * 0.5 + Math.random() * 24;
+        if (score > best.score) best = { x: cx, y: cy, score };
+      }
+    }
+    return { x: best.x, y: best.y, facing: Math.atan2(door.cy - best.y, door.cx - best.x) };
   }
 
   /** Walks towards `target` along a path; returns true on arrival. */
