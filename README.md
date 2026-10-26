@@ -30,6 +30,9 @@ The build has two levels: the police academy Range (training) and the first Offi
   room opens up as the door swings. (Kick and peek from the concept are parked for later.)
 - **Sound as information:** your own noise shows as a ring of how far it carries. World sounds
   show as vague ripples through walls.
+- **Campaign:** progress is saved; the Range promotes you to Officer and opens the Officer
+  cases, which unlock in order. Finishing them with enough stars promotes you to Senior Officer
+  and issues the SMG. Choose your primary gun on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
 - **Minimal HUD and settings:** ammo, short messages and, on the Range only, tutorial text.
@@ -45,7 +48,7 @@ The build has two levels: the police academy Range (training) and the first Offi
 | Open or close a door | E (nearest) or right click on it |
 | Secure a civilian | Hold E next to them |
 | Reload | R |
-| Switch gun (Range only, for testing handling) | 1–4 |
+| Primary gun / pistol | 1 / 2 (on the Range: 1–4 for every issued gun) |
 | Skip the intro | Space |
 | Pause, settings and controls | Esc |
 | Frame-rate readout | F3 |

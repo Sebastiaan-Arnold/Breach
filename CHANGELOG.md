@@ -3,6 +3,20 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.3.0
+
+Milestone 3 begins: the campaign framework.
+
+- Progress is saved in the browser: rank, best stars per level and completed levels.
+- Ranks and promotion: passing the Range promotes a Recruit to Officer and opens the Officer
+  campaign; finishing every case with enough stars promotes to Senior Officer and issues the SMG.
+  Each promotion shows a note from the captain.
+- The menu shows your rank and each campaign with its cases, best stars, locks and stars needed
+  for promotion. Progress can be reset from the menu.
+- Loadout: the briefing lets you choose a primary gun from those issued; the pistol is always
+  carried as a sidearm. In missions, 1 selects the primary and 2 the pistol. On the Range, 1-4
+  cycle through every gun you've been issued.
+
 ## v0.2.3
 
 - Versions are tagged automatically: a workflow creates the `vX.Y.Z` tag on GitHub for the

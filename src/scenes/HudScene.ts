@@ -18,7 +18,7 @@ const CONTROLS: [string, string][] = [
   ['Open or close a door', 'E or right click'],
   ['Secure a civilian', 'Hold E next to them'],
   ['Reload', 'R'],
-  ['Switch gun (Range only)', '1-4'],
+  ['Primary / pistol', '1 / 2'],
   ['Skip intro', 'Space'],
   ['Frame rate', 'F3'],
 ];

@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '../config';
 import { isOutdoor, parseLevel } from '../core/grid';
 import { sfx } from '../game/audio';
+import { progress, unlockedWeapons } from '../game/progress';
+import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
 import type { LevelDef, Reliability } from '../levels/types';
@@ -30,6 +32,8 @@ export class BriefingScene extends Phaser.Scene {
   private hoverIndex = -1;
   private entries: EntryView[] = [];
   private rows: Phaser.GameObjects.Text[] = [];
+  private primary: WeaponId = 'pistol';
+  private gunLabels: Phaser.GameObjects.Text[] = [];
   private deployLabel!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -43,6 +47,9 @@ export class BriefingScene extends Phaser.Scene {
     this.hoverIndex = -1;
     this.entries = [];
     this.rows = [];
+    this.gunLabels = [];
+    // Default to the best gun issued so far.
+    this.primary = unlockedWeapons(progress).at(-1) ?? 'pistol';
   }
 
   create(): void {
@@ -201,6 +208,22 @@ export class BriefingScene extends Phaser.Scene {
     }
     y += 16;
 
+    heading('LOADOUT');
+    const guns = unlockedWeapons(progress);
+    this.add.text(x, y, 'Primary', style(13, DIM));
+    let gx = x + 110;
+    for (const id of guns) {
+      const label = this.add.text(gx, y, WEAPONS[id].name, style(13, TEXT)).setInteractive({ useHandCursor: true });
+      label.setData('gun', id);
+      label.on('pointerup', () => this.selectGun(id));
+      this.gunLabels.push(label);
+      gx += label.width + 22;
+    }
+    y += 22;
+    this.add.text(x + 110, y, guns.length > 1 ? 'Pistol always carried as a sidearm (2)' : 'More guns are issued with promotion', style(11, DIM));
+    y += 34;
+    this.selectGun(this.primary);
+
     heading('CHOOSE ENTRY');
     this.def.entries.forEach((entry, i) => {
       const row = this.add.text(x, y, '', style(15, TEXT)).setInteractive({ useHandCursor: true });
@@ -231,6 +254,15 @@ export class BriefingScene extends Phaser.Scene {
     back.on('pointerover', () => back.setColor(ACCENT));
     back.on('pointerout', () => back.setColor(DIM));
     back.on('pointerup', () => this.scene.start('menu'));
+  }
+
+  private selectGun(id: WeaponId): void {
+    if (id !== this.primary) sfx.select();
+    this.primary = id;
+    for (const l of this.gunLabels) {
+      const on = l.getData('gun') === id;
+      l.setColor(on ? ACCENT : DIM).setFontStyle(on ? 'bold' : 'normal');
+    }
   }
 
   private hover(i: number): void {
@@ -273,7 +305,9 @@ export class BriefingScene extends Phaser.Scene {
 
   private deploy(): void {
     sfx.unlock();
-    this.scene.start('game', { levelId: this.def.id, entryId: this.def.entries[this.entryIndex].id, situation: this.situation });
+    this.scene.start('game', {
+      levelId: this.def.id, entryId: this.def.entries[this.entryIndex].id, situation: this.situation, primary: this.primary,
+    });
   }
 }
 

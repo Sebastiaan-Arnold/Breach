@@ -5,6 +5,8 @@ import { parseLevel, blocksSight } from '../src/core/grid';
 import { moveCircle } from '../src/core/collision';
 import { findPath } from '../src/core/pathfinding';
 import { rollSituation } from '../src/game/situation';
+import { isUnlocked, newProgress, recordSuccess, unlockedWeapons } from '../src/game/progress';
+import { CAMPAIGNS, type CampaignDef } from '../src/levels/campaigns';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
 import { LEVELS } from '../src/levels';
@@ -203,4 +205,41 @@ describe('level data', () => {
       });
     }
   }
+});
+
+describe('campaign progress', () => {
+  const campaigns: CampaignDef[] = [
+    { id: 'a', title: 'A', rank: 0, levels: ['a1'], promotion: { minStars: 1, note: [] } },
+    { id: 'b', title: 'B', rank: 1, levels: ['b1', 'b2'], promotion: { minStars: 5, unlocks: 'smg', note: [] } },
+  ];
+
+  it('unlocks levels in order and campaigns by rank', () => {
+    const p = newProgress();
+    expect(isUnlocked(p, 'a1', campaigns)).toBe(true);
+    expect(isUnlocked(p, 'b1', campaigns)).toBe(false);
+    expect(recordSuccess(p, 'a1', 2, campaigns)?.id).toBe('a');
+    expect(p.rank).toBe(1);
+    expect(isUnlocked(p, 'b1', campaigns)).toBe(true);
+    expect(isUnlocked(p, 'b2', campaigns)).toBe(false);
+  });
+
+  it('promotes only with every level done and enough stars, and keeps best stars', () => {
+    const p = { ...newProgress(), rank: 1 };
+    expect(recordSuccess(p, 'b1', 3, campaigns)).toBeNull();
+    expect(recordSuccess(p, 'b2', 1, campaigns)).toBeNull();
+    expect(p.rank).toBe(1);
+    expect(recordSuccess(p, 'b1', 1, campaigns)).toBeNull();
+    expect(p.stars.b1).toBe(3);
+    expect(recordSuccess(p, 'b2', 2, campaigns)?.id).toBe('b');
+    expect(p.rank).toBe(2);
+    expect(unlockedWeapons(p, campaigns)).toEqual(['pistol', 'smg']);
+  });
+
+  it('every campaign level exists and promotion is reachable', () => {
+    const ids = new Set(LEVELS.map((l) => l.id));
+    for (const c of CAMPAIGNS) {
+      for (const id of c.levels) expect(ids.has(id)).toBe(true);
+      expect(c.promotion.minStars).toBeLessThanOrEqual(c.levels.length * 3);
+    }
+  });
 });

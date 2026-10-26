@@ -18,6 +18,7 @@ import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem, type NoiseEvent } from '../game/Noise';
 import { Player } from '../game/Player';
 import { RangeStations } from '../game/RangeStations';
+import { progress, recordSuccess, saveProgress, unlockedWeapons } from '../game/progress';
 import { settings } from '../game/settings';
 import { rollSituation, type Situation } from '../game/situation';
 import { Target, type TargetKind } from '../game/Target';
@@ -37,6 +38,8 @@ export interface GameData {
   entryId?: string;
   /** Rolled on the briefing screen; rolled here when a level has no briefing. */
   situation?: Situation;
+  /** The primary gun chosen on the briefing; the pistol is always carried as a sidearm. */
+  primary?: WeaponId;
 }
 
 export interface Outcome {
@@ -106,6 +109,10 @@ export class GameScene extends Phaser.Scene {
   private outcomeTimer = -1;
   private outcome: Outcome | null = null;
   private remindedCivilians = false;
+  /** Guns on the number keys: primary then pistol in a mission, everything unlocked on the Range. */
+  private guns: WeaponId[] = ['pistol'];
+  /** Set when this run earned a promotion; shown on the way back to the menu. */
+  private promotion: string | null = null;
 
   constructor() {
     super('game');
@@ -128,6 +135,7 @@ export class GameScene extends Phaser.Scene {
     this.outcomeTimer = -1;
     this.outcome = null;
     this.remindedCivilians = false;
+    this.promotion = null;
   }
 
   create(): void {
@@ -151,6 +159,8 @@ export class GameScene extends Phaser.Scene {
     this.intro = new Intro(entry.approach, this.def.intro.map((l) => l.replace('{entry}', entry.name)));
     this.player = new Player(this, this.intro.start.x, this.intro.start.y, DEPTH.player);
     this.player.facing = this.intro.finalFacing;
+    this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
+    this.player.equip(this.guns[0]);
     this.fog = new Fog(this, level.width * TILE, level.height * TILE, DEPTH.glow, DEPTH.fog);
     this.noise = new NoiseSystem(this, DEPTH.ripples);
     this.noise.onNoise((e) => this.onNoise(e));
@@ -605,8 +615,9 @@ export class GameScene extends Phaser.Scene {
       }
       if (this.outcome || !this.player.alive) return;
       const digit = /^Digit([1-4])$/.exec(e.code);
-      if (digit && this.def.stations) {
-        this.switchWeapon((['pistol', 'smg', 'shotgun', 'rifle'] as WeaponId[])[Number(digit[1]) - 1]);
+      const gun = digit ? this.guns[Number(digit[1]) - 1] : undefined;
+      if (gun) {
+        this.switchWeapon(gun);
         return;
       }
       switch (e.code) {
@@ -632,13 +643,15 @@ export class GameScene extends Phaser.Scene {
     this.player.x = end.x;
     this.player.y = end.y;
     this.player.facing = this.intro.finalFacing;
+    this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
+    this.player.equip(this.guns[0]);
   }
 
   private switchWeapon(id: WeaponId): void {
     if (this.player.weapon.def.id === id) return;
     const w = this.player.equip(id);
     sfx.reload();
-    this.toast(`${w.def.name} (Range only: every gun is on the rack for testing)`);
+    this.toast(w.def.name);
   }
 
   // ---------------------------------------------------------------- flow
@@ -711,10 +724,14 @@ export class GameScene extends Phaser.Scene {
     }
     lines.push(`Shots fired         ${this.stats.shots}`, `Accuracy            ${accuracy}%`);
     if (this.stations) sfx.secured();
+    const stars: [boolean, boolean, boolean] = [true, civiliansHit === 0, !this.damaged];
+    const earned = recordSuccess(progress, this.def.id, stars.filter(Boolean).length);
+    saveProgress(progress);
+    if (earned) this.promotion = earned.id;
     return {
       success: true,
       title: this.def.mission ? 'Site secured' : 'Range qualification complete',
-      stars: [true, civiliansHit === 0, !this.damaged],
+      stars,
       lines: [
         civiliansHit ? `Civilians hit: ${civiliansHit}` : 'No civilians hit',
         this.damaged ? 'Took damage' : 'No damage taken',
@@ -742,8 +759,10 @@ export class GameScene extends Phaser.Scene {
     else this.scene.restart({ levelId: this.def.id });
   }
 
+  /** Back to the menu, by way of the promotion screen if this run earned one. */
   toMenu(): void {
-    this.leave('menu', {});
+    if (this.promotion) this.leave('promotion', { campaignId: this.promotion });
+    else this.leave('menu', {});
   }
 
   private leave(key: string, data: object): void {

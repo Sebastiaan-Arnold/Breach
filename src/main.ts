@@ -4,6 +4,7 @@ import { BriefingScene } from './scenes/BriefingScene';
 import { GameScene } from './scenes/GameScene';
 import { HudScene } from './scenes/HudScene';
 import { MenuScene } from './scenes/MenuScene';
+import { PromotionScene } from './scenes/PromotionScene';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -15,7 +16,7 @@ const game = new Phaser.Game({
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   render: { antialias: true },
   input: { activePointers: 2 },
-  scene: [MenuScene, BriefingScene, GameScene, HudScene],
+  scene: [MenuScene, BriefingScene, GameScene, HudScene, PromotionScene],
 });
 
 if (import.meta.env.DEV) (window as unknown as { game: Phaser.Game }).game = game;
