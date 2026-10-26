@@ -89,13 +89,14 @@ Versions follow `0.<milestone>.<patch>` until the full web release (`1.0.0`):
 | 1.0.0 | Full web release |
 
 Every commit is titled `vX.Y.Z: short summary`, bumps `version` in `package.json` in the same
-commit, gets a matching git tag and an entry in [CHANGELOG.md](CHANGELOG.md). The version is
-shown on the title card.
+commit and gets an entry in [CHANGELOG.md](CHANGELOG.md). The version is shown on the title card.
+Tags are not created by hand: `.github/workflows/tag-version.yml` tags each new version on GitHub
+when it lands on `main`.
 
 ## Deployment
 
 `.github/workflows/deploy.yml` tests, builds and publishes to GitHub Pages on every push to
-`main`. One-time setup on GitHub: **Settings → Pages → Source: GitHub Actions**.
+`main`, and `.github/workflows/tag-version.yml` tags the new version. One-time setup on GitHub: **Settings → Pages → Source: GitHub Actions**.
 
 ## Next
 

@@ -3,6 +3,11 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.2.3
+
+- Versions are tagged automatically: a workflow creates the `vX.Y.Z` tag on GitHub for the
+  version in `package.json` whenever it lands on `main`.
+
 ## v0.2.2
 
 - Enemies no longer all walk towards gunfire. Each has a temperament: pushers (most

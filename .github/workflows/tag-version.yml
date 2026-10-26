@@ -1,0 +1,31 @@
+name: Tag version
+
+# Creates the vX.Y.Z tag for the version in package.json whenever a new version lands on main,
+# so pushing commits is all a release needs.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag the version from package.json
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "$version is already tagged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$version" -m "$(git log -1 --format=%s)"
+          git push origin "$version"
+          echo "Tagged $version."
