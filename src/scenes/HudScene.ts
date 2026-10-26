@@ -142,7 +142,7 @@ export class HudScene extends Phaser.Scene {
         'You only know what you see. Slow is smooth.',
       ].join('\n'), style(15, DIM, { align: 'center', lineSpacing: 6 })).setOrigin(0.5, 0),
       this.add.text(cx, 500, 'CLICK TO BEGIN', style(18, TEXT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.add.text(cx, 540, 'Prototype · milestone 1: the Range', style(11, DIM)).setOrigin(0.5),
+      this.add.text(cx, 540, `v${__APP_VERSION__}  ·  Prototype: the Range`, style(11, DIM)).setOrigin(0.5),
     ];
     return this.add.container(0, 0, items).setDepth(100);
   }

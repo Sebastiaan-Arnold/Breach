@@ -59,6 +59,21 @@ tests/       vitest unit tests for src/core
 Levels are ASCII grids of 32 px tiles (legend in `src/core/grid.ts`). The same data drives
 collision, line of sight and, later, the briefing map.
 
+## Versioning
+
+Versions follow `0.<milestone>.<patch>` until the full web release (`1.0.0`):
+
+| Version | Milestone |
+| --- | --- |
+| 0.1.x | Prototype: the Range |
+| 0.2.x | Vertical slice: first Officer mission |
+| 0.3.x | MVP: Academy plus the Officer campaign |
+| 1.0.0 | Full web release |
+
+Every commit is titled `vX.Y.Z: short summary`, bumps `version` in `package.json` in the same
+commit, gets a matching git tag and an entry in [CHANGELOG.md](CHANGELOG.md). The version is
+shown on the title card.
+
 ## Deployment
 
 `.github/workflows/deploy.yml` tests, builds and publishes to GitHub Pages on every push to
