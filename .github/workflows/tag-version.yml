@@ -1,7 +1,8 @@
 name: Tag version
 
-# Creates the vX.Y.Z tag for the version in package.json whenever a new version lands on main,
-# so pushing commits is all a release needs.
+# Tags each new version that lands on main: for every pushed commit, the version in its
+# package.json gets a vX.Y.Z tag on the first commit that carries it. Pushing several versions
+# at once tags each of them.
 
 on:
   push:
@@ -17,15 +18,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Tag the version from package.json
+      - name: Tag versions from package.json
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
-          version="v$(node -p "require('./package.json').version")"
-          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
-            echo "$version is already tagged."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$version" -m "$(git log -1 --format=%s)"
-          git push origin "$version"
-          echo "Tagged $version."
+          # Only the commits in this push; fall back to the newest commit if that range is unknown.
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            commits=$(git rev-list --reverse "$BEFORE..HEAD")
+          else
+            commits=$(git rev-parse HEAD)
+          fi
+          tagged=""
+          for c in $commits; do
+            version="v$(git show "$c:package.json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
+            if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then continue; fi
+            git tag -a "$version" "$c" -m "$(git log -1 --format=%s "$c")"
+            tagged="$tagged $version"
+          done
+          if [ -z "$tagged" ]; then
+            echo "No new versions to tag."
+            exit 0
+          fi
+          for t in $tagged; do git push origin "$t"; done
+          echo "Tagged:$tagged"

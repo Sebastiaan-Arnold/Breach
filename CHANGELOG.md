@@ -3,6 +3,11 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.3.2
+
+- The tagging workflow now tags every version in a push, not just the newest, so pushing several
+  versions at once still tags each of them.
+
 ## v0.3.1
 
 The full Officer campaign: five cases, each introducing one new idea, with a story thread that
