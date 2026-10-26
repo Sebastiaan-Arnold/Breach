@@ -117,29 +117,45 @@ export class Target {
     const color = this.kind === 'suspect' ? COLORS.suspect : COLORS.civilian;
     g.clear();
     if (this.state === 'hidden') {
-      // Lying flat: just the edge of the cardboard.
-      g.fillStyle(COLORS.cardboard, 0.9);
-      g.fillRect(-12, -2, 24, 4);
+      // Lying flat, face down: just the back of the cardboard.
+      g.fillStyle(0x000000, 0.25);
+      g.fillRect(-12, -1, 26, 7);
+      g.fillStyle(COLORS.cardboard, 0.95);
+      g.fillRect(-13, -3, 26, 6);
+      g.fillStyle(0x7a5f37, 0.8);
+      g.fillRect(-13, -3, 26, 1);
       return;
     }
     const down = this.state === 'down';
-    const a = down ? 0.4 : 1;
-    g.fillStyle(COLORS.cardboard, 0.85 * a);
-    g.fillRoundedRect(-13, -13, 26, 26, 3);
-    g.lineStyle(1.5, 0x7a5f37, a);
-    g.strokeRoundedRect(-13, -13, 26, 26, 3);
-    if (this.kind === 'suspect') {
-      g.fillStyle(0x1f2937, a);
-      g.fillRect(6, -2.5, 12, 5);
-    } else {
-      g.fillStyle(0xfef3c7, a);
-      g.fillCircle(7, -7, 3);
-      g.fillCircle(7, 7, 3);
+    const a = down ? 0.45 : 1;
+    if (!down) {
+      g.fillStyle(0x000000, 0.28);
+      g.fillEllipse(1.5, 2.5, 20, 28);
     }
+    // A printed figure on cardboard, cut out along its outline.
+    if (this.kind === 'suspect') {
+      g.lineStyle(4, 0x7f1d1d, a);
+      g.lineBetween(0, -8, 11, -2);
+      g.fillStyle(0x111111, a);
+      g.fillRect(8.5, -4.5, 11, 4.5);
+      g.fillStyle(0x6b7280, a);
+      g.fillRect(9, -4, 10, 3.5);
+    } else {
+      // Hands up.
+      g.fillStyle(0xe7c9a0, a);
+      g.fillCircle(3, -12, 2.6);
+      g.fillCircle(3, 12, 2.6);
+    }
+    g.fillStyle(COLORS.cardboard, a);
+    g.fillEllipse(0, 0, 17, 27);
     g.fillStyle(color, a);
-    g.fillCircle(0, 0, 9);
-    g.lineStyle(2, 0x111111, 0.6 * a);
-    g.strokeCircle(0, 0, 9);
+    g.fillEllipse(0, 0, 13, 23);
+    g.fillStyle(0x000000, 0.18 * a);
+    g.fillEllipse(-2, 0, 7, 19);
+    g.fillStyle(this.kind === 'suspect' ? 0x2b2b2b : 0x8b5e3c, a);
+    g.fillCircle(1, 0, 5.5);
+    g.fillStyle(0xffffff, 0.15 * a);
+    g.fillCircle(0, -1.5, 2.4);
     if (down && this.kind === 'civilian') {
       g.lineStyle(3, COLORS.suspect, 0.9);
       g.lineBetween(-8, -8, 8, 8);

@@ -4,15 +4,23 @@ export const TILE = 32;
 export const VIEW_W = 1280;
 export const VIEW_H = 720;
 
+/**
+ * The game is laid out in 1280x720 logical pixels but rendered at the size it is actually shown
+ * (up to 2x), so it stays sharp on large and high-density screens instead of being stretched.
+ */
+export const RENDER_SCALE = (() => {
+  if (typeof window === 'undefined') return 1;
+  const shown = Math.min(window.innerWidth / VIEW_W, window.innerHeight / VIEW_H) * (window.devicePixelRatio || 1);
+  return Math.min(2, Math.max(1, Math.ceil(shown * 4) / 4));
+})();
+
 export const FONT = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 
-/** Flat colour coding: blue for you, red for hostiles, yellow for civilians. */
+/** Colour coding stays strict for readability: blue for you, red for hostiles, yellow for civilians. */
 export const COLORS = {
   void: 0x07090c,
-  floor: 0x2a241d,
-  floorLine: 0x342c23,
+  floor: 0x342b22,
   floorDark: 0x191613,
-  floorDarkLine: 0x201c18,
   wall: 0x3b424d,
   wallEdge: 0x9aa6b8,
   plywood: 0x6f5232,
@@ -23,28 +31,25 @@ export const COLORS = {
   furnitureEdge: 0x6a5a48,
   door: 0xb98552,
   doorEdge: 0xe0b07a,
-  player: 0x3b82f6,
-  playerEdge: 0xbfdbfe,
   suspect: 0xef4444,
   civilian: 0xfacc15,
   cardboard: 0xc8a46a,
   laser: 0xff3b3b,
   visionWarm: 0xffc070,
-  hudText: 0xe5e7eb,
-  hudDim: 0x9ca3af,
-  hudAccent: 0x60a5fa,
-  ok: 0x4ade80,
 } as const;
 
 export const VISION = {
   halfFov: 30 * DEG,
   rangeLit: 680,
-  rangeDarkFlashlight: 300,
+  rangeDarkFlashlight: 320,
   rangeDarkNoLight: 90,
   peripheral: 56,
   sweepStep: 0.8 * DEG,
   /** How dark remembered-but-not-visible areas are. */
   rememberedShade: 0.62,
+  /** How much vision fades towards the edge of its range, in lit and dark areas. */
+  falloffLit: 0.45,
+  falloffDark: 0.8,
 };
 
 export const MOVE = {

@@ -33,6 +33,7 @@ the test bed for the core feel. Its question: does walking through a door into d
 | Reload | R |
 | Flashlight | F |
 | Switch gun (Range only, for testing handling) | 1–4 |
+| Frame-rate readout | F3 |
 
 ## Development
 

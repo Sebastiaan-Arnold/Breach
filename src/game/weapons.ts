@@ -28,19 +28,19 @@ export interface WeaponDef {
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
   pistol: {
     id: 'pistol', name: 'Pistol', magSize: 12, spareMags: 3, auto: false, fireDelay: 140, reloadTime: 1.3,
-    pellets: 1, spread: 0, wobble: 5, recoil: 0.12, turnRate: 620, noise: 420, range: 900,
+    pellets: 1, spread: 0, wobble: 2.5, recoil: 0.12, turnRate: 620, noise: 420, range: 900,
   },
   smg: {
     id: 'smg', name: 'SMG', magSize: 30, spareMags: 3, auto: true, fireDelay: 80, reloadTime: 1.8,
-    pellets: 1, spread: 0, wobble: 6.5, recoil: 0.06, turnRate: 540, noise: 520, range: 800,
+    pellets: 1, spread: 0, wobble: 3.5, recoil: 0.06, turnRate: 540, noise: 520, range: 800,
   },
   shotgun: {
     id: 'shotgun', name: 'Shotgun', magSize: 6, spareMags: 4, auto: false, fireDelay: 650, reloadTime: 2.4,
-    pellets: 8, spread: 8, wobble: 7, recoil: 0.4, turnRate: 430, noise: 640, range: 460,
+    pellets: 8, spread: 8, wobble: 4, recoil: 0.4, turnRate: 430, noise: 640, range: 460,
   },
   rifle: {
     id: 'rifle', name: 'Assault rifle', magSize: 30, spareMags: 3, auto: true, fireDelay: 110, reloadTime: 2.1,
-    pellets: 1, spread: 0, wobble: 9, recoil: 0.12, turnRate: 300, noise: 760, range: 1400,
+    pellets: 1, spread: 0, wobble: 5, recoil: 0.12, turnRate: 300, noise: 760, range: 1400,
   },
 };
 

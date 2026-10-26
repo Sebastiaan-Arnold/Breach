@@ -1,13 +1,13 @@
 import Phaser from 'phaser';
-import { COLORS, VIEW_H, VIEW_W } from './config';
+import { COLORS, RENDER_SCALE, VIEW_H, VIEW_W } from './config';
 import { HudScene } from './scenes/HudScene';
 import { RangeScene } from './scenes/RangeScene';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  width: VIEW_W,
-  height: VIEW_H,
+  width: VIEW_W * RENDER_SCALE,
+  height: VIEW_H * RENDER_SCALE,
   backgroundColor: COLORS.void,
   // 16:9, scaled to fit: the same layout has to work on a phone later.
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },

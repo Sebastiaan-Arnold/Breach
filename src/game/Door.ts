@@ -92,12 +92,18 @@ export class Door {
     this.dirty = false;
     const g = this.gfx;
     const s = this.segment();
+    const dx = (s.bx - s.ax) / TILE, dy = (s.by - s.ay) / TILE;
     g.clear();
-    g.lineStyle(7, COLORS.door, 1);
+    g.lineStyle(6, 0x000000, 0.3);
+    g.lineBetween(s.ax + 1.5, s.ay + 2.5, s.bx + 1.5, s.by + 2.5);
+    g.lineStyle(6, COLORS.door, 1);
     g.lineBetween(s.ax, s.ay, s.bx, s.by);
-    g.lineStyle(2, COLORS.doorEdge, 1);
-    g.lineBetween(s.ax, s.ay, s.bx, s.by);
-    g.fillStyle(COLORS.doorEdge, 1);
-    g.fillCircle(s.ax, s.ay, 3.5);
+    g.lineStyle(1, COLORS.doorEdge, 0.9);
+    g.lineBetween(s.ax + dx * 3, s.ay + dy * 3, s.bx - dx * 3, s.by - dy * 3);
+    // Hinge and handle.
+    g.fillStyle(0x3f3f46, 1);
+    g.fillCircle(s.ax, s.ay, 3);
+    g.fillStyle(0xd4d4d8, 1);
+    g.fillCircle(s.bx - dx * 5, s.by - dy * 5, 1.8);
   }
 }

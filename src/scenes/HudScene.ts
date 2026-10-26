@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { FONT, VIEW_H, VIEW_W } from '../config';
+import { FONT, RENDER_SCALE, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
 import type { RangeScene } from './RangeScene';
 
@@ -28,12 +28,15 @@ export class HudScene extends Phaser.Scene {
   private debriefBody!: Phaser.GameObjects.Text;
   private debriefStars!: Phaser.GameObjects.Text;
   private toasts: Toast[] = [];
+  private fps!: Phaser.GameObjects.Text;
 
   constructor() {
     super('hud');
   }
 
   create(): void {
+    // Lay out in logical 1280x720 coordinates whatever the render scale.
+    this.cameras.main.setOrigin(0, 0).setZoom(RENDER_SCALE);
     const style = (size: number, color = TEXT, extra: Phaser.Types.GameObjects.Text.TextStyle = {}) => ({
       fontFamily: FONT, fontSize: `${size}px`, color, resolution: 2, ...extra,
     });
@@ -54,6 +57,11 @@ export class HudScene extends Phaser.Scene {
     this.ammo = this.add.text(VIEW_W - 24, VIEW_H - 82, '', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
     this.status = this.add.text(VIEW_W - 24, VIEW_H - 40, '', style(11, DIM)).setOrigin(1, 0);
     this.reloadBar = this.add.graphics();
+
+    // F3 toggles a frame-rate readout, handy for checking performance on different machines.
+    this.fps = this.add.text(VIEW_W / 2, VIEW_H - 30, '', style(11, DIM)).setOrigin(0.5, 0).setVisible(false);
+    this.input.keyboard?.addCapture('F3');
+    this.input.keyboard?.on('keydown-F3', () => this.fps.setVisible(!this.fps.visible));
 
     this.title = this.buildTitle(style);
     this.debrief = this.buildDebrief(style);
@@ -82,6 +90,8 @@ export class HudScene extends Phaser.Scene {
     this.stationTitle.setText(s.station?.name ?? '');
     this.stationBrief.setText(s.station?.brief.join('\n') ?? '');
     this.checklist.setText(s.checklist.map((c) => `${c.name}  ${c.detail}  ${c.done ? '✓' : '○'}`).join('\n'));
+
+    if (this.fps.visible) this.fps.setText(`${Math.round(this.game.loop.actualFps)} fps  ·  ${this.scale.width}x${this.scale.height}`);
 
     const w = s.weapon;
     this.weaponName.setText(w.name.toUpperCase());

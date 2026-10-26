@@ -3,6 +3,25 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.1.3
+
+Look and feel pass on the Range.
+
+- Renders at the size the game is shown on screen (up to 2x) instead of stretching 1280x720,
+  so it stays sharp on large and high-density displays.
+- Softer fog edges, and vision now fades out towards the edge of its range; the flashlight
+  reads as a beam in dark rooms.
+- Movement accelerates and decelerates instead of starting and stopping instantly, and aiming
+  eases towards the cursor.
+- Much less laser sway: half the wobble on every gun, a slower drift, and none at all when
+  standing still. Recoil now also knocks the gun back visually.
+- More detailed art: wooden plank floors, textured concrete and plywood walls with soft
+  contact shadows, door sills and panelled doors, shaded furniture, and figures for the
+  operator and the cardboard targets.
+- Bullet holes stay in the walls, impacts throw sparks and cardboard chips, spent casings eject
+  and skid to a stop, and muzzle flashes briefly light the room.
+- F3 shows a frame-rate readout.
+
 ## v0.1.2
 
 - Rewrote the design concept (`docs/concept.md`) as a neutral design document and brought it in

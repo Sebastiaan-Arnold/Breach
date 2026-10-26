@@ -1,19 +1,21 @@
 import Phaser from 'phaser';
-import { COLORS, FONT, MOVE, NOISE, REACH, TILE, VISION } from '../config';
+import { COLORS, MOVE, NOISE, REACH, RENDER_SCALE, TILE, VISION } from '../config';
 import { circleIntersectsRect, DEG, pointInPolygon, type Segment } from '../core/geometry';
 import { blocksMovement, blocksSight, parseLevel, type ParsedLevel, type TileKind } from '../core/grid';
 import { buildWallSegments, castRay, visibilityPolygon, type RayHit } from '../core/visibility';
 import { KILLHOUSE_ROLL, RANGE_LABELS, RANGE_MAP, stationAt, type StationDef } from '../levels/range';
 import { sfx } from '../game/audio';
 import { Door } from '../game/Door';
+import { Effects } from '../game/Effects';
 import { Fog } from '../game/Fog';
+import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem } from '../game/Noise';
 import { Player } from '../game/Player';
 import { RangeStations, type ChecklistItem } from '../game/RangeStations';
 import { Target, type TargetKind } from '../game/Target';
 import type { WeaponId } from '../game/weapons';
 
-const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, player: 6, glow: 7, fog: 10, ripples: 20, laser: 21 };
+const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, player: 6, glow: 7, fog: 10, light: 12, ripples: 20, laser: 21 };
 const RAIL_NOISE = 250;
 const CAMERA_LOOKAHEAD = 70;
 
@@ -35,7 +37,6 @@ export interface HudState {
 }
 
 interface Tracer { x0: number; y0: number; x1: number; y1: number; age: number }
-interface Impact { x: number; y: number; age: number }
 type Keys = Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT', Phaser.Input.Keyboard.Key>;
 
 /**
@@ -55,12 +56,11 @@ export class RangeScene extends Phaser.Scene {
   private noise!: NoiseSystem;
   private stations!: RangeStations;
   private laserGfx!: Phaser.GameObjects.Graphics;
-  private decalGfx!: Phaser.GameObjects.Graphics;
+  private effects!: Effects;
   private keys!: Keys;
 
   private visionPolys: number[][] = [];
   private tracers: Tracer[] = [];
-  private impacts: Impact[] = [];
   private muzzleFlash = 0;
   private triggerPressed = false;
   private lookX = 0;
@@ -79,7 +79,6 @@ export class RangeScene extends Phaser.Scene {
     this.doorAt.clear();
     this.targets = [];
     this.tracers = [];
-    this.impacts = [];
     this.muzzleFlash = 0;
     this.triggerPressed = false;
     this.lastStation = undefined;
@@ -92,7 +91,9 @@ export class RangeScene extends Phaser.Scene {
     this.level = parseLevel(RANGE_MAP);
     const { width, height } = this.level;
     this.cameras.main.setBackgroundColor(COLORS.void);
-    this.drawStaticWorld();
+    const rails = this.level.markers.filter((m) => m.kind === 'mover')
+      .map((m) => ({ x0: (m.tx + 0.3) * TILE, x1: (m.tx + 7.7) * TILE, y: (m.ty + 0.5) * TILE }));
+    drawLevelArt(this, this.level, RANGE_LABELS, rails, DEPTH.world, RENDER_SCALE);
     this.staticSegs = buildWallSegments(width, height, TILE, (x, y) => blocksSight(this.tileAt(x, y)));
 
     for (const spec of this.level.doors) {
@@ -107,11 +108,11 @@ export class RangeScene extends Phaser.Scene {
     this.fog = new Fog(this, width * TILE, height * TILE, DEPTH.glow, DEPTH.fog);
     this.noise = new NoiseSystem(this, DEPTH.ripples);
     this.laserGfx = this.add.graphics().setDepth(DEPTH.laser);
-    this.decalGfx = this.add.graphics().setDepth(DEPTH.decals);
+    this.effects = new Effects(this, width * TILE, height * TILE, RENDER_SCALE, DEPTH.decals, DEPTH.light);
     this.stations = new RangeStations(this.targets);
 
     // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
-    this.cameras.main.startFollow(this.player.displayObject, true, 0.12, 0.12);
+    this.cameras.main.setZoom(RENDER_SCALE).startFollow(this.player.displayObject, false, 0.1, 0.1);
 
     this.setupInput();
     if (!this.scene.isActive('hud')) this.scene.launch('hud');
@@ -162,6 +163,7 @@ export class RangeScene extends Phaser.Scene {
     }
     this.triggerPressed = false;
 
+    this.effects.update(dt, this.solid);
     this.drawLaserAndFx(dt);
     this.noise.update(dt);
 
@@ -242,72 +244,6 @@ export class RangeScene extends Phaser.Scene {
     this.targets.push(new Target(this, { kind, x, y, station, popup, respawn }, DEPTH.targets));
   }
 
-  private drawStaticWorld(): void {
-    const { width, height } = this.level;
-    const g = this.make.graphics({}, false);
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const kind = this.tileAt(x, y);
-        const px = x * TILE, py = y * TILE;
-        const dark = this.isDark(x, y);
-        g.fillStyle(dark ? COLORS.floorDark : COLORS.floor, 1);
-        g.fillRect(px, py, TILE, TILE);
-        g.lineStyle(1, dark ? COLORS.floorDarkLine : COLORS.floorLine, 1);
-        g.strokeRect(px + 0.5, py + 0.5, TILE, TILE);
-        if (kind === 'wall' || kind === 'plywood') {
-          g.fillStyle(kind === 'wall' ? COLORS.wall : COLORS.plywood, 1);
-          g.fillRect(px, py, TILE, TILE);
-        } else if (kind === 'barrier') {
-          g.fillStyle(COLORS.barrier, 1);
-          g.fillRect(px + 6, py, TILE - 12, TILE);
-          g.fillStyle(COLORS.barrierStripe, 0.8);
-          g.fillRect(px + 14, py + 4, 4, TILE - 8);
-        } else if (kind === 'furniture') {
-          g.fillStyle(COLORS.furniture, 1);
-          g.fillRect(px + 1, py + 1, TILE - 2, TILE - 2);
-          g.lineStyle(1.5, COLORS.furnitureEdge, 1);
-          g.strokeRect(px + 2, py + 2, TILE - 4, TILE - 4);
-        }
-      }
-    }
-
-    // Blueprint-style edges where walls meet open floor.
-    const edge = (kind: TileKind) => (kind === 'wall' ? COLORS.wallEdge : COLORS.plywoodEdge);
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const kind = this.tileAt(x, y);
-        if (!blocksSight(kind)) continue;
-        g.lineStyle(2, edge(kind), 1);
-        const px = x * TILE, py = y * TILE;
-        if (!blocksSight(this.tileAt(x, y - 1))) g.lineBetween(px, py + 1, px + TILE, py + 1);
-        if (!blocksSight(this.tileAt(x, y + 1))) g.lineBetween(px, py + TILE - 1, px + TILE, py + TILE - 1);
-        if (!blocksSight(this.tileAt(x - 1, y))) g.lineBetween(px + 1, py, px + 1, py + TILE);
-        if (!blocksSight(this.tileAt(x + 1, y))) g.lineBetween(px + TILE - 1, py, px + TILE - 1, py + TILE);
-      }
-    }
-
-    // Rail for the moving target.
-    for (const m of this.level.markers.filter((mk) => mk.kind === 'mover')) {
-      const y = (m.ty + 0.5) * TILE;
-      g.lineStyle(2, 0x4b4036, 1);
-      g.lineBetween((m.tx + 0.2) * TILE, y, (m.tx + 7.8) * TILE, y);
-    }
-
-    const rt = this.add.renderTexture(0, 0, width * TILE, height * TILE).setOrigin(0).setDepth(DEPTH.world);
-    rt.draw(g);
-    g.destroy();
-
-    for (const l of RANGE_LABELS) {
-      const t = this.make.text({
-        x: l.tx * TILE, y: l.ty * TILE, text: l.text,
-        style: { fontFamily: FONT, fontSize: `${l.size ?? 16}px`, fontStyle: 'bold', color: '#e8d6b3' },
-      }, false).setAlpha(0.22);
-      rt.draw(t);
-      t.destroy();
-    }
-  }
-
   // ---------------------------------------------------------------- vision
 
   private segments(): Segment[] {
@@ -354,8 +290,14 @@ export class RangeScene extends Phaser.Scene {
     mark(cone.hits);
     mark(peri.hits);
 
-    const warmth = this.isDark(ptx, pty) && p.flashlight ? 0.09 : 0.045;
-    this.fog.update(this.visionPolys, wallTiles, warmth);
+    const dark = this.isDark(ptx, pty);
+    this.fog.update(this.visionPolys, wallTiles, {
+      x: p.x,
+      y: p.y,
+      range,
+      falloff: dark ? VISION.falloffDark : VISION.falloffLit,
+      warmth: dark && p.flashlight ? 0.08 : 0.035,
+    });
   }
 
   /** True if the operator can currently see any part of something at (x, y). */
@@ -401,19 +343,22 @@ export class RangeScene extends Phaser.Scene {
     let landed = false;
     for (let i = 0; i < w.def.pellets; i++) {
       const a = base + (w.def.pellets > 1 ? Phaser.Math.FloatBetween(-1, 1) * w.def.spread * DEG : 0);
+      const dx = Math.cos(a), dy = Math.sin(a);
       const shot = this.traceShot(a, w.def.range);
       if (shot.target) {
+        this.effects.targetHit(shot.x, shot.y, dx, dy);
         this.onTargetHit(shot.target);
         landed = true;
       } else if (shot.dist < w.def.range) {
-        this.impacts.push({ x: shot.x, y: shot.y, age: 0 });
-        if (this.impacts.length > 80) this.impacts.shift();
+        this.effects.bulletHole(shot.x, shot.y, dx, dy);
       }
       this.tracers.push({ x0: muzzle.x, y0: muzzle.y, x1: shot.x, y1: shot.y, age: 0 });
     }
     if (landed) this.stats.hits++;
     p.kick(w.def.recoil);
     this.muzzleFlash = 0.05;
+    this.effects.muzzle(muzzle.x, muzzle.y, w.def.id !== 'pistol');
+    this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
     sfx.shot(w.def.id !== 'pistol');
     this.noise.emit({ x: p.x, y: p.y, radius: w.def.noise, source: 'player' }, p.x, p.y);
   }
@@ -453,32 +398,29 @@ export class RangeScene extends Phaser.Scene {
       const dx = Math.cos(p.aimAngle), dy = Math.sin(p.aimAngle);
       const sx = p.x + dx * muzzleLen, sy = p.y + dy * muzzleLen;
       const alpha = p.weapon.reloading ? 0.3 : 1;
-      g.lineStyle(5, COLORS.laser, 0.1 * alpha);
+      g.lineStyle(4, COLORS.laser, 0.07 * alpha);
       g.lineBetween(sx, sy, aim.x, aim.y);
-      g.lineStyle(1.5, COLORS.laser, 0.85 * alpha);
+      g.lineStyle(1.1, COLORS.laser, 0.8 * alpha);
       g.lineBetween(sx, sy, aim.x, aim.y);
-      g.fillStyle(COLORS.laser, alpha);
-      g.fillCircle(aim.x, aim.y, 2.5);
+      g.fillStyle(COLORS.laser, 0.25 * alpha);
+      g.fillCircle(aim.x, aim.y, 4.5);
+      g.fillStyle(0xffd0d0, alpha);
+      g.fillCircle(aim.x, aim.y, 1.6);
     }
 
     if (this.muzzleFlash > 0) {
       this.muzzleFlash -= dt;
       const m = p.muzzle;
-      g.fillStyle(0xffe08a, 0.9);
-      g.fillCircle(m.x + Math.cos(p.facing) * 4, m.y + Math.sin(p.facing) * 4, 6);
+      const fx = Math.cos(p.facing), fy = Math.sin(p.facing);
+      g.fillStyle(0xffe6a8, 0.95);
+      g.fillTriangle(m.x - fy * 3, m.y + fx * 3, m.x + fy * 3, m.y - fx * 3, m.x + fx * 14, m.y + fy * 14);
+      g.fillStyle(0xffffff, 0.9);
+      g.fillCircle(m.x + fx * 2, m.y + fy * 2, 2.5);
     }
-    this.tracers = this.tracers.filter((t) => (t.age += dt) < 0.07);
+    this.tracers = this.tracers.filter((t) => (t.age += dt) < 0.06);
     for (const t of this.tracers) {
-      g.lineStyle(2, 0xfff1b8, 0.8 * (1 - t.age / 0.07));
+      g.lineStyle(1.2, 0xfff1b8, 0.6 * (1 - t.age / 0.06));
       g.lineBetween(t.x0, t.y0, t.x1, t.y1);
-    }
-
-    const d = this.decalGfx;
-    d.clear();
-    this.impacts = this.impacts.filter((i) => (i.age += dt) < 8);
-    for (const i of this.impacts) {
-      d.fillStyle(0x0f0f0f, 0.7 * (1 - i.age / 8));
-      d.fillCircle(i.x, i.y, 2.5);
     }
   }
 

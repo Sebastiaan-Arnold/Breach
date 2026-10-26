@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, MOVE, TILE } from '../config';
-import { DEG, rotateTowards, wrapAngle } from '../core/geometry';
+import { MOVE, TILE } from '../config';
+import { DEG, wrapAngle } from '../core/geometry';
 import { moveCircle } from '../core/collision';
 import { WEAPONS, WeaponState, type WeaponId } from './weapons';
 
@@ -16,6 +16,14 @@ export interface StepEvent {
   loud: boolean;
 }
 
+/** How quickly the operator reaches full speed and comes to a stop (per second). */
+const ACCEL = 12;
+const DECEL = 16;
+/** How quickly the aim eases towards the cursor, before the gun's turn-rate cap. */
+const TURN_EASE = 24;
+
+const GUN_LENGTH: Record<WeaponId, number> = { pistol: 17, smg: 20, shotgun: 25, rifle: 26 };
+
 export class Player {
   x: number;
   y: number;
@@ -27,6 +35,9 @@ export class Player {
   flashlight = true;
   weapon: WeaponState;
 
+  private vx = 0;
+  private vy = 0;
+  private gunKick = 0;
   private weapons = new Map<WeaponId, WeaponState>();
   private container: Phaser.GameObjects.Container;
   private gunGfx: Phaser.GameObjects.Graphics;
@@ -38,17 +49,28 @@ export class Player {
     this.y = y;
     this.weapon = this.equip('pistol');
 
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, 0.3);
+    shadow.fillEllipse(1.5, 2.5, 22, 30);
+
     const body = scene.add.graphics();
-    body.fillStyle(0x000000, 0.35);
-    body.fillCircle(1.5, 2, MOVE.radius + 1);
-    body.fillStyle(COLORS.player, 1);
-    body.fillCircle(0, 0, MOVE.radius);
-    body.lineStyle(2, COLORS.playerEdge, 1);
-    body.strokeCircle(0, 0, MOVE.radius);
-    body.fillStyle(COLORS.playerEdge, 1);
-    body.fillTriangle(MOVE.radius - 1, -4, MOVE.radius - 1, 4, MOVE.radius + 4, 0);
+    // Vest and shoulders, in the operator's blue.
+    body.fillStyle(0x1d4ed8, 1);
+    body.fillEllipse(0, 0, 15, 25);
+    body.fillStyle(0x3b82f6, 1);
+    body.fillEllipse(1, 0, 10, 18);
+    body.lineStyle(1, 0x0b1d4a, 0.9);
+    body.strokeEllipse(0, 0, 15, 25);
+    // Helmet with a light catching its top.
+    body.fillStyle(0x1e293b, 1);
+    body.fillCircle(1, 0, 6.5);
+    body.fillStyle(0xffffff, 0.18);
+    body.fillCircle(0, -1.8, 3);
+    body.fillStyle(0x93c5fd, 0.9);
+    body.fillRect(6, -2.5, 1.5, 5);
+
     this.gunGfx = scene.add.graphics();
-    this.container = scene.add.container(x, y, [this.gunGfx, body]).setDepth(depth);
+    this.container = scene.add.container(x, y, [shadow, this.gunGfx, body]).setDepth(depth);
     this.drawGun();
   }
 
@@ -56,15 +78,15 @@ export class Player {
     return this.container;
   }
 
-  /** The angle the laser (and every shot) actually points: facing plus wobble. */
+  /** The angle the laser (and every shot) actually points: facing plus a slow drift. */
   get aimAngle(): number {
     const t = this.time;
-    const n = Math.sin(t * 6.1) * 0.55 + Math.sin(t * 10.7 + 1.3) * 0.3 + Math.sin(t * 17.3 + 2.1) * 0.15;
+    const n = Math.sin(t * 1.9) * 0.6 + Math.sin(t * 3.3 + 1.3) * 0.3 + Math.sin(t * 5.7 + 2.1) * 0.1;
     return this.facing + this.instability * this.weapon.def.wobble * DEG * n;
   }
 
   get muzzle(): { x: number; y: number } {
-    const len = this.weapon.def.id === 'rifle' || this.weapon.def.id === 'shotgun' ? 24 : 18;
+    const len = GUN_LENGTH[this.weapon.def.id];
     return { x: this.x + Math.cos(this.facing) * len, y: this.y + Math.sin(this.facing) * len };
   }
 
@@ -83,30 +105,49 @@ export class Player {
   update(dt: number, input: PlayerInput, solid: (tx: number, ty: number) => boolean): StepEvent | null {
     this.time += dt;
     const len = Math.hypot(input.moveX, input.moveY);
-    this.moving = len > 0;
-    this.sprinting = this.moving && input.sprint;
-    const speed = this.sprinting ? MOVE.sprint : MOVE.walk;
-    if (this.moving) {
-      const p = moveCircle(this.x, this.y, (input.moveX / len) * speed * dt, (input.moveY / len) * speed * dt, MOVE.radius, TILE, solid);
+    const wantsToMove = len > 0;
+    const speed = wantsToMove && input.sprint ? MOVE.sprint : MOVE.walk;
+    const tvx = wantsToMove ? (input.moveX / len) * speed : 0;
+    const tvy = wantsToMove ? (input.moveY / len) * speed : 0;
+    const k = 1 - Math.exp(-(wantsToMove ? ACCEL : DECEL) * dt);
+    this.vx += (tvx - this.vx) * k;
+    this.vy += (tvy - this.vy) * k;
+    if (!wantsToMove && Math.hypot(this.vx, this.vy) < 4) this.vx = this.vy = 0;
+
+    if (this.vx !== 0 || this.vy !== 0) {
+      const p = moveCircle(this.x, this.y, this.vx * dt, this.vy * dt, MOVE.radius, TILE, solid);
+      // Lose the velocity a wall absorbed, so the operator doesn't "push" against it.
+      if (dt > 0) {
+        this.vx = (p.x - this.x) / dt;
+        this.vy = (p.y - this.y) / dt;
+      }
       this.x = p.x;
       this.y = p.y;
     }
+    const actual = Math.hypot(this.vx, this.vy);
+    this.moving = actual > 20;
+    this.sprinting = this.moving && input.sprint && actual > MOVE.walk * 1.1;
 
-    // Heavier guns swing round more slowly; fast turns also unsettle the aim.
+    // Aim eases towards the cursor; heavier guns are capped to a slower swing.
     const before = this.facing;
-    this.facing = wrapAngle(rotateTowards(this.facing, input.aimAt, this.weapon.def.turnRate * DEG * dt));
-    const turnRate = Math.abs(wrapAngle(this.facing - before)) / Math.max(dt, 1e-4);
-    const turnShake = Math.min(0.5, turnRate / (this.weapon.def.turnRate * DEG) * 0.5);
+    const diff = wrapAngle(input.aimAt - this.facing);
+    const maxStep = this.weapon.def.turnRate * DEG * dt;
+    this.facing = wrapAngle(this.facing + Phaser.Math.Clamp(diff * (1 - Math.exp(-TURN_EASE * dt)), -maxStep, maxStep));
+    const angularSpeed = Math.abs(wrapAngle(this.facing - before)) / Math.max(dt, 1e-4);
+    const turnShake = Math.min(0.3, (angularSpeed / (this.weapon.def.turnRate * DEG)) * 0.3);
 
-    const target = Math.max(this.sprinting ? 1 : this.moving ? 0.55 : 0.04, turnShake);
-    const rate = target > this.instability ? 7 : 2.6;
+    const target = Math.max(this.sprinting ? 1 : this.moving ? 0.35 : 0, turnShake);
+    const rate = target > this.instability ? 5 : 3;
     this.instability += (target - this.instability) * Math.min(1, rate * dt);
+
+    this.gunKick *= Math.exp(-18 * dt);
+    this.gunGfx.x = -this.gunKick * 4;
 
     this.weapon.update(dt);
     this.container.setPosition(this.x, this.y);
     this.container.rotation = this.facing;
 
-    if (!this.moving) {
+    if (!wantsToMove || !this.moving) {
       this.stepTimer = 0;
       return null;
     }
@@ -118,19 +159,34 @@ export class Player {
     return null;
   }
 
+  /** Recoil: unsettles the aim and knocks the gun back a little. */
   kick(amount: number): void {
-    this.instability = Math.min(1.4, this.instability + amount);
+    this.instability = Math.min(1.2, this.instability + amount);
+    this.gunKick = 1;
   }
 
   private drawGun(): void {
     const g = this.gunGfx;
     const id = this.weapon.def.id;
-    const len = id === 'rifle' ? 24 : id === 'shotgun' ? 23 : id === 'smg' ? 19 : 17;
-    const w = id === 'pistol' ? 4 : 5;
+    const len = GUN_LENGTH[id];
+    const w = id === 'pistol' ? 3.5 : id === 'smg' ? 4.5 : 5;
     g.clear();
-    g.fillStyle(0x111827, 1);
-    g.fillRect(4, -w / 2, len - 4, w);
-    g.fillStyle(0x6b7280, 1);
-    g.fillRect(len - 3, -w / 2, 3, w);
+    // Arms from the shoulders to the grip.
+    g.lineStyle(4.5, 0x1e40af, 1);
+    g.lineBetween(0, -8.5, 10, -1.5);
+    g.lineBetween(0, 8.5, 7, 1.8);
+    // The gun, with a lit top edge.
+    g.fillStyle(0x3a4048, 1);
+    g.fillRect(6, -w / 2, len - 6, w);
+    g.fillStyle(0x8b95a3, 1);
+    g.fillRect(6, -w / 2, len - 6, 1);
+    if (id !== 'pistol') {
+      g.fillStyle(0x3a4048, 1);
+      g.fillRect(9, w / 2 - 0.5, 3, 3.5);
+    }
+    // Gloved hands.
+    g.fillStyle(0x27272a, 1);
+    g.fillCircle(10, -1.5, 2.3);
+    g.fillCircle(7, 1.8, 2.3);
   }
 }

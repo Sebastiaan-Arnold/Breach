@@ -172,9 +172,9 @@ Levels will be built in Tiled, a free map editor. A custom editor can wait.
 
 ## Art, audio and tone
 
-The art is minimal and flat: clean blueprint lines for walls, simple shapes for characters (a circle with a direction marker), and strong colour coding: blue for the player, red for hostiles, yellow for civilians. That reads well on a small phone screen, is quick to produce and fits the briefing-map style, so the mission feels like the plan coming to life.
+The art is top-down and readable first, with restrained material detail: wooden floors, concrete and plywood walls, soft contact shadows, and simple figure silhouettes. Colour coding stays strict: blue for the player, red for hostiles, yellow for civilians. That reads well on a small phone screen, and the briefing map keeps its clean blueprint style, so the mission feels like the plan coming to life.
 
-Darkness carries the atmosphere. Unknown areas are near-black, remembered areas dim and the vision cone slightly warm. That contrast does most of the work.
+Darkness carries the atmosphere. Unknown areas are near-black, remembered areas dim, and vision fades out towards the edge of its range, so a flashlight in a dark room reads as a beam. Small physical details (bullet holes, spent casings, muzzle flashes) make each room feel used.
 
 Sound is a gameplay system, not decoration: footsteps, door creaks, radio chatter at the start ("Team, you're cleared to enter") and a short sting when the site is secured. Free libraries such as Freesound or Kenney's packs cover the basics.
 
