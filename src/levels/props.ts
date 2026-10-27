@@ -9,6 +9,14 @@ export function propSize(p: PropDef): { w: number; h: number } {
 }
 
 /**
+ * Tall props (racking, lorries, containers, vans) block sight and bullets as well as movement.
+ * Cars are low enough to see and shoot over.
+ */
+export function isTall(p: PropDef): boolean {
+  return p.kind !== 'car';
+}
+
+/**
  * The tiles a prop stands on. Props are solid: nobody walks through a parked van, a car or a
  * container (cars and containers also sit on furniture tiles in the map).
  */

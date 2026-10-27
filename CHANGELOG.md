@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.2
+
+Fixes and changes from a playthrough of both campaigns.
+
+- Start menu: choose a normal or a realism career, then see its campaigns. Each career has its
+  own progress, so switching between them never deletes anything. Existing saves move into the
+  normal (or realism) career automatically.
+- A new realism career can skip the academy and start as an Officer.
+- Tall objects block sight and bullets, not just movement: warehouse racking, lorries,
+  containers and vans. Low furniture and cars are still cover you can see and shoot over.
+- Intros are safe: enemies can't spot the operator during the cutscene, and the Ferry Road and
+  Westquay gate entries now end beside the gate behind the fence instead of in the open yard.
+
 ## v0.4.1
 
 - Realism mode: an optional career with one life. Going down ends the career and progress resets

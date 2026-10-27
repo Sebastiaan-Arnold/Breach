@@ -20,12 +20,21 @@ export class World {
   private segs: Segment[] = [];
   /** Tiles taken by solid props such as a parked van. */
   private propTiles = new Set<number>();
+  /** Tiles of tall props (racking, lorries, containers), which also block sight and bullets. */
+  private tallTiles = new Set<number>();
 
-  constructor(scene: Phaser.Scene, readonly level: ParsedLevel, doorDepth: number, propTiles: readonly { tx: number; ty: number }[] = []) {
+  constructor(
+    scene: Phaser.Scene,
+    readonly level: ParsedLevel,
+    doorDepth: number,
+    propTiles: readonly { tx: number; ty: number }[] = [],
+    tallTiles: readonly { tx: number; ty: number }[] = [],
+  ) {
     this.width = level.width;
     this.height = level.height;
     for (const t of propTiles) this.propTiles.add(t.ty * level.width + t.tx);
-    this.staticSegs = buildWallSegments(level.width, level.height, TILE, (x, y) => blocksSight(this.tileAt(x, y)));
+    for (const t of tallTiles) this.tallTiles.add(t.ty * level.width + t.tx);
+    this.staticSegs = buildWallSegments(level.width, level.height, TILE, (x, y) => this.blocksSightAt(x, y));
     for (const spec of level.doors) {
       const door = new Door(scene, spec, doorDepth);
       this.doors.push(door);
@@ -43,6 +52,11 @@ export class World {
   tileAt(tx: number, ty: number): TileKind {
     if (tx < 0 || ty < 0 || tx >= this.width || ty >= this.height) return 'wall';
     return this.level.tiles[ty * this.width + tx];
+  }
+
+  /** Walls and tall props: anything you can't see or shoot through. */
+  blocksSightAt(tx: number, ty: number): boolean {
+    return blocksSight(this.tileAt(tx, ty)) || this.tallTiles.has(ty * this.width + tx);
   }
 
   isDark(tx: number, ty: number): boolean {

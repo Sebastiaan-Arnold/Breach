@@ -37,8 +37,9 @@ promotions. Enemies get sharper with every rank.
   and issues the SMG. Choose your primary gun on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
-- **Realism mode:** an optional career with one life. Going down, or quitting a mission, ends
-  the career and resets progress to Recruit. Switch it on from the menu.
+- **Two careers:** the start menu offers a normal career and a realism career, each with its own
+  progress. In realism you have one life: going down, or quitting a mission, ends the career and
+  resets it to Recruit. A new realism career can skip the academy.
 - **Minimal HUD and settings:** ammo, short messages and, on the Range only, tutorial text.
   Esc pauses and opens settings (blood effects, sound) and the controls.
 

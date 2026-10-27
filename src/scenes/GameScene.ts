@@ -7,7 +7,7 @@ import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
 import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
 import { campaignOf, DIFFICULTY, RANKS } from '../levels/campaigns';
-import { propTiles } from '../levels/props';
+import { isTall, propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';
 import { sfx } from '../game/audio';
 import { Civilian, SECURE_TIME } from '../game/Civilian';
@@ -153,7 +153,8 @@ export class GameScene extends Phaser.Scene {
     const rails = level.markers.filter((m) => m.kind === 'mover')
       .map((m) => ({ x0: (m.tx + 0.3) * TILE, x1: (m.tx + 7.7) * TILE, y: (m.ty + 0.5) * TILE }));
     drawLevelArt(this, level, this.def.labels, rails, this.def.props ?? [], DEPTH.world, RENDER_SCALE);
-    this.world = new World(this, level, DEPTH.doors, (this.def.props ?? []).flatMap(propTiles));
+    const props = this.def.props ?? [];
+    this.world = new World(this, level, DEPTH.doors, props.flatMap(propTiles), props.filter(isTall).flatMap(propTiles));
 
     if (this.def.stations) this.spawnTargets(level.markers);
     const situation = this.params.situation ?? (this.def.mission ? rollSituation(this.def.mission) : null);
@@ -306,7 +307,8 @@ export class GameScene extends Phaser.Scene {
     const p = this.player;
     return {
       world: this.world,
-      player: { x: p.x, y: p.y, alive: p.alive, inDark: this.world.isDark(ptx, pty) },
+      // The intro is a cutscene: nobody can spot (or shoot) the operator until it's over.
+      player: { x: p.x, y: p.y, alive: p.alive && !this.intro.active, inDark: this.world.isDark(ptx, pty) },
       shoot: (e, angle, pellets) => this.enemyShoot(e, angle, pellets),
       noise: (e, radius, kind) => {
         this.worldNoise(e.x, e.y, radius, kind);
@@ -337,7 +339,7 @@ export class GameScene extends Phaser.Scene {
     const wallTiles: { tx: number; ty: number }[] = [];
     const markTile = (tx: number, ty: number) => {
       const key = ty * this.world.width + tx;
-      if (seen.has(key) || !blocksSight(this.world.tileAt(tx, ty))) return;
+      if (seen.has(key) || !this.world.blocksSightAt(tx, ty)) return;
       seen.add(key);
       wallTiles.push({ tx, ty });
     };

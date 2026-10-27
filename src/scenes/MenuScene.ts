@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { COLORS, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
 import { campaignStars, endedCareer, isUnlocked, newProgress, progress, saveProgress } from '../game/progress';
-import { saveSettings, settings } from '../game/settings';
 import { levelById } from '../levels';
 import { CAMPAIGNS, RANKS, type CampaignDef } from '../levels/campaigns';
 import { ACCENT, DIM, GOLD, RED, setupScreenCamera, style, TEXT, textButton } from './ui';
@@ -28,16 +27,14 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     setupScreenCamera(this);
     this.cameras.main.setBackgroundColor(COLORS.void);
-    sfx.muted = !settings.sound;
-    // Browsers only allow audio after a user gesture; the first click anywhere unlocks it.
-    this.input.once('pointerdown', () => sfx.unlock());
     this.cases = [];
     this.rows = [];
 
     const cx = VIEW_W / 2;
     this.add.text(cx, 82, 'BREACH', style(64, TEXT, { fontStyle: 'bold' })).setOrigin(0.5);
     this.add.text(cx, 136, 'PORT ARDLEY POLICE DEPARTMENT', style(13, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5);
-    this.add.text(cx, 162, `Rank: ${RANKS[progress.rank]}${progress.realism ? '   ·   REALISM CAREER' : ''}`, style(14, progress.realism ? RED : TEXT)).setOrigin(0.5);
+    const career = progress.realism ? 'REALISM CAREER' : 'NORMAL CAREER';
+    this.add.text(cx, 162, `${career}   ·   Rank: ${RANKS[progress.rank]}`, style(14, progress.realism ? RED : TEXT)).setOrigin(0.5);
 
     // A realism career that just ended gets one notice.
     const ended = endedCareer.record;
@@ -73,43 +70,26 @@ export class MenuScene extends Phaser.Scene {
     const current = CAMPAIGNS.map((c, i) => ({ c, i })).filter(({ c }) => progress.rank >= c.rank).at(-1);
     this.select(current?.i ?? 0);
 
-    const blood = textButton(this, cx - 300, VIEW_H - 74, '', () => {
-      settings.blood = !settings.blood;
-      saveSettings();
-      refresh();
-    }, 12, DIM);
-    const sound = textButton(this, cx - 100, VIEW_H - 74, '', () => {
-      settings.sound = !settings.sound;
-      sfx.muted = !settings.sound;
-      saveSettings();
-      refresh();
-    }, 12, DIM);
-    // Switching realism on always starts a new career; switching it off keeps your progress.
-    const realism = textButton(this, cx + 100, VIEW_H - 74, '', () => {
-      if (!realism.getData('armed')) {
-        realism.setData('armed', true).setText(progress.realism ? 'Click again to leave realism' : 'Click again: new realism career');
-        return;
-      }
-      if (progress.realism) Object.assign(progress, { realism: false, deployed: null });
-      else Object.assign(progress, newProgress(true));
-      saveProgress(progress);
-      this.scene.restart();
-    }, 12, DIM);
-    const reset = textButton(this, cx + 300, VIEW_H - 74, 'Reset progress', () => {
+    // A fresh realism career can skip the academy and start as an Officer.
+    if (progress.realism && progress.rank === 0 && progress.completed.length === 0) {
+      const skip = textButton(this, LEFT.x, TOP + CAMPAIGNS.length * 52 + 20, 'Skip the academy: start as Officer', () => {
+        progress.rank = 1;
+        saveProgress(progress);
+        this.scene.restart();
+      }, 13, ACCENT).setOrigin(0, 0.5);
+      skip.on('pointerout', () => skip.setColor(ACCENT));
+    }
+
+    textButton(this, cx - 120, VIEW_H - 74, 'Back', () => this.scene.start('title'), 12, DIM);
+    const reset = textButton(this, cx + 120, VIEW_H - 74, 'Reset this career', () => {
       if (reset.getData('armed')) {
         Object.assign(progress, newProgress(progress.realism));
         saveProgress(progress);
         this.scene.restart();
         return;
       }
-      reset.setData('armed', true).setText('Click again to reset');
+      reset.setData('armed', true).setText('Click again to reset this career');
     }, 12, DIM);
-    const refresh = () => {
-      blood.setText(`Blood effects: ${settings.blood ? 'On' : 'Off'}`);
-      sound.setText(`Sound: ${settings.sound ? 'On' : 'Off'}`);
-      realism.setText(`Realism: ${progress.realism ? 'On' : 'Off'}`);
-    };
-    refresh();
 
     this.add.text(cx, VIEW_H - 46, 'Esc in game for settings and controls', style(11, DIM)).setOrigin(0.5);
     this.add.text(cx, VIEW_H - 28, `v${__APP_VERSION__}`, style(11, DIM)).setOrigin(0.5);

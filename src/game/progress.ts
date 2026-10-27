@@ -19,8 +19,6 @@ export interface Progress {
   deployed: string | null;
 }
 
-const KEY = 'breach.progress';
-
 export function newProgress(realism = false): Progress {
   return { rank: 0, stars: {}, completed: [], realism, deployed: null };
 }
@@ -88,33 +86,67 @@ export function recordSuccess(
   return c;
 }
 
-export function loadProgress(): Progress {
+/**
+ * Each career mode has its own save, so switching between a normal and a realism career never
+ * touches the other one.
+ */
+export type CareerMode = 'normal' | 'realism';
+const KEYS: Record<CareerMode, string> = { normal: 'breach.progress.normal', realism: 'breach.progress.realism' };
+/** The single save used before careers were split; moved into its matching career on load. */
+const LEGACY_KEY = 'breach.progress';
+
+function read(key: string): Partial<Progress> | null {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return { ...newProgress(), ...(JSON.parse(raw) as Partial<Progress>) };
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as Partial<Progress>) : null;
   } catch {
-    // Fall through to a fresh start.
+    return null;
   }
-  return newProgress();
+}
+
+export function loadCareer(mode: CareerMode): Progress {
+  const realism = mode === 'realism';
+  return { ...newProgress(realism), ...(read(KEYS[mode]) ?? {}), realism };
 }
 
 export function saveProgress(p: Progress): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(p));
+    localStorage.setItem(KEYS[p.realism ? 'realism' : 'normal'], JSON.stringify(p));
   } catch {
     // Not persisted this session; progress still applies until the tab closes.
   }
 }
 
-/** The player's progress for this session. */
-export const progress: Progress = loadProgress();
+function migrateLegacySave(): void {
+  const legacy = read(LEGACY_KEY);
+  if (!legacy) return;
+  const mode: CareerMode = legacy.realism ? 'realism' : 'normal';
+  try {
+    if (!localStorage.getItem(KEYS[mode])) saveProgress({ ...newProgress(!!legacy.realism), ...legacy });
+    localStorage.removeItem(LEGACY_KEY);
+  } catch {
+    // Storage unavailable: nothing to migrate.
+  }
+}
+
+migrateLegacySave();
 
 /**
  * The realism career that most recently ended and why, for the menu to report once. Loading can
- * set it straight away: a career abandoned by closing the game mid-mission ends here.
+ * set it straight away: a realism career abandoned by closing the game mid-mission ends here.
  */
-export const endedCareer: { record: CareerRecord | null; reason: 'down' | 'quit' | 'left' } = {
-  record: settleAbandonedMission(progress),
-  reason: 'left',
-};
-if (endedCareer.record) saveProgress(progress);
+export const endedCareer: { record: CareerRecord | null; reason: 'down' | 'quit' | 'left' } = (() => {
+  const realism = loadCareer('realism');
+  const record = settleAbandonedMission(realism);
+  if (record) saveProgress(realism);
+  return { record, reason: 'left' };
+})();
+
+/** The career being played. The start menu chooses it; it begins as the normal career. */
+export const progress: Progress = loadCareer('normal');
+
+/** Makes `mode` the active career (saving the current one first). */
+export function switchCareer(mode: CareerMode): void {
+  saveProgress(progress);
+  Object.assign(progress, loadCareer(mode));
+}

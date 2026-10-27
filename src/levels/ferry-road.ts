@@ -57,8 +57,8 @@ export const FERRY_ROAD: LevelDef = {
     { kind: 'rack', tx: 26, ty: 6, w: 10, h: 2 },
   ],
   entries: [
-    { id: 'gate', name: 'main gate', approach: [{ tx: 21.5, ty: 33.5 }, { tx: 25.5, ty: 33.5 }, { tx: 25.5, ty: 30.5 }] },
-    { id: 'staff', name: 'staff gate', approach: [{ tx: 5.5, ty: 33.5 }, { tx: 2.5, ty: 33.5 }, { tx: 2.5, ty: 30.5 }] },
+    { id: 'gate', name: 'main gate', approach: [{ tx: 19.8, ty: 33.5 }, { tx: 21.6, ty: 32.6 }] },
+    { id: 'staff', name: 'staff gate', approach: [{ tx: 8.5, ty: 33.5 }, { tx: 4.6, ty: 32.6 }] },
     { id: 'back', name: 'warehouse back door', approach: [{ tx: 40.5, ty: 1.6 }, { tx: 25.5, ty: 1.6 }, { tx: 25.5, ty: 2.4 }] },
   ],
   intro: [
