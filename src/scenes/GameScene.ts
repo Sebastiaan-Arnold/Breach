@@ -46,6 +46,17 @@ const BOLT_SOUND_DELAY = 450;
 const ENEMY_SHOT_NOISE = 1000;
 /** Pellet spread either side of a hider's aim, in degrees. */
 const ENEMY_SHOTGUN_SPREAD = 7;
+/**
+ * Ways a mission is lost with the operator still standing. Even a realism career goes on after
+ * one of these: only going down ends it.
+ */
+const MISSION_FAILURES = {
+  time: { title: 'Out of time', lines: ['Hostage not reached in time.', 'On redeploy, go for the hostage room first.'] },
+  escaped: { title: 'Suspect escaped', lines: ['A suspect reached the car.', 'On redeploy, take the ones nearest the car first.'] },
+  alarm: { title: 'Compromised', lines: ['The alarm went up.', 'On redeploy, stay unseen and keep shots quiet.'] },
+} as const;
+type MissionFailure = keyof typeof MISSION_FAILURES;
+
 /** Pause between the last hostile going down (or the operator) and the debrief. */
 const OUTCOME_DELAY = 1.6;
 
@@ -138,9 +149,8 @@ export class GameScene extends Phaser.Scene {
   private alarm = false;
   private hostage: Civilian | null = null;
   private clock: number | null = null;
-  private timedOut = false;
-  /** Overwatch: a suspect reached the getaway. */
-  private escaped = false;
+  /** Set when the mission is lost without the operator going down. */
+  private failure: MissionFailure | null = null;
   /** The suspect sent to destroy the evidence, and how long they've been at it. */
   private destroyer: Enemy | null = null;
   private destroying = 0;
@@ -176,8 +186,7 @@ export class GameScene extends Phaser.Scene {
     this.alarm = false;
     this.hostage = null;
     this.clock = null;
-    this.timedOut = false;
-    this.escaped = false;
+    this.failure = null;
     this.destroyer = null;
     this.destroying = 0;
     this.evidenceLost = false;
@@ -370,7 +379,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onNoise(e: NoiseEvent): void {
-    if (e.kind === 'shot' || e.kind === 'shout') this.raiseAlarm();
+    // Shots and shouts raise the alarm only if a suspect is in earshot: a suppressed shot in an
+    // empty wing goes unheard.
+    if ((e.kind === 'shot' || e.kind === 'shout') && this.enemies.some((en) => en.alive && Math.hypot(en.x - e.x, en.y - e.y) <= e.radius)) {
+      this.raiseAlarm();
+    }
     for (const en of this.enemies) en.hear(e);
     for (const c of this.civilians) c.hear(e, this.world);
   }
@@ -792,9 +805,9 @@ export class GameScene extends Phaser.Scene {
       this.toast('Suspects down. Secure the civilians.');
     }
     const done = this.stations ? this.stations.allDone : suspectsDown && civiliansSafe;
-    if ((done || !p.alive || this.timedOut || this.escaped) && this.outcomeTimer < 0) {
+    if ((done || !p.alive || this.failure) && this.outcomeTimer < 0) {
       this.outcomeTimer = 0;
-      if (done && !this.stations && !this.timedOut && !this.escaped) {
+      if (done && !this.stations && !this.failure) {
         sfx.secured();
         this.toast('Area secure');
       }
@@ -802,10 +815,8 @@ export class GameScene extends Phaser.Scene {
     if (this.outcomeTimer >= 0) {
       this.outcomeTimer += dt;
       if (this.outcomeTimer >= OUTCOME_DELAY) {
-        this.outcome = !p.alive ? this.failedOutcome()
-          : this.timedOut ? this.timeOutcome()
-            : this.escaped ? this.escapedOutcome()
-              : this.successOutcome();
+        // A mission already lost stays lost, even if the operator is hit in the moments after.
+        this.outcome = this.failure ? this.lostOutcome(this.failure) : !p.alive ? this.failedOutcome() : this.successOutcome();
       }
     }
   }
@@ -818,6 +829,11 @@ export class GameScene extends Phaser.Scene {
     if (this.alarm || this.intro.active || !this.def.mission) return;
     this.alarm = true;
     const m = this.def.mission;
+    if (m.silent) {
+      this.failure = 'alarm';
+      this.toast('Compromised');
+      return;
+    }
     if (m.hostage && this.hostage?.canBeSecured) {
       this.clock = m.hostage.seconds;
       this.toast(`Compromised. ${m.hostage.seconds} s to reach the hostage.`);
@@ -849,7 +865,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.clock = Math.max(0, this.clock - dt);
     if (this.clock === 0) {
-      this.timedOut = true;
+      this.failure = 'time';
       this.clock = null;
       this.toast('Out of time');
     }
@@ -857,9 +873,9 @@ export class GameScene extends Phaser.Scene {
 
   /** Overwatch: anyone reaching the getaway is gone, and so is the mission. */
   private updateGetaway(): void {
-    if (!this.def.mission?.overwatch || this.escaped) return;
+    if (!this.def.mission?.overwatch || this.failure) return;
     if (this.enemies.some((e) => e.alive && e.atErrand)) {
-      this.escaped = true;
+      this.failure = 'escaped';
       this.toast('Suspect at the car');
     }
   }
@@ -948,28 +964,12 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  /** The hostage clock ran out. The operator is still standing, so even a realism career goes on. */
-  private timeOutcome(): Outcome {
+  /** Lost with the operator still standing: the mission is over, but even a realism career goes on. */
+  private lostOutcome(failure: MissionFailure): Outcome {
     progress.deployed = null;
     saveProgress(progress);
-    return {
-      success: false,
-      title: 'Out of time',
-      stars: null,
-      lines: ['Hostage not reached in time.', 'On redeploy, go for the hostage room first.'],
-    };
-  }
-
-  /** Overwatch: a suspect reached the getaway. The operator is fine, so a realism career goes on. */
-  private escapedOutcome(): Outcome {
-    progress.deployed = null;
-    saveProgress(progress);
-    return {
-      success: false,
-      title: 'Suspect escaped',
-      stars: null,
-      lines: ['A suspect reached the car.', 'On redeploy, take the ones nearest the car first.'],
-    };
+    const f = MISSION_FAILURES[failure];
+    return { success: false, title: f.title, stars: null, lines: [...f.lines] };
   }
 
   /** Quitting a realism mission ends the career, the same as going down. */

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, TILE } from '../config';
-import { blocksSight, type ParsedLevel, type TileKind } from '../core/grid';
+import { blocksSight, isOutdoor, type ParsedLevel, type TileKind } from '../core/grid';
 import type { FloorLabel } from '../levels/range';
 import { propSize } from '../levels/props';
 import type { PropDef } from '../levels/types';
@@ -43,11 +43,12 @@ export function drawLevelArt(
     for (let x = 0; x < width; x++) {
       if (blocksSight(kindAt(x, y))) continue;
       const material = level.material[y * width + x];
-      if (material !== 'wood') {
+      if (material !== 'wood' && material !== 'deck') {
         drawFloor(g, material, x, y, darkAt(x, y));
         continue;
       }
-      const base = darkAt(x, y) ? COLORS.floorDark : COLORS.floor;
+      // Planks: floorboards indoors, weathered timber decking outside.
+      const base = material === 'deck' ? COLORS.deck : darkAt(x, y) ? COLORS.floorDark : COLORS.floor;
       for (let r = 0; r < TILE / PLANK_H; r++) {
         const row = y * (TILE / PLANK_H) + r;
         const offset = Math.floor(hash(row, 7) * PLANK_LEN);
@@ -104,6 +105,9 @@ export function drawLevelArt(
       } else if (kind === 'barrier') {
         g.fillStyle(0x000000, 0.3);
         g.fillRect(px + 9, py + 3, TILE - 12, TILE);
+      } else if (kind === 'water') {
+        // Coping round the edge of a pool or a quay.
+        edges(x, y, (k) => k !== 'water', COLORS.stone, 3);
       }
     }
   }
@@ -117,6 +121,19 @@ export function drawLevelArt(
         g.fillStyle(0xffffff, 0.04);
         for (let i = 4; i < TILE; i += 6) g.fillRect(px, py + i, TILE, 1);
         edges(x, y, (k) => k !== 'furniture', COLORS.furnitureEdge, 1.5);
+      } else if (kind === 'barrier' && isOutdoor(level.material[y * width + x])) {
+        // Outdoors a barrier is a low stone wall, a balustrade or a rail: a post with an arm
+        // towards each neighbour it joins, so runs and corners read as one line.
+        const joins = (k: TileKind) => k === 'barrier' || k === 'glass' || blocksSight(k);
+        const t = 10, c = (TILE - t) / 2;
+        g.fillStyle(tone(COLORS.stone, 0.92 + hash(x, y, 4) * 0.1), 1);
+        g.fillRect(px + c, py + c, t, t);
+        if (joins(kindAt(x - 1, y))) g.fillRect(px, py + c, c + t, t);
+        if (joins(kindAt(x + 1, y))) g.fillRect(px + c, py + c, TILE - c, t);
+        if (joins(kindAt(x, y - 1))) g.fillRect(px + c, py, t, c + t);
+        if (joins(kindAt(x, y + 1))) g.fillRect(px + c, py + c, t, TILE - c);
+        g.fillStyle(0xffffff, 0.16);
+        g.fillRect(px + c, py + c, t, 2);
       } else if (kind === 'barrier') {
         g.fillStyle(COLORS.barrier, 1);
         g.fillRect(px + 6, py, TILE - 12, TILE);
@@ -124,6 +141,16 @@ export function drawLevelArt(
         g.fillRect(px + 6, py, 2, TILE);
         g.fillStyle(COLORS.barrierStripe, 0.75);
         g.fillRect(px + 15, py + (y % 2 ? 0 : 6), 2, TILE - 6);
+      } else if (kind === 'glass') {
+        // A pane in a thin frame, running the way the wall runs.
+        const solid = (k: TileKind) => k === 'glass' || blocksSight(k);
+        const across = solid(kindAt(x - 1, y)) || solid(kindAt(x + 1, y));
+        g.fillStyle(0x334155, 1);
+        if (across) g.fillRect(px, py + TILE / 2 - 3, TILE, 6);
+        else g.fillRect(px + TILE / 2 - 3, py, 6, TILE);
+        g.fillStyle(COLORS.glass, 0.6);
+        if (across) g.fillRect(px, py + TILE / 2 - 1, TILE, 2);
+        else g.fillRect(px + TILE / 2 - 1, py, 2, TILE);
       }
     }
   }
@@ -210,6 +237,13 @@ function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, 
     g.fillRect(px, py + 16, TILE, 1);
     g.fillRect(px, py, 1, TILE);
     g.fillRect(px + 16, py, 1, TILE);
+  } else if (material === 'water') {
+    g.fillStyle(tone(COLORS.water, 0.94 + hash(x, y, 8) * 0.1), 1);
+    g.fillRect(px, py, TILE, TILE);
+    for (let i = 0; i < 3; i++) {
+      g.fillStyle(0xffffff, 0.06);
+      g.fillRect(px + hash(x, y, 140 + i) * 22, py + 6 + i * 9, 6 + hash(x, y, 150 + i) * 8, 1);
+    }
   } else if (material === 'concrete' || material === 'screed') {
     g.fillStyle(tone(material === 'screed' ? COLORS.screed : COLORS.concrete, f * (0.97 + hash(x, y, 6) * 0.06)), 1);
     g.fillRect(px, py, TILE, TILE);

@@ -120,6 +120,16 @@ describe('collision', () => {
 });
 
 describe('floor materials', () => {
+  it('water and glass block movement but not sight, and water is lit like the outdoors', () => {
+    const lvl = parseLevel(['#####', '#%gD#', '#ggg#', '#####']);
+    const t = (x: number, y: number) => lvl.tiles[y * lvl.width + x];
+    expect([t(1, 1), t(2, 1)]).toEqual(['water', 'glass']);
+    for (const k of [t(1, 1), t(2, 1)]) expect(blocksSight(k)).toBe(false);
+    expect(lvl.material[1 * lvl.width + 1]).toBe('water');
+    // A door set in glass reads its orientation from the panes either side.
+    expect(lvl.doors[0].orientation).toBe('h');
+  });
+
   it('the middle of a block of stacked containers outdoors counts as outdoors', () => {
     const lvl = parseLevel(['#######', '#=====#', '#=TTT=#', '#=TTT=#', '#=TTT=#', '#=====#', '#######']);
     expect(lvl.material[3 * lvl.width + 3]).toBe('concrete');
@@ -334,7 +344,7 @@ describe('gun roles', () => {
   });
 
   it('guns are issued in order: shotgun, rifle, sniper rifle, then suppressors', () => {
-    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper', undefined]);
+    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper', undefined, undefined]);
     // The sniper rifle comes with the promotion out of its campaign; suppressors a rank later.
     const sniperRank = CAMPAIGNS.find((c) => c.promotion.unlocks === 'sniper')!.rank + 1;
     expect(SUPPRESSOR_RANK).toBe(sniperRank + 1);

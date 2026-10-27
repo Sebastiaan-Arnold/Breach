@@ -147,6 +147,7 @@ Twists hang off one moment, the **alarm**: the first time a suspect sees the ope
 - **Hostage on the clock** (Kestrel Road, Officer): one of the homeowners is held in a back bedroom. Once the alarm goes up, a 30-second clock runs at the top of the screen; secure the hostage before it hits zero or the mission fails.
 - **Evidence** (Corvan Head Office, Senior Officer): when the alarm goes up, the nearest suspect runs for the shredder. Stop him before he has had eight seconds there, or the files are gone and so is the first star.
 - **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
+- **Silent** (Ardley Lodge, Lieutenant): the mission fails the moment the alarm goes up. A shot only raises the alarm if a suspect is in earshot, so suppressors (issued at Lieutenant) and one-shot takedowns are the way through.
 - **Rooftop overwatch** (Grand Atlas: Rear Yard, Sergeant): from the car park roof opposite the hotel, with the sniper rifle issued and the camera pulled right out over the whole yard. The yard has only low cover, so the roof sees everything. Once the alarm goes up, every suspect makes for the getaway car: one reaching it fails the mission. The puzzle is the order: take the ones nearest the car first. Ground units see to the civilians.
 
 **The scope.** Holding Space with the sniper rifle braces the operator: they stop moving, a narrow strip of vision reaches far down the aim, and the camera pulls back and pushes out along it. Enemies can't see that far, so a careful shooter goes unseen until the first shot, which, unsuppressed, brings everyone running.
@@ -193,6 +194,8 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 | Senior Officer | Supply chain | Offices, warehouses | A logistics firm that's moving more than parcels |
 | Sergeant | Clean money | Hotel floors | The ring's accountants meeting at a city hotel |
 | Lieutenant | The top | Villas | The people behind it all, with friends in high places |
+
+**Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
 
 The story is told almost entirely through the briefing screen: case files, short radio messages, a photo of a suspect pinned to the map. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
 

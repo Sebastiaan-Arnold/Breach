@@ -10,8 +10,9 @@ The full design lives in [docs/concept.md](docs/concept.md).
 
 The build has the police academy Range (training), the Officer campaign (six cases from
 14 Harbour Lane to the Westquay Lockups), the Senior Officer campaign (six cases inside
-Corvan Logistics) and the Sergeant campaign (one night at the Grand Atlas Hotel, five cases
-from the service level to the penthouse), each played from briefing to debrief, with saved progress, stars and
+Corvan Logistics), the Sergeant campaign (one night at the Grand Atlas Hotel, five cases
+from the service level to the penthouse) and the Lieutenant campaign (five cases from a glass
+villa and a moored yacht to a lighthouse and a clifftop house), each played from briefing to debrief, with saved progress, stars and
 promotions. Enemies get sharper with every rank.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out) and command's
@@ -50,6 +51,9 @@ promotions. Enemies get sharper with every rank.
   the sniper rifle where nobody may reach the getaway car (Grand Atlas: Rear Yard).
 - **Heavies:** from the Sergeant campaign, contractors in plate carriers with rifles. They take
   one more hit than everyone else and always push towards a fight.
+- **Varied places:** water you can see and shoot across but not walk through (pools, a marina,
+  the sea), glass walls and windows, timber decks, rails and low stone walls, and buildings
+  that aren't boxes: an L-shaped villa, a yacht hull, a cloistered courtyard, a round tower.
 - **Suppressors:** fit the pistol, assault rifle and sniper rifle (not the shotgun). A
   suppressed shot is heard about a third as far. Toggle them on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill

@@ -1,0 +1,98 @@
+import type { LevelDef } from './types';
+
+/**
+ * Lieutenant campaign, case 3, silent: a country house round a cloistered courtyard. The mission
+ * fails if the alarm goes up, so it's made for suppressors.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '######################################################',
+  '#""""""""""""""""""""""""""""""""""""""""""""""""""""#',
+  '#""""""""""""""""""""""""""""""""""""""""""""""""""""#',
+  '#""""""""""""""""""""""""""""""""""""""""""""""""""""#',
+  '#""""""""""""""""""""""""""""""""""""""""""""""""""""#',
+  '#""""""""####################################""""""""#',
+  '#""TTTT""#............i........i............#""TT""""#',
+  '#""TTTT""#..TTTTTTTT..D...TTT..D..TTTTTTT...D""TT""""#',
+  '#""""""""#............i...TTT..i............#""""""""#',
+  '#""""""""#............i........i............#""""""""#',
+  '#""TTTT""#~~..~~ggggggggggDggggggggggg......#""""TT""#',
+  '#""TTTT""#~~~~~~g""""""""""""""""""""g......#""""TT""#',
+  '#""""""""D~~~~~~g""""""""""""""""""""g......#""""""""#',
+  '#""""""""#~T~~~~D"""""""""%""""""""""D..TT..#""""""""#',
+  '#""TTTT""#~T~~~~g"""""""%%%%%""""""""g..TT..#""TT""""#',
+  '#""TTTT""#~T~~~~g"""""""%%%%%""""""""g..TT..#""TT""""#',
+  '#""""""""#~~~~~~g"""""""""%""""""""""g......#""""""""#',
+  '#""""""""#iiDiiig""""""""""""""""""""g......#""""""""#',
+  '#""TTTT""#~~~~~~g""""""""""""""""""""g......#"""""TT"#',
+  '#""TTTT""#~~~TT~g""""""""""""""""""""g......#"""""TT"#',
+  '#""""""""#~~~TT~ggggggggggDggggggggggg..TTT.#""""""""#',
+  '#""""""""#~~~TT~#......i......i......#..TTT.#""""""""#',
+  '#""""""""#~~~TT~#......D.TTTT.D......#......#"""TT"""#',
+  '#""""""""#~~~~~~#......i......i......#......#"""TT"""#',
+  '#""""""""#~~~~~~#......i......i......#......#""""""""#',
+  '#""""""""#################D##################""""""""#',
+  '#""""""""""""""""""""""""""""""""""""""""""""""""""""#',
+  '#"""""""""""""""""""""=========="""""""""""""""""""""#',
+  '#"""""""""TTT"""TTT""===========""TTT"""TTT""""""""""#',
+  '#"""""""""""""""""""=============""""""""""""""""""""#',
+  '#""""""""""""""""""==============="""""""""""""""""""#',
+  '#"""""""""""""""""""=============""""""""""""""""""""#',
+  '#""""""""""""""""""""==========="########""""""""""""#',
+  '#"""""""""""""""""""""=========="#......#""""""""""""#',
+  '#"""""""""""""""""""""=========="D...TT.#""""""""""""#',
+  '#"""""""""""""""""""""=========="#...TT.#""""""""""""#',
+  '#"""""""""""""""""""""=========="#......#""""""""""""#',
+  '#"""""""""""""""""""""=========="########""""""""""""#',
+  '#"""""""""""""""""""""=========="""""""""""""""""""""#',
+  '######################################################',
+];
+
+export const ARDLEY_LODGE: LevelDef = {
+  id: 'ardley-lodge',
+  name: 'Ardley Lodge',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'car', tx: 30, ty: 29, color: 0x1f2937 },
+  ],
+  entries: [
+    { id: 'gate', name: 'front gate', approach: [{ tx: 26.5, ty: 38.2 }, { tx: 26.5, ty: 26.4 }] },
+    { id: 'garden', name: 'kitchen garden', approach: [{ tx: 2.5, ty: 38 }, { tx: 2.5, ty: 12.5 }, { tx: 8.4, ty: 12.5 }] },
+    { id: 'east', name: 'east garden door', approach: [{ tx: 52.5, ty: 38 }, { tx: 52.5, ty: 8.5 }, { tx: 45.6, ty: 8.5 }] },
+  ],
+  intro: [
+    'Control: Unit 7, at the gates of Ardley Lodge.',
+    'Command: Quiet approach. If they raise the alarm, we lose her. Entry via the {entry}.',
+    'Command: Cleared to enter.',
+  ],
+  mission: {
+    title: 'Ardley Lodge',
+    location: 'Ardley Lodge, Ardley Moor',
+    time: '01:30',
+    situation: [
+      "Deputy Commissioner Calloway's country house. Her records are in the study.",
+      'Ex-police security in the house and on the grounds. Glass round the courtyard.',
+      'If the alarm goes up, Calloway is tipped off. Drop each guard in one go.',
+    ],
+    objective: 'Neutralise the security without raising the alarm.',
+    twist: { label: 'Silent', text: 'Fails if the alarm goes up' },
+    silent: true,
+    hostiles: { min: 5, max: 6 },
+    loadout: 'Handguns',
+    civilians: { min: 1, max: 2, text: 'A housekeeper, a gardener' },
+    reliability: 'Likely',
+    hostileSlots: [
+      { type: 'patroller', tx: 18.5, ty: 12.5, facing: 0, route: [{ tx: 35.5, ty: 12.5 }, { tx: 35.5, ty: 18.5 }, { tx: 18.5, ty: 18.5 }, { tx: 18.5, ty: 12.5 }] },
+      { type: 'lookout', tx: 25.5, ty: 9.5, facing: 90 },
+      { type: 'lookout', tx: 26.5, ty: 23.5, facing: 90 },
+      { type: 'lookout', tx: 13.5, ty: 11.5, facing: 180 },
+      { type: 'patroller', tx: 7.5, ty: 27.5, facing: 270, route: [{ tx: 7.5, ty: 3.5 }, { tx: 46.5, ty: 3.5 }, { tx: 46.5, ty: 27.5 }, { tx: 7.5, ty: 27.5 }] },
+      { type: 'lookout', tx: 35.5, ty: 35.5, facing: 180 },
+      { type: 'lookout', tx: 40.5, ty: 18.5, facing: 270 },
+    ],
+    civilianSlots: [{ tx: 11.5, ty: 22.5 }, { tx: 48.5, ty: 30.5 }, { tx: 29.5, ty: 8.5 }],
+    unknownZones: [],
+    debriefNote: "Calloway's records: cash and files held at the Gull Point lighthouse, her private retreat.",
+  },
+};

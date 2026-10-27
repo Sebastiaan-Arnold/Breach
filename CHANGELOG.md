@@ -3,6 +3,22 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.10
+
+The Lieutenant campaign, "The top", and more varied places.
+
+- Five new cases following Voight's contacts: Hillcrest Villa (an L-shaped glass villa round a
+  pool), The Halcyon (a yacht at its berth), Ardley Lodge (a country house round a cloistered
+  courtyard), Gull Point (a round lighthouse on a rocky point) and Westcliff House (a clifftop
+  villa with a glass room over the sea). Finishing it promotes you to Captain.
+- New terrain: water (blocks movement, not sight or bullets), glass walls and windows (the
+  same), and outdoor timber decking. Low walls and rails outdoors are drawn as stone and join
+  up into one line.
+- New twist, Silent (Ardley Lodge): the mission fails the moment the alarm goes up.
+- The alarm now needs a suspect in earshot: a suppressed shot in an empty wing goes unheard.
+- A mission that is already lost (out of time, escaped, compromised) stays lost even if the
+  operator is hit in the moments after, so it never ends a realism career.
+
 ## v0.4.9
 
 From playtesting v0.4.8.

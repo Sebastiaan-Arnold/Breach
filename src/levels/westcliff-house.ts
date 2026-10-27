@@ -1,0 +1,95 @@
+import type { LevelDef } from './types';
+
+/**
+ * Lieutenant campaign, case 5: a clifftop villa with a round glass room over the sea and
+ * terraces either side. Confirmed numbers, the campaign's end.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '########################################################',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%gggggg%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%gg....gg%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%gg..TT..gg%"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%"""%%%g..TTTT..g""""""%%%%%%%%%%%%"""%%%%%%%%%%"""#',
+  '#%%""""""""g...TT...g""""""""%%%%%%%""""""""""%%%""""""#',
+  '#""""""""""gg......gg""""""""""%%""""""""""""""""""""""#',
+  '#"""""""""""gg....gg"""""""""""""""""""""""""""""""""""#',
+  '#"""""""#####.......#####################""""""""""b"""#',
+  '#=======#...............i~~~~~~~i.......#==========b"""#',
+  '#=======#...............i~~~~~~~i.......#==========b"""#',
+  '#=======#...............i~~~~~~~i..TTT..#==%%%%%%==b"""#',
+  '#=======#...TTTT........D~~~~~~~i.......D==%%%%%%==b"""#',
+  '#=======D...TTTT........i~~~~~~~D.......#==%%%%%%==b"""#',
+  '#=======#...............iiiiDiiii.......#==%%%%%%==b"""#',
+  '#=======#...............i.......i.......#==========b"""#',
+  '#=======#.........TTTT..D.TTTT..i.......#==========b"""#',
+  '#=======#...............i.TTTT..D.......#bbbb=bbbbbb"""#',
+  '#=======#...............i.......i.......#""""""""""b"""#',
+  '#=======########D################iiiDiii#""""""""""b"""#',
+  '#=======""""""""""""""""""""""""#.......#"""""""TT"b"""#',
+  '#=======""""""""""""""========="#.......D"""""""TT"""""#',
+  '#bb=bbbb"""""""""""=============#########""""""""""""""#',
+  '#"=====""""""""""""==============="""""""""""""""""""""#',
+  '#"=====""""TT""""""===============""""""""""TT"""""""""#',
+  '#"=====""""TT""""""===============""""""""""TT"""""""""#',
+  '#"====="""""""""""""""=========""""""""""""""""""""""""#',
+  '#"=====""""""""""TT"""""======""""""TT"""""""""""""""""#',
+  '#"=====""""""""""TT"""""======""""""TT"""""""""""""""""#',
+  '#"====="""""""""""""""""======"""""""""""""""""""""""""#',
+  '#"====="""""""""""""""""======"""""""""""""""""""""""""#',
+  '#"""""""""""""""""""""""======"""""""""""""""""""""""""#',
+  '#"""""""""""""""""""""""======"""""""""""""""""""""""""#',
+  '########################################################',
+];
+
+export const WESTCLIFF_HOUSE: LevelDef = {
+  id: 'westcliff-house',
+  name: 'Westcliff House',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'car', tx: 30, ty: 30, color: 0x0f172a },
+  ],
+  entries: [
+    { id: 'drive', name: 'front drive', approach: [{ tx: 26.5, ty: 38.2 }, { tx: 26.5, ty: 30 }, { tx: 16.5, ty: 27 }, { tx: 16.5, ty: 26.4 }] },
+    { id: 'cliff', name: 'cliff path', approach: [{ tx: 3.5, ty: 36.5 }, { tx: 3.5, ty: 20.5 }, { tx: 7.4, ty: 19.5 }] },
+    { id: 'terrace', name: 'east terrace', approach: [{ tx: 45.5, ty: 28.5 }, { tx: 45.5, ty: 23.6 }] },
+  ],
+  intro: [
+    'Control: Unit 7, on scene at Westcliff House.',
+    'Command: Calloway is inside. Entry via the {entry}.',
+    'Command: Cleared to enter.',
+  ],
+  mission: {
+    title: 'Westcliff House',
+    location: 'Westcliff House, Cliff Road',
+    time: '06:00',
+    situation: [
+      'Deputy Commissioner Ruth Calloway at her clifftop house. Dawn raid.',
+      'Personal security in plate carriers. Numbers confirmed by surveillance.',
+      'Glass room over the cliff edge. Terraces west and east.',
+    ],
+    objective: 'Arrest Deputy Commissioner Calloway.',
+    hostiles: { min: 6, max: 6 },
+    loadout: 'Handguns, rifles',
+    civilians: { min: 2, max: 2, text: 'Calloway (unarmed), a member of staff' },
+    reliability: 'Confirmed',
+    hostileSlots: [
+      { type: 'heavy', tx: 20.5, ty: 17.5, facing: 90 },
+      { type: 'heavy', tx: 49.5, ty: 21.5, facing: 180 },
+      { type: 'lookout', tx: 15.5, ty: 8.5, facing: 90 },
+      { type: 'lookout', tx: 29.5, ty: 17.5, facing: 180 },
+      { type: 'heavy', tx: 36.5, ty: 21.5, facing: 180 },
+      { type: 'hider', tx: 30.5, ty: 21.5, facing: 180 },
+    ],
+    civilianSlots: [{ tx: 38.5, ty: 16.5 }, { tx: 25.5, ty: 16.5 }],
+    unknownZones: [],
+    debriefNote: 'Calloway in custody. Pryce, Kessler and Voight have made statements.',
+  },
+};

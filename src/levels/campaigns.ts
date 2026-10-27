@@ -1,7 +1,7 @@
 import type { WeaponId } from '../game/weapons';
 
 /** Ranks in order; a campaign is played at one rank and promotes to the next. */
-export const RANKS = ['Recruit', 'Officer', 'Senior Officer', 'Sergeant', 'Lieutenant'] as const;
+export const RANKS = ['Recruit', 'Officer', 'Senior Officer', 'Sergeant', 'Lieutenant', 'Captain'] as const;
 
 /**
  * How sharp enemies are. Every rank's campaign is harder than the last: faster reactions,
@@ -47,8 +47,10 @@ export interface CampaignDef {
     minStars: number;
     /** A gun issued with the promotion. */
     unlocks?: WeaponId;
-    /** The captain's note on the promotion screen. */
+    /** The note on the promotion screen. */
     note: string[];
+    /** Who signs it, when it isn't the captain. */
+    from?: string;
   };
 }
 
@@ -109,6 +111,21 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
         'Promoted to Lieutenant.',
         "Voight's contacts are under review. Await orders.",
       ],
+    },
+  },
+  {
+    id: 'lieutenant',
+    title: 'The top',
+    rank: 4,
+    levels: ['hillcrest-villa', 'the-halcyon', 'ardley-lodge', 'gull-point', 'westcliff-house'],
+    promotion: {
+      minStars: 10,
+      note: [
+        'Deputy Commissioner Calloway in custody. Councillors Pryce and Kessler charged.',
+        'The network from Harbour Lane to Westcliff House is closed.',
+        'Promoted to Captain, effective immediately.',
+      ],
+      from: 'Commissioner Adeyemi',
     },
   },
 ];

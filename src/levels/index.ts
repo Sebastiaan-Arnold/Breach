@@ -1,3 +1,4 @@
+import { ARDLEY_LODGE } from './ardley-lodge';
 import { ATLAS_CONFERENCE } from './atlas-conference';
 import { ATLAS_FLOOR_4 } from './atlas-floor-4';
 import { ATLAS_PENTHOUSE } from './atlas-penthouse';
@@ -8,14 +9,18 @@ import { CORVAN_DEPOT } from './corvan-depot';
 import { CORVAN_HEAD_OFFICE } from './corvan-head-office';
 import { FENWICK_TERRACE } from './fenwick-terrace';
 import { FERRY_ROAD } from './ferry-road';
+import { GULL_POINT } from './gull-point';
 import { HARBOUR_FREIGHT } from './harbour-freight';
 import { HARBOUR_LANE } from './harbour-lane';
+import { HILLCREST_VILLA } from './hillcrest-villa';
 import { KESTREL_ROAD } from './kestrel-road';
 import { MERCER_STREET } from './mercer-street';
 import { RANGE } from './range';
 import { SALTER_STREET } from './salter-street';
+import { THE_HALCYON } from './the-halcyon';
 import { TOLLGATE_FLATS } from './tollgate-flats';
 import type { LevelDef } from './types';
+import { WESTCLIFF_HOUSE } from './westcliff-house';
 import { WESTQUAY_LOCKUPS } from './westquay-lockups';
 
 /** Every playable level, in campaign order. */
@@ -24,6 +29,7 @@ export const LEVELS: readonly LevelDef[] = [
   HARBOUR_LANE, FENWICK_TERRACE, TOLLGATE_FLATS, MERCER_STREET, KESTREL_ROAD, WESTQUAY_LOCKUPS,
   CORVAN_DEPOT, CORVAN_HEAD_OFFICE, SALTER_STREET, COLD_STORE, FERRY_ROAD, HARBOUR_FREIGHT,
   ATLAS_SERVICE, ATLAS_FLOOR_4, ATLAS_CONFERENCE, ATLAS_YARD, ATLAS_PENTHOUSE,
+  HILLCREST_VILLA, THE_HALCYON, ARDLEY_LODGE, GULL_POINT, WESTCLIFF_HOUSE,
 ];
 
 export function levelById(id: string): LevelDef {

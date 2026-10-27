@@ -1,0 +1,84 @@
+import type { LevelDef } from './types';
+
+/**
+ * Lieutenant campaign, case 2: a motor yacht at its berth. Rails you can see over, open decks,
+ * a salon and cabins, and water all round.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '##############################################################',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#',
+  '#%%%%%%bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb%%%%%%%%%%%%%%%%#',
+  '#%%%%%%b++++++++++++++++++++++++++++++++++++bbb%%%%%%%%%%%%%%#',
+  '#%%%%%%b+TTT++++++++++++++++++++++++++++++++++bb%%%%%%%%%%%%%#',
+  '#%%%%%%b+TTT+++############################++++bbb%%%%%%%%%%%#',
+  '#%%%%%%b+++++++g...............i~TTT~i....#++++++bbb%%%%%%%%%#',
+  '#%%%+++b+++++++g...TTTT........i~~~~~i....#++++++++bb%%%%%%%%#',
+  '#%%%+++b+++++++g...TTTT........iiiDiiiiDii#+++++++++bbb%%%%%%#',
+  '#%%%+++b+++++++g..........TTT..i..........#+++TTT+++++bb%%%%%#',
+  '#%%%+++++++++++D..........TTT..D..........D+++TTT+++++bb%%%%%#',
+  '#%%%+++b+++++++g..........TTT..i..........#+++TTT+++bbb%%%%%%#',
+  '#%%%+++b+++++++g...TTTT........iiiDiiiiDii#++++++++bb%%%%%%%%#',
+  '#%%%+++b+++++++g...TTTT........i.....i....#++++++bbb%%%%%%%%%#',
+  '#%%%%%%b+++++++g...............i.....i....#++++bbb%%%%%%%%%%%#',
+  '#%%%%%%b+TTT+++############################+++bb%%%%%%%%%%%%%#',
+  '#%%%%%%b+TTT++++++++++++++++++++++++++++++++bbb%%%%%%%%%%%%%%#',
+  '#%%%%%%bbbbbbbbbbbbbb+bbbbbbbbbbbbbbbbbbbbbbb+%%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%#',
+  '#%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%%%%%%%%+++%%%%%%%%%%%%%%#',
+  '#============================================================#',
+  '#============================================================#',
+  '#===========TT================TT====================TT=======#',
+  '#===========TT================TT====================TT=======#',
+  '#============================================================#',
+  '#============================================================#',
+  '##############################################################',
+];
+
+export const THE_HALCYON: LevelDef = {
+  id: 'the-halcyon',
+  name: 'The Halcyon',
+  map: MAP,
+  labels: [],
+  entries: [
+    { id: 'gangway', name: 'gangway', approach: [{ tx: 21.5, ty: 28.5 }, { tx: 21.5, ty: 21.4 }] },
+    { id: 'platform', name: 'swim platform', approach: [{ tx: 4.5, ty: 15 }, { tx: 4.5, ty: 12.5 }, { tx: 6.4, ty: 12.5 }] },
+    { id: 'bow', name: 'bow pier', approach: [{ tx: 45.5, ty: 28.5 }, { tx: 45.5, ty: 20.6 }] },
+  ],
+  intro: [
+    'Control: Unit 7, on scene at the marina, berth 14.',
+    'Command: Security on the decks. Entry via the {entry}.',
+    'Command: Cleared to board.',
+  ],
+  mission: {
+    title: 'The Halcyon',
+    location: 'Berth 14, Port Ardley Marina',
+    time: '21:15',
+    situation: [
+      'Councillor Anna Kessler aboard her yacht, the Halcyon, with private security.',
+      'Open decks with rails you can see over. Salon aft, cabins forward.',
+      'Crew on board. The marine unit can put you on the swim platform.',
+    ],
+    objective: 'Arrest Councillor Kessler. Neutralise her security.',
+    hostiles: { min: 5, max: 6 },
+    loadout: 'Handguns, rifles',
+    civilians: { min: 2, max: 3, text: 'Kessler (unarmed), crew' },
+    reliability: 'Likely',
+    hostileSlots: [
+      { type: 'lookout', tx: 12.5, ty: 12.5, facing: 180 },
+      { type: 'lookout', tx: 24.5, ty: 12.5, facing: 180 },
+      { type: 'heavy', tx: 50.5, ty: 12.5, facing: 180 },
+      { type: 'patroller', tx: 8.5, ty: 5.5, facing: 0, route: [{ tx: 43.5, ty: 5.5 }, { tx: 43.5, ty: 18.5 }, { tx: 8.5, ty: 18.5 }, { tx: 8.5, ty: 5.5 }] },
+      { type: 'hider', tx: 40.5, ty: 15.5, facing: 180 },
+      { type: 'lookout', tx: 36.5, ty: 12.5, facing: 180 },
+    ],
+    civilianSlots: [{ tx: 28.5, ty: 9.5 }, { tx: 33.5, ty: 9.5 }, { tx: 40.5, ty: 27.5 }],
+    unknownZones: [],
+    debriefNote: "Kessler's phone: Deputy Commissioner Ruth Calloway. Calloway's records are kept at Ardley Lodge.",
+  },
+};

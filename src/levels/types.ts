@@ -95,6 +95,8 @@ export interface MissionDef {
    * one reaching it fails the mission. Ground units secure the civilians.
    */
   overwatch?: { getaway: TilePos };
+  /** Silent: the mission fails the moment the alarm goes up. Made for suppressors. */
+  silent?: boolean;
 }
 
 /**

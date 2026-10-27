@@ -31,7 +31,7 @@ export class PromotionScene extends Phaser.Scene {
     const note = this.add.text(cx, 300, c.promotion.note.join('\n\n'), style(15, TEXT, {
       align: 'center', lineSpacing: 4, wordWrap: { width: 640 },
     })).setOrigin(0.5, 0);
-    this.add.text(cx, note.y + note.height + 18, 'Captain Hale', style(13, DIM, { fontStyle: 'italic' })).setOrigin(0.5, 0);
+    this.add.text(cx, note.y + note.height + 18, c.promotion.from ?? 'Captain Hale', style(13, DIM, { fontStyle: 'italic' })).setOrigin(0.5, 0);
 
     const suppressors = c.rank + 1 === SUPPRESSOR_RANK;
     const issued = c.promotion.unlocks ? WEAPONS[c.promotion.unlocks].name : suppressors ? 'Suppressors' : null;

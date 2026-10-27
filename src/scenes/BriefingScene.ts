@@ -114,6 +114,8 @@ export class BriefingScene extends Phaser.Scene {
         else if (kind === 'wall' || kind === 'plywood') g.fillStyle(0x7aa2d6, 1);
         else if (kind === 'interior') g.fillStyle(0x5b7fae, 1);
         else if (kind === 'furniture') g.fillStyle(0x22324d, 1);
+        else if (kind === 'water') g.fillStyle(0x12324a, 1);
+        else if (kind === 'glass') g.fillStyle(0x7dd3fc, 1);
         else if (isOutdoor(level.material[i])) g.fillStyle(level.material[i] === 'grass' ? 0x0d1a17 : 0x111a26, 1);
         else g.fillStyle(0x16233a, 1);
         g.fillRect(px, py, s, s);
