@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS } from '../config';
 import { rayCircle } from '../core/geometry';
-import type { StationId } from '../levels/range';
+import type { StationId } from '../levels/academy/range';
 
 export type TargetKind = 'suspect' | 'civilian';
 export type TargetState = 'hidden' | 'up' | 'down';

@@ -2,7 +2,7 @@
 
 ## Pitch
 
-Breach (working title) is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from rookie to lieutenant in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes, which suits a browser tab now and a phone later.
+Breach is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from recruit to captain in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes, which suits a browser tab now and a phone later.
 
 The closest references are Door Kickers (top-down, line of sight, room clearing) and Ready or Not (tension, uncertainty, procedure). Breach sits between them: simpler to control than Door Kickers, far more readable than Ready or Not.
 
@@ -167,7 +167,7 @@ Each mission ends with a debrief and up to three stars: one for completing it, o
 
 ## Training, levels and story
 
-The game opens at the police academy range, then follows the operator through four campaigns, one per rank. Every level is a single ground floor for now; multiple floors can come later.
+The game opens at the police academy range, then follows the operator through four more campaigns, one per rank from Officer to Lieutenant. Every level is a single ground floor for now; multiple floors can come later.
 
 **Training: the Range**
 
@@ -185,7 +185,7 @@ Levels are built on a tile grid of 32 px tiles, which makes line of sight, enemy
 
 **Story and campaigns**
 
-The structure borrows from L.A. Noire, where the protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of five missions. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men and finally the people running it.
+The structure borrows from L.A. Noire, where the protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of five or six cases. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men and finally the people running it.
 
 | Rank | Campaign | Locations | Story thread |
 | --- | --- | --- | --- |
@@ -197,11 +197,11 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 
 **Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you, and shatter loudly when shot, leaving a gap to walk through; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
 
-The story is told almost entirely through the briefing screen: case files, short radio messages, a photo of a suspect pinned to the map. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
+The story is told almost entirely through the briefing screen: case files, short radio messages and command's marks on the plan. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
 
 **Writing style.** Text reads like a real operation, not a novel: terse, procedural, present tense. Names, ages, addresses, times and counts; callsigns on the radio ("Control", "Command", "Unit 7"); "compromised" rather than "they know you're here". The briefing follows a fixed order (situation as short bullets, a one-line objective, intel, loadout, entry point), so every case reads the same way and the twist stands out as one yellow line.
 
-Levels will be built in Tiled, a free map editor. A custom editor can wait.
+Levels are ASCII grids in the source, one character per tile (legend in `src/core/grid.ts`). A map editor can come later if levels outgrow that.
 
 ## Art, audio and tone
 
@@ -209,7 +209,7 @@ The art is top-down and readable first, with restrained material detail: wooden 
 
 Darkness carries the atmosphere. Unknown areas are near-black, remembered areas dim, and vision fades out towards the edge of its range, so the weapon light in a dark room reads as a beam. Small physical details (bullet holes, spent casings, muzzle flashes) make each room feel used.
 
-Sound is a gameplay system, not decoration: footsteps, door creaks, radio chatter at the start ("Team, you're cleared to enter") and a short sting when the site is secured. Free libraries such as Freesound or Kenney's packs cover the basics.
+Sound is a gameplay system, not decoration: footsteps that change with the floor, door creaks, breaking glass, radio chatter at the start and a short sting when the site is secured. Every sound is synthesised in the browser, so the game ships with no audio files.
 
 The tone is grounded and serious. Blood is an optional effect, on by default: a short spray on a hit and a pool under someone who is down, never gore, and never on the training range's cardboard props. With it switched off, downed people simply fall and fade, which keeps the age rating reasonable on the App Store and stays respectful given the subject. The game uses no real place names or real organisations' logos.
 
@@ -219,12 +219,12 @@ The game is built once as a web game, and the same code is wrapped for iOS later
 
 - **Engine:** Phaser 3 with TypeScript: a free, well-documented 2D game framework for the browser with built-in support for tile maps, keyboard and touch input, and sound.
 - **Line of sight:** a raycast visibility polygon from the operator's position against wall edges.
-- **Levels:** made in Tiled and exported as JSON, which Phaser reads natively.
+- **Levels:** ASCII grids in TypeScript; the same data drives collision, line of sight, pathfinding and the briefing map.
 - **Hosting:** GitHub Pages. Every push to the repository runs a GitHub Action that builds and publishes the game.
 - **Saves:** progress (stars, unlocks) in the browser's local storage. On iOS it carries over inside the app.
 - **Path to iOS:** Capacitor wraps the web build into a native Xcode project. This requires a Mac, Xcode and an Apple Developer account. Apple accepts wrapped web games when they feel like a proper app, so offline play, touch controls and no browser-looking UI are a must.
 
-The game is designed for touch and a 16:9 phone screen from day one. Retrofitting touch controls onto a mouse-and-keyboard game is the most common reason these ports feel bad.
+The web version is played with a mouse and keyboard. The 16:9 layout and the laser already suit a phone screen; touch controls are the main work of the iOS version.
 
 ## Roadmap and MVP scope
 
@@ -236,7 +236,7 @@ The biggest risk with a game like this is building too much before finding out w
 4. **Full web release: all campaigns.** All guns, polish, audio, a proper title screen. Released as 1.0.0, with five campaigns.
 5. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 
-Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
+Cut on purpose for now: gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
 
 **Realism mode.** A separate career with one life, chosen from the start menu next to the normal career; each has its own progress. Going down ends a realism career and it resets to Recruit. There is no restarting a mission, and quitting one (or closing the game mid-mission) counts as going down. A new realism career can skip the academy and start as an Officer.
 
@@ -252,10 +252,10 @@ Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors
 - **Tall objects block sight and bullets:** racking, lorries, containers and vans. Low furniture and cars are cover you can see and shoot over.
 - **No flashlight toggle:** the weapon light is always on; dark rooms simply limit how far you see.
 - **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
-- **Five missions per campaign**, so 20 missions plus the Range for the full web release.
+- **Five or six cases per campaign:** 22 cases plus the Range in the full web release.
 - **Enemies can't see the laser.**
-- **Guns are unsuppressed** for now; a suppressor comes later as an unlock and cuts how far shots are heard.
+- **Suppressors are the last unlock** (at Lieutenant) and cut how far shots are heard.
 - **Vision cone of about 60 degrees.**
 - **Doors open and close only** in the first version; kick and peek come later.
-- **Port Ardley**, a fictional harbour city, with Breach as the working title.
+- **Port Ardley**, a fictional harbour city.
 - **Web first**, iOS only after a successful web release.

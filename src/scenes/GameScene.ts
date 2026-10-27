@@ -5,7 +5,7 @@ import { circleIntersectsRect, DEG, pointInPolygon, rayCircle } from '../core/ge
 import { blocksSight, isOutdoor, parseLevel, type ParsedLevel } from '../core/grid';
 import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
-import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
+import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/academy/range';
 import { campaignOf, DIFFICULTY, RANKS } from '../levels/campaigns';
 import { isTall, propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';

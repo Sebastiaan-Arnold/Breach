@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Lieutenant campaign, case 3, silent: a country house round a cloistered courtyard. Alerted

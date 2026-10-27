@@ -1,4 +1,4 @@
-import { RANGE_STATIONS, stationAt, type StationDef, type StationId } from '../levels/range';
+import { RANGE_STATIONS, stationAt, type StationDef, type StationId } from '../levels/academy/range';
 import type { Target } from './Target';
 
 const LANE_HITS_NEEDED = 5;

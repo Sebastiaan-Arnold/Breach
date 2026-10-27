@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Senior Officer campaign, case 1: a parcel depot whose racking hides shotgun-armed men.

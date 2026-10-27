@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Lieutenant campaign, case 4: a round lighthouse and a keeper's cottage on a rocky point, with a

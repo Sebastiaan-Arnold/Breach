@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * The Range: the police academy training ground. A sequence of stations that teaches every

@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Lieutenant campaign, case 5: a clifftop villa with a round glass room over the sea and

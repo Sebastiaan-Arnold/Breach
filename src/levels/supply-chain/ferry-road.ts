@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Senior Officer campaign, case 5: a distribution centre with lorries in the yard and patrols between them.

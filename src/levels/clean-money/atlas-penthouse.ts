@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Sergeant campaign, case 5: the penthouse suite and its terrace. Confirmed numbers, mostly heavies.

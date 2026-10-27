@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Officer campaign, case 4: an open garage workshop with cars for cover and two patrols.

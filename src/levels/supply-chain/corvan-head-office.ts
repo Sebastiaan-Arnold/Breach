@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Senior Officer campaign, case 2: an open-plan office with staff working late among the hostiles.

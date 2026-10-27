@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Lieutenant campaign, case 1: an L-shaped villa of glass and render round a pool terrace.

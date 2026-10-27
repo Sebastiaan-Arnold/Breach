@@ -1,5 +1,5 @@
 import type { WeaponId } from '../game/weapons';
-import type { FloorLabel, StationDef } from './range';
+import type { FloorLabel, StationDef } from './academy/range';
 
 /** A position in tile units; fractions are allowed (0.5 is a tile's centre). */
 export interface TilePos {

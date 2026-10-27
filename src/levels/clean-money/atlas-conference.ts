@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Sergeant campaign, case 3: the ballroom and boardroom on floor 6, where the partners meet.

@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Officer campaign, case 1: a raid on a rented terraced house used for street-level dealing.

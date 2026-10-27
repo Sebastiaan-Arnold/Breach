@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Senior Officer campaign, case 4: a dark refrigerated warehouse with shotguns waiting between the racks.

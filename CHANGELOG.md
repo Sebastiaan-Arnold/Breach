@@ -1,7 +1,16 @@
 # Changelog
 
-All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
-release, which will be `1.0.0`. See [Versioning](README.md#versioning).
+All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
+`0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
+
+## v1.0.1
+
+Repository housekeeping; no gameplay changes.
+
+- MIT licence, and licence, homepage, repository and Node version in `package.json`.
+- Level files grouped into one folder per campaign; tests split into one file per area.
+- The design document brought in line with the released game.
+- Removed an unused UI helper.
 
 ## v1.0.0
 

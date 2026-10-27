@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Officer campaign, case 3: a ground-floor flat with the power cut. Darkness inside a real raid.

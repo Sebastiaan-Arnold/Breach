@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Officer campaign, case 6: the lockup yard where the supplier's courier collects. Open ground, many doors.

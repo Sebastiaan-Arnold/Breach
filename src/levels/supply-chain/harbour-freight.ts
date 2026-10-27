@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Senior Officer campaign, case 6: the Harbourmaster's own office on Pier Seven. Confirmed intel, his best men.

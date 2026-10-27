@@ -1,9 +1,18 @@
 {
   "name": "breach",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Breach: a top-down tactical SWAT game set in Port Ardley",
+  "description": "A top-down tactical game set in the fictional harbour city of Port Ardley",
+  "license": "MIT",
+  "homepage": "https://sebastiaan-arnold.github.io/Breach/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sebastiaan-Arnold/Breach.git"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

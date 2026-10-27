@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Sergeant campaign, case 4: overwatch. From the car park roof opposite, stop the senior partners

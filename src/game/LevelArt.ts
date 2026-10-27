@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, FONT, TILE } from '../config';
 import { blocksSight, isOutdoor, type ParsedLevel, type TileKind } from '../core/grid';
-import type { FloorLabel } from '../levels/range';
+import type { FloorLabel } from '../levels/academy/range';
 import { propSize } from '../levels/props';
 import type { PropDef } from '../levels/types';
 

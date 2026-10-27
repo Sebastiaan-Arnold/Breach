@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Officer campaign, case 5: a family home taken over by the crew, one of the owners held in a

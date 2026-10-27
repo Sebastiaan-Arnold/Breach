@@ -60,26 +60,6 @@ export function goTo(scene: Phaser.Scene, key: string, data?: object, ms = 220):
   });
 }
 
-/** A text button that highlights on hover and runs `onClick` on release. */
-export function textButton(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  label: string,
-  onClick: () => void,
-  size = 18,
-  color = TEXT,
-): Phaser.GameObjects.Text {
-  const t = scene.add.text(x, y, label, style(size, color)).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  t.on('pointerover', () => {
-    t.setColor(ACCENT);
-    sfx.hover();
-  });
-  t.on('pointerout', () => t.setColor(color));
-  t.on('pointerup', onClick);
-  return t;
-}
-
 /** Anything a keyboard can move between and activate. */
 export interface Focusable {
   setFocused(on: boolean): void;

@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Sergeant campaign, case 1: the hotel's service level, held by Meridian's private security. Heavies debut here.

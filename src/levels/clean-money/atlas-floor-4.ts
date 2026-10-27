@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Sergeant campaign, case 2: a guest corridor with rooms both sides. Meridian's security has six of them.

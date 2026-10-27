@@ -78,11 +78,12 @@ npm run build      # type-check and build to dist/
 src/
   core/      engine-independent logic: geometry, raycast visibility, level grid, collision,
              pathfinding
-  levels/    level data: maps, entries, intel and spawn slots, campaigns
+  levels/    campaigns and level data (maps, entries, intel, spawn slots), one folder per
+             campaign
   game/      game objects and systems: world, player, enemies, civilians, doors, glass, fog,
              noise, effects, intro, weapons, audio, settings, progress
   scenes/    Phaser scenes: title, campaign menu, briefing, game, HUD, promotion; the UI kit
-tests/       vitest unit tests
+tests/       vitest unit tests, one file per area
 public/      icon and share image
 ```
 
@@ -95,6 +96,10 @@ the browser with the Web Audio API; there are no audio files.
 Built with [Phaser 3](https://phaser.io), TypeScript and Vite. Fonts: Barlow Condensed and
 JetBrains Mono, both under the SIL Open Font License, bundled through Fontsource. Port Ardley,
 its people and its cases are fictional.
+
+## License
+
+[MIT](LICENSE). The bundled fonts are under the SIL Open Font License.
 
 ## Versioning
 

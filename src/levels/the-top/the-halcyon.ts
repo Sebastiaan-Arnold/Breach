@@ -1,4 +1,4 @@
-import type { LevelDef } from './types';
+import type { LevelDef } from '../types';
 
 /**
  * Lieutenant campaign, case 2: a motor yacht at its berth. Rails you can see over, open decks,
