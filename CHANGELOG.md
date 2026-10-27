@@ -3,6 +3,18 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v1.0.0
+
+The full web release: five campaigns, from the Range to the people at the top, played in the
+browser.
+
+- A proper page: title, description, an icon and a share image for links.
+- A loading screen in the game's style while the fonts load, and a note on touch-only devices
+  that the game is played with a mouse and keyboard.
+- Tabbing away mid-mission pauses it.
+- HUD details in the display face.
+- README rewritten for players and contributors, with credits.
+
 ## v0.7.0
 
 Presentation, part three: briefing and promotion.

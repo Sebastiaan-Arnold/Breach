@@ -82,10 +82,10 @@ export class HudScene extends Phaser.Scene {
     this.tutorial = this.add.container(28, 24, [this.tutorialTitle, this.tutorialBody]).setAlpha(0);
 
     this.gfx = this.add.graphics();
-    this.weaponName = this.add.text(VIEW_W - 28, VIEW_H - 62, '', style(11, DIM, { fontStyle: 'bold' })).setOrigin(1, 0);
+    this.weaponName = this.add.text(VIEW_W - 28, VIEW_H - 63, '', display(12, DIM)).setOrigin(1, 0);
     this.reserve = this.add.text(VIEW_W - 28, VIEW_H - 44, '', style(15, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
     this.subtitle = this.add.text(VIEW_W / 2, VIEW_H - BAR_HEIGHT - 34, '', style(16, TEXT)).setOrigin(0.5, 0);
-    this.skipHint = this.add.text(VIEW_W - 28, VIEW_H - 44, 'Space to skip', style(11, DIM)).setOrigin(1, 0);
+    this.skipHint = this.add.text(VIEW_W - 28, VIEW_H - 44, 'SPACE TO SKIP', display(11, DIM)).setOrigin(1, 0);
     this.securing = this.add.text(VIEW_W / 2, VIEW_H * 0.62, 'Securing', style(12, TEXT)).setOrigin(0.5, 0);
     this.clock = this.add.text(VIEW_W / 2, 24, '', style(18, TEXT, { fontStyle: 'bold' })).setOrigin(0.5, 0);
 
@@ -100,8 +100,14 @@ export class HudScene extends Phaser.Scene {
 
     const onToast = (text: string) => this.showToast(text);
     this.game.events.on('toast', onToast);
+    // Tabbing away mid-mission pauses it.
+    const onBlur = () => {
+      if (!this.menu.visible && !this.debrief.visible) this.toggleMenu();
+    };
+    this.game.events.on(Phaser.Core.Events.BLUR, onBlur);
     this.events.once('shutdown', () => {
       this.game.events.off('toast', onToast);
+      this.game.events.off(Phaser.Core.Events.BLUR, onBlur);
       this.input.setDefaultCursor('default');
     });
   }

@@ -1,70 +1,48 @@
 # Breach
 
-A top-down tactical SWAT game set in the fictional harbour city of Port Ardley. You lead a single
-operator into buildings you've only seen on a rough briefing map, see only what your operator
+A top-down tactical game set in the fictional harbour city of Port Ardley. You lead a single
+operator into buildings you've only seen on a rough briefing plan, see only what your operator
 sees, and clear every room without getting hit or harming civilians.
+
+**Play it in the browser:** https://sebastiaan-arnold.github.io/Breach/ (mouse and keyboard).
 
 The full design lives in [docs/concept.md](docs/concept.md).
 
-## Status: milestone 4
+## The game
 
-The build has the police academy Range (training), the Officer campaign (six cases from
-14 Harbour Lane to the Westquay Lockups), the Senior Officer campaign (six cases inside
-Corvan Logistics), the Sergeant campaign (one night at the Grand Atlas Hotel, five cases
-from the service level to the penthouse) and the Lieutenant campaign (five cases from a glass
-villa and a moored yacht to a lighthouse and a clifftop house), each played from briefing to debrief, with saved progress, stars and
-promotions. Enemies get sharper with every rank.
+Five campaigns, one per rank, each a thread of the same story: a street-level dealing crew, the
+logistics firm behind it, the accountants cleaning its money, and the people at the top.
+
+| Rank | Campaign | Cases |
+| --- | --- | --- |
+| Recruit | Academy | The Range: movement, aim, doors, shoot or don't, a dark kill house |
+| Officer | Street crime | Six raids on the Ashby estate, from 14 Harbour Lane to the Westquay Lockups |
+| Senior Officer | Supply chain | Six cases inside Corvan Logistics, from the depot to Pier Seven |
+| Sergeant | Clean money | One night at the Grand Atlas Hotel, from the service level to the penthouse |
+| Lieutenant | The top | A glass villa, a moored yacht, a country house, a lighthouse and a clifftop house |
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out) and command's
   marks beside a structured case: situation, objective, intel (given as ranges with a
   reliability rating), loadout and entry point. Deploy, and the real situation is rolled from
-  the intel.
-- **Intro:** each level opens with a short, skippable cutscene of the operator approaching the
-  entry while radio lines play.
-- **Enemies:** Lookouts, Patrollers and (from Senior Officer) Hiders with an Idle / Alert / Combat state machine. They see in a
-  cone with real line of sight, hear your noise, investigate it, path through the house (opening
-  doors) and shoot back. Lookouts shout to alert the others.
-- **Civilians:** freeze or flee when shooting starts; hold E next to one to secure them.
-- **Damage:** body armour absorbs the first hit; two more take the operator down, and you retry
-  from the briefing with the situation rolled again.
-- **Vision and fog of war:** a 60° raycast vision cone plus a short peripheral radius, blocked by
-  walls and door leaves. Three layers: visible, remembered (dim, no live entities) and unknown (black).
+  the intel, so no two runs are the same.
+- **Vision and fog of war:** a raycast vision cone blocked by walls and door leaves. What you
+  saw stays dim on the map; who is there now, you only know while you can see them.
 - **Laser aim:** the laser shows exactly where a shot lands. It wobbles while you move or turn
-  and steadies when you stand still. Heavier guns wobble more and turn more slowly.
-- **Doors:** E or right-click opens or closes a door. The leaf is part of line of sight, so the
-  room opens up as the door swings. (Kick and peek from the concept are parked for later.)
-- **Sound as information:** your own noise shows as a ring of how far it carries. World sounds
-  show as vague ripples through walls.
-- **Campaign:** progress is saved; the Range promotes you to Officer and opens the Officer
-  cases, which unlock in order. Finishing a campaign with enough stars promotes you. Each
-  promotion issues a gun: the shotgun as Officer, the assault rifle as Senior Officer and the
-  sniper rifle as Sergeant. Suppressors come last, as Lieutenant. Choose your primary gun on the
-  briefing; specialty missions issue their own.
-- **Guns with jobs:** from the Senior Officer campaign suspects wear light vests and take two
-  hits. The pistol needs a double tap, the shotgun stops anyone up close in one shot, assault
-  rifle rounds count double, and the bolt-action sniper rifle stops anyone at any range. Hold
-  Space to look down its scope. A hit that doesn't stop a suspect makes them flinch.
-- **Specialty cases:** some cases add a twist, shown as a yellow line in the briefing's intel:
-  a house party full of guests (Fenwick Terrace), a hostage with a clock that starts once
-  they know you're there (Kestrel Road), files that get shredded if the alarm goes up (Corvan
-  Head Office), close quarters made for the shotgun (Salter Street), and rooftop overwatch with
-  the sniper rifle where nobody may reach the getaway car (Grand Atlas: Rear Yard).
-- **Heavies:** from the Sergeant campaign, contractors in plate carriers with rifles. They take
-  one more hit than everyone else and always push towards a fight.
-- **Varied places:** water you can see and shoot across but not walk through (pools, a marina,
-  the sea), glass walls and windows, timber decks, rails and low stone walls, and buildings
-  that aren't boxes: an L-shaped villa, a yacht hull, a cloistered courtyard, a round tower.
-- **Suppressors:** fit the pistol, assault rifle and sniper rifle (not the shotgun). A
-  suppressed shot is heard about a third as far. Toggle them on the briefing.
-- **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
-  house whose targets re-roll on every run. Ends with the debrief and stars.
-- **Two careers:** the start menu offers a normal career and a realism career, each with its own
-  progress. In realism you have one life: going down, or quitting a mission, ends the career and
-  resets it to Recruit. A new realism career can skip the academy.
-- **Minimal HUD and settings:** ammo, short messages and, on the Range only, tutorial text.
-  Esc pauses and opens settings (blood effects, sound) and the controls.
+  and steadies when you stand still.
+- **Sound:** your own noise shows as a ring of how far it carries; enemies hear it, investigate
+  and come looking. Gunfire carries through a building, suppressed shots a few rooms.
+- **Enemies:** lookouts, patrollers, hiders with shotguns and heavies in plate carriers. Some
+  push towards a fight, others dig in and cover the door you'll come through. They get sharper
+  with every rank, and from Senior Officer they wear vests.
+- **Guns with jobs:** a pistol, then a shotgun, an assault rifle and a bolt-action sniper rifle
+  with a scope, issued as you're promoted; suppressors come last.
+- **Specialty cases:** a house party, a hostage on the clock, files that get shredded, close
+  quarters, rooftop overwatch and a silent infiltration with alarm panels.
+- **Places:** houses, warehouses, offices and docks, then hotel floors, a yacht, a lighthouse;
+  water you can see across, glass that shatters, timber decks.
+- **Careers:** a normal career, or a realism career with one life, each with its own progress.
 
-### Controls
+## Controls
 
 | Action | Key |
 | --- | --- |
@@ -80,6 +58,9 @@ promotions. Enemies get sharper with every rank.
 | Pause, settings and controls | Esc |
 | Frame-rate readout | F3 |
 
+Menus work with the mouse or the keyboard (arrows, Enter, Escape). Settings: volume, blood,
+screen shake and fullscreen.
+
 ## Development
 
 Requires Node.js 20 or newer.
@@ -87,7 +68,7 @@ Requires Node.js 20 or newer.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # unit tests for geometry, visibility, pathfinding, levels and intel rolls
+npm test           # unit tests: geometry, visibility, pathfinding, level data, intel rolls, progress
 npm run build      # type-check and build to dist/
 ```
 
@@ -97,38 +78,41 @@ npm run build      # type-check and build to dist/
 src/
   core/      engine-independent logic: geometry, raycast visibility, level grid, collision,
              pathfinding
-  levels/    level data: maps, entries, intel and spawn slots (ASCII maps for now; Tiled later)
-  game/      game objects and systems: world, player, enemies, civilians, doors, fog, noise,
-             effects, intro, weapons, audio, settings
-  scenes/    Phaser scenes: menu, briefing, game and its HUD
+  levels/    level data: maps, entries, intel and spawn slots, campaigns
+  game/      game objects and systems: world, player, enemies, civilians, doors, glass, fog,
+             noise, effects, intro, weapons, audio, settings, progress
+  scenes/    Phaser scenes: title, campaign menu, briefing, game, HUD, promotion; the UI kit
 tests/       vitest unit tests
+public/      icon and share image
 ```
 
 Levels are ASCII grids of 32 px tiles (legend in `src/core/grid.ts`). The same data drives
-collision, line of sight, enemy pathfinding and the briefing map.
+collision, line of sight, enemy pathfinding and the briefing map. Every sound is synthesised in
+the browser with the Web Audio API; there are no audio files.
+
+## Credits
+
+Built with [Phaser 3](https://phaser.io), TypeScript and Vite. Fonts: Barlow Condensed and
+JetBrains Mono, both under the SIL Open Font License, bundled through Fontsource. Port Ardley,
+its people and its cases are fictional.
 
 ## Versioning
-
-Versions follow `0.<milestone>.<patch>` until the full web release (`1.0.0`):
 
 | Version | Milestone |
 | --- | --- |
 | 0.1.x | Prototype: the Range |
 | 0.2.x | Vertical slice: first Officer mission |
 | 0.3.x | MVP: Academy plus the Officer campaign |
+| 0.4.x | All five campaigns |
+| 0.5–0.7 | Presentation: menus, game feel, briefing and promotion |
 | 1.0.0 | Full web release |
 
 Every commit is titled `vX.Y.Z: short summary`, bumps `version` in `package.json` in the same
-commit and gets an entry in [CHANGELOG.md](CHANGELOG.md). The version is shown on the title card.
-Tags are not created by hand: `.github/workflows/tag-version.yml` tags each new version on GitHub
-when it lands on `main`.
+commit and gets an entry in [CHANGELOG.md](CHANGELOG.md). The version is shown on the title
+screen. Tags are not created by hand: `.github/workflows/tag-version.yml` tags each new version
+on GitHub when it lands on `main`.
 
 ## Deployment
 
 `.github/workflows/deploy.yml` tests, builds and publishes to GitHub Pages on every push to
-`main`, and `.github/workflows/tag-version.yml` tags the new version. One-time setup on GitHub: **Settings → Pages → Source: GitHub Actions**.
-
-## Next
-
-Playtest and tune both campaigns, then the Sergeant campaign (hotel floors, the Heavy enemy
-type) and the Lieutenant campaign.
+`main`. One-time setup on GitHub: **Settings → Pages → Source: GitHub Actions**.

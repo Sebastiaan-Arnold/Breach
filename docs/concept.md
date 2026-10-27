@@ -233,7 +233,7 @@ The biggest risk with a game like this is building too much before finding out w
 1. **Prototype: the Range.** Movement, vision cone, laser aim, doors and cardboard targets. The training level doubles as the test bed, so nothing gets thrown away. The question to answer: does walking through a door into darkness feel tense?
 2. **Vertical slice: first Officer mission.** Briefing screen, one house, two enemy types, civilians, the debrief with stars. Published on GitHub Pages for a small group of playtesters.
 3. **MVP: Academy plus the Officer campaign.** First case file story, sound ripples, local saves, promotion to Senior Officer.
-4. **Full web release: all four campaigns.** All guns, polish, audio, a proper title screen.
+4. **Full web release: all campaigns.** All guns, polish, audio, a proper title screen. Released as 1.0.0, with five campaigns.
 5. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 
 Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
