@@ -9,9 +9,14 @@
       html, body { margin: 0; height: 100%; background: #07090c; overflow: hidden; }
       #game { width: 100vw; height: 100vh; height: 100dvh; }
       canvas { display: block; }
+      #loader {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        color: #64748b; font: 600 13px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.3em;
+      }
     </style>
   </head>
   <body>
+    <div id="loader">LOADING</div>
     <div id="game"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

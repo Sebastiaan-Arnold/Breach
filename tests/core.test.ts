@@ -263,8 +263,8 @@ describe('level data', () => {
 
 describe('campaign progress', () => {
   const campaigns: CampaignDef[] = [
-    { id: 'a', title: 'A', rank: 0, levels: ['a1'], promotion: { minStars: 1, note: [] } },
-    { id: 'b', title: 'B', rank: 1, levels: ['b1', 'b2'], promotion: { minStars: 5, unlocks: 'rifle', note: [] } },
+    { id: 'a', title: 'A', blurb: '', rank: 0, levels: ['a1'], promotion: { minStars: 1, note: [] } },
+    { id: 'b', title: 'B', blurb: '', rank: 1, levels: ['b1', 'b2'], promotion: { minStars: 5, unlocks: 'rifle', note: [] } },
   ];
 
   it('unlocks levels in order and campaigns by rank', () => {

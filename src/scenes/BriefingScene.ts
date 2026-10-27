@@ -9,7 +9,7 @@ import { levelById } from '../levels';
 import { campaignOf, DIFFICULTY } from '../levels/campaigns';
 import { propSize } from '../levels/props';
 import type { LevelDef, Reliability } from '../levels/types';
-import { ACCENT, DIM, RED, setupScreenCamera, style, TEXT } from './ui';
+import { ACCENT, DIM, fadeIn, goTo, RED, setupScreenCamera, style, TEXT } from './ui';
 
 const MAP = { x: 40, y: 120, w: 720, h: 545 };
 const PANEL = { x: 800, w: 420 };
@@ -64,6 +64,8 @@ export class BriefingScene extends Phaser.Scene {
   create(): void {
     setupScreenCamera(this);
     this.cameras.main.setBackgroundColor(0x05070a);
+    fadeIn(this);
+    sfx.menuAmbience(true);
     const m = this.def.mission!;
 
     // Tablet frame.
@@ -90,7 +92,10 @@ export class BriefingScene extends Phaser.Scene {
       const digit = /^Digit([1-9])$/.exec(e.code);
       if (digit && Number(digit[1]) <= this.def.entries.length) this.selectEntry(Number(digit[1]) - 1);
       if (e.code === 'Enter') this.deploy();
-      if (e.code === 'Escape') this.scene.start('menu');
+      if (e.code === 'Escape') {
+        sfx.back();
+        goTo(this, 'menu');
+      }
     });
   }
 
@@ -321,7 +326,10 @@ export class BriefingScene extends Phaser.Scene {
     const back = this.add.text(x + bw / 2, by + bh + 22, 'Back to menu', style(12, DIM)).setOrigin(0.5).setInteractive({ useHandCursor: true });
     back.on('pointerover', () => back.setColor(ACCENT));
     back.on('pointerout', () => back.setColor(DIM));
-    back.on('pointerup', () => this.scene.start('menu'));
+    back.on('pointerup', () => {
+      sfx.back();
+      goTo(this, 'menu');
+    });
   }
 
   private selectGun(id: WeaponId): void {
@@ -380,7 +388,9 @@ export class BriefingScene extends Phaser.Scene {
 
   private deploy(): void {
     sfx.unlock();
-    this.scene.start('game', {
+    sfx.confirm();
+    sfx.menuAmbience(false);
+    goTo(this, 'game', {
       levelId: this.def.id, entryId: this.def.entries[this.entryIndex].id, situation: this.situation, primary: this.primary,
       suppressed: hasSuppressors(progress) && kit.suppressors,
     });

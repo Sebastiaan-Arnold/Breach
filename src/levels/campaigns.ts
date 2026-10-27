@@ -38,6 +38,8 @@ export const SUPPRESSOR_RANK = 4;
 export interface CampaignDef {
   id: string;
   title: string;
+  /** The campaign's story in one line, for the menu. */
+  blurb: string;
   /** Index into RANKS: the rank this campaign is played at. */
   rank: number;
   /** Level ids, in order. Each unlocks when the previous one is completed. */
@@ -58,6 +60,7 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
   {
     id: 'academy',
     title: 'Academy',
+    blurb: 'Qualify on the Range: movement, aim, doors, and when not to shoot.',
     rank: 0,
     levels: ['range'],
     promotion: {
@@ -73,6 +76,7 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
   {
     id: 'officer',
     title: 'Street crime',
+    blurb: 'Raids on the Ashby estate, on dealers who keep naming the same supplier.',
     rank: 1,
     levels: ['harbour-lane', 'fenwick-terrace', 'tollgate-flats', 'mercer-street', 'kestrel-road', 'westquay-lockups'],
     promotion: {
@@ -87,6 +91,7 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
   {
     id: 'senior',
     title: 'Supply chain',
+    blurb: 'A logistics firm moving more than parcels, from the depot to the docks.',
     rank: 2,
     levels: ['corvan-depot', 'corvan-head-office', 'salter-street', 'cold-store', 'ferry-road', 'harbour-freight'],
     promotion: {
@@ -102,6 +107,7 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
   {
     id: 'sergeant',
     title: 'Clean money',
+    blurb: "The ring's accountants, over one night at the Grand Atlas Hotel.",
     rank: 3,
     levels: ['atlas-service', 'atlas-floor-4', 'atlas-conference', 'atlas-yard', 'atlas-penthouse'],
     promotion: {
@@ -116,6 +122,7 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
   {
     id: 'lieutenant',
     title: 'The top',
+    blurb: 'The people behind it all, and their friends in high places.',
     rank: 4,
     levels: ['hillcrest-villa', 'the-halcyon', 'ardley-lodge', 'gull-point', 'westcliff-house'],
     promotion: {

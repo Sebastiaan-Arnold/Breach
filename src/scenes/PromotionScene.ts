@@ -3,7 +3,7 @@ import { COLORS, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
 import { WEAPONS } from '../game/weapons';
 import { CAMPAIGNS, RANKS, SUPPRESSOR_RANK } from '../levels/campaigns';
-import { ACCENT, DIM, GOLD, setupScreenCamera, style, TEXT, textButton } from './ui';
+import { ACCENT, DIM, fadeIn, GOLD, goTo, setupScreenCamera, style, TEXT, textButton } from './ui';
 
 /** Closes a campaign: the new rank, a short note from the captain and any gun issued with it. */
 export class PromotionScene extends Phaser.Scene {
@@ -19,6 +19,7 @@ export class PromotionScene extends Phaser.Scene {
 
   create(): void {
     setupScreenCamera(this);
+    fadeIn(this, 500);
     this.cameras.main.setBackgroundColor(COLORS.void);
     const c = CAMPAIGNS.find((x) => x.id === this.campaignId)!;
     const cx = VIEW_W / 2;
@@ -41,7 +42,7 @@ export class PromotionScene extends Phaser.Scene {
       this.add.text(cx, note.y + note.height + 96, hint, style(12, DIM)).setOrigin(0.5);
     }
 
-    const go = () => this.scene.start('menu');
+    const go = () => goTo(this, 'menu');
     textButton(this, cx, VIEW_H - 80, 'Continue', go, 20);
     this.input.keyboard?.once('keydown-ENTER', go);
   }

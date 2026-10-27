@@ -170,6 +170,7 @@ export class GameScene extends Phaser.Scene {
   private guns: WeaponId[] = ['pistol'];
   /** Set when this run earned a promotion; shown on the way back to the menu. */
   private promotion: string | null = null;
+  private leaving = false;
 
   constructor() {
     super('game');
@@ -204,6 +205,7 @@ export class GameScene extends Phaser.Scene {
     this.alarmRunner = null;
     this.arming = 0;
     this.promotion = null;
+    this.leaving = false;
   }
 
   create(): void {
@@ -245,6 +247,7 @@ export class GameScene extends Phaser.Scene {
 
     // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
     this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom).startFollow(this.player.displayObject, false, 0.1, 0.1);
+    this.cameras.main.fadeIn(500, 7, 9, 12);
 
     // A realism career is on the line from the moment it deploys.
     if (this.realism) {
@@ -992,6 +995,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** True on a mission in a realism career, where going down (or quitting) ends the career. */
+  /** The level's name, for the pause menu and the debrief. */
+  get levelName(): string {
+    return this.def.name;
+  }
+
   get realism(): boolean {
     return progress.realism && !!this.def.mission;
   }
@@ -1054,9 +1062,16 @@ export class GameScene extends Phaser.Scene {
     else this.leave('menu', {});
   }
 
+  /** Fades the game and its HUD out together, then moves on. */
   private leave(key: string, data: object): void {
-    this.scene.stop('hud');
-    this.scene.start(key, data);
+    if (this.leaving) return;
+    this.leaving = true;
+    this.scene.get('hud').cameras.main.fadeOut(260, 7, 9, 12);
+    this.cameras.main.fadeOut(260, 7, 9, 12);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.stop('hud');
+      this.scene.start(key, data);
+    });
   }
 
   private toast(text: string): void {

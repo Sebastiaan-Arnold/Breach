@@ -14,7 +14,10 @@ export const RENDER_SCALE = (() => {
   return Math.min(2, Math.max(1, Math.ceil(shown * 4) / 4));
 })();
 
-export const FONT = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+/** Body text: a clean monospace. Both faces ship with the game (see main.ts). */
+export const FONT = '"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+/** Headings and labels: a condensed display face. */
+export const DISPLAY_FONT = '"Barlow Condensed", "Arial Narrow", sans-serif';
 
 /** Colour coding stays strict for readability: blue for you, red for hostiles, yellow for civilians. */
 export const COLORS = {

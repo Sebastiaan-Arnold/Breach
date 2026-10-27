@@ -1,9 +1,8 @@
 import Phaser from 'phaser';
-import { RENDER_SCALE, VIEW_H, VIEW_W } from '../config';
+import { VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
-import { saveSettings, settings } from '../game/settings';
 import type { GameScene, HudState, Outcome } from './GameScene';
-import { ACCENT, DIM, GOLD, RED, setupScreenCamera, style, TEXT } from './ui';
+import { ACCENT, Button, DIM, display, FAINT, GOLD, KeyNav, openSettings, panel, RED, setupScreenCamera, stagger, style, TEXT, UI } from './ui';
 
 /** How long a station's tutorial text stays up after entering it, then how long it fades. */
 const TUTORIAL_HOLD = 9;
@@ -29,13 +28,6 @@ interface Toast {
   age: number;
 }
 
-interface Button {
-  text: Phaser.GameObjects.Text;
-  label: () => string;
-  action: () => void;
-  owner: Phaser.GameObjects.Container;
-}
-
 /**
  * Screen-space UI on top of the game. Deliberately minimal: ammo and armour in a corner, short
  * messages and, only in the tutorial, a station card that fades once read. Settings and
@@ -58,14 +50,11 @@ export class HudScene extends Phaser.Scene {
   private clock!: Phaser.GameObjects.Text;
 
   private menu!: Phaser.GameObjects.Container;
+  private menuNav!: KeyNav;
+  private settingsOpen = false;
   private debrief!: Phaser.GameObjects.Container;
-  private debriefTitle!: Phaser.GameObjects.Text;
-  private debriefStars!: Phaser.GameObjects.Text;
-  private debriefBody!: Phaser.GameObjects.Text;
-  private debriefNote!: Phaser.GameObjects.Text;
-  private debriefBg!: Phaser.GameObjects.Graphics;
+  private debriefNav?: KeyNav;
   private shownOutcome: Outcome | null = null;
-  private buttons: Button[] = [];
   private toasts: Toast[] = [];
   private fps!: Phaser.GameObjects.Text;
 
@@ -82,7 +71,7 @@ export class HudScene extends Phaser.Scene {
     this.tutorialAge = 0;
     this.lastStation = undefined;
     this.shownOutcome = null;
-    this.buttons = [];
+    this.settingsOpen = false;
     this.toasts = [];
 
     this.overlay = this.add.graphics();
@@ -103,9 +92,6 @@ export class HudScene extends Phaser.Scene {
     this.input.keyboard?.addCapture('F3');
     this.input.keyboard?.on('keydown-F3', () => this.fps.setVisible(!this.fps.visible));
     this.input.keyboard?.on('keydown-ESC', () => this.toggleMenu());
-    this.input.keyboard?.on('keydown-ENTER', () => {
-      if (this.debrief.visible) this.buttons.find((b) => b.owner === this.debrief)?.action();
-    });
 
     this.menu = this.buildMenu();
     this.debrief = this.buildDebrief();
@@ -113,17 +99,6 @@ export class HudScene extends Phaser.Scene {
     const onToast = (text: string) => this.showToast(text);
     this.game.events.on('toast', onToast);
     this.events.once('shutdown', () => this.game.events.off('toast', onToast));
-
-    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      const hovered = this.buttonAt(p);
-      for (const b of this.buttons) b.text.setColor(b === hovered ? ACCENT : TEXT);
-    });
-    this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
-      const b = this.buttonAt(p);
-      if (!b) return;
-      b.action();
-      for (const x of this.buttons) x.text.setText(x.label());
-    });
   }
 
   update(_time: number, deltaMs: number): void {
@@ -245,111 +220,165 @@ export class HudScene extends Phaser.Scene {
   // ---------------------------------------------------------------- menu and debrief
 
   private toggleMenu(): void {
-    if (this.debrief.visible) return;
+    if (this.debrief.visible || this.settingsOpen) return;
     const open = !this.menu.visible;
     this.menu.setVisible(open);
-    if (open) this.scene.pause('game');
-    else this.scene.resume('game');
-  }
-
-  private addButton(owner: Phaser.GameObjects.Container, x: number, y: number, label: () => string, action: () => void, size = 18): void {
-    const text = this.add.text(x, y, label(), style(size, TEXT)).setOrigin(0.5);
-    owner.add(text);
-    this.buttons.push({ text, label, action, owner });
-  }
-
-  private buttonAt(p: Phaser.Input.Pointer): Button | undefined {
-    // The HUD camera is zoomed, so convert from screen to layout coordinates.
-    const x = p.x / RENDER_SCALE, y = p.y / RENDER_SCALE;
-    return this.buttons.find((b) => b.owner.visible && b.text.getBounds().contains(x, y));
+    this.menuNav.enabled = open;
+    if (open) {
+      this.scene.pause('game');
+      sfx.select();
+      this.menu.setAlpha(0);
+      this.tweens.add({ targets: this.menu, alpha: 1, duration: 140 });
+    } else {
+      this.scene.resume('game');
+    }
   }
 
   private buildMenu(): Phaser.GameObjects.Container {
     const cx = VIEW_W / 2;
-    const bg = this.add.graphics();
-    bg.fillStyle(0x05070a, 0.82);
-    bg.fillRect(0, 0, VIEW_W, VIEW_H);
-    const menu = this.add.container(0, 0, [bg, this.add.text(cx, 130, 'PAUSED', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(0.5)]);
-    menu.setDepth(80).setVisible(false);
+    const menu = this.add.container(0, 0).setDepth(80).setVisible(false);
+    menu.add(this.add.rectangle(cx, VIEW_H / 2, VIEW_W, VIEW_H, 0x05070a, 0.82).setInteractive());
+    menu.add(this.add.text(cx, 112, 'PAUSED', display(46, TEXT)).setOrigin(0.5));
+    menu.add(this.add.text(cx, 152, this.game_.levelName.toUpperCase(), display(13, ACCENT)).setOrigin(0.5));
 
     // In a realism career there's no restarting a mission, and quitting one ends the career.
     const realism = this.game_.realism;
     let quitArmed = false;
-    const items: [() => string, () => void][] = [
-      [() => 'Resume', () => this.toggleMenu()],
-      [() => `Blood effects: ${settings.blood ? 'On' : 'Off'}`, () => { settings.blood = !settings.blood; saveSettings(); }],
-      [() => `Sound: ${settings.sound ? 'On' : 'Off'}`, () => { settings.sound = !settings.sound; sfx.muted = !settings.sound; saveSettings(); }],
-      ...(realism ? [] : [[() => 'Restart', () => { this.scene.resume('game'); this.game_.retry(); }] as [() => string, () => void]]),
-      realism
-        ? [() => (quitArmed ? 'Click again to end your career' : 'Quit (ends your realism career)'), () => {
-          if (!quitArmed) {
-            quitArmed = true;
-            return;
-          }
-          this.scene.resume('game');
-          this.game_.abandon();
-        }]
-        : [() => 'Quit to menu', () => { this.scene.resume('game'); this.game_.toMenu(); }],
+    const entries: [string, () => void][] = [
+      ['RESUME', () => this.toggleMenu()],
+      ['SETTINGS', () => {
+        this.settingsOpen = true;
+        this.menuNav.enabled = false;
+        openSettings(this, () => {
+          this.settingsOpen = false;
+          this.menuNav.enabled = true;
+        }, 120);
+      }],
+      ...(realism ? [] : [['RESTART', () => { this.scene.resume('game'); this.game_.retry(); }] as [string, () => void]]),
     ];
-    items.forEach(([label, action], i) => this.addButton(menu, cx, 190 + i * 38, label, action));
+    const buttons = entries.map(([label, action], i) => new Button(this, cx, 206 + i * 52, 300, 42, label, action, { size: 15, primary: i === 0 }));
+    const quit = new Button(this, cx, 206 + entries.length * 52, 300, 42, realism ? 'QUIT (ENDS YOUR CAREER)' : 'QUIT TO MENU', () => {
+      if (realism && !quitArmed) {
+        quitArmed = true;
+        quit.setText('CLICK AGAIN TO END YOUR CAREER');
+        return;
+      }
+      this.scene.resume('game');
+      if (realism) this.game_.abandon();
+      else this.game_.toMenu();
+    }, { size: 15 });
+    buttons.push(quit);
+    for (const b of buttons) menu.add(b.container);
+    this.menuNav = new KeyNav(this, buttons);
+    this.menuNav.enabled = false;
+    for (const b of buttons) b.nav = this.menuNav;
 
-    menu.add(this.add.text(cx, 392, 'CONTROLS', style(11, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5));
+    // The controls, in two columns.
+    const top = 206 + buttons.length * 52 + 20;
+    menu.add(this.add.text(cx, top, 'CONTROLS', display(12, FAINT)).setOrigin(0.5));
+    const half = Math.ceil(CONTROLS.length / 2);
     CONTROLS.forEach(([what, key], i) => {
-      menu.add(this.add.text(cx - 12, 416 + i * 22, what, style(13, DIM)).setOrigin(1, 0));
-      menu.add(this.add.text(cx + 12, 416 + i * 22, key, style(13, TEXT)));
+      const col = i < half ? -1 : 1, row = i % half;
+      const x = cx + col * 170, y = top + 26 + row * 21;
+      menu.add(this.add.text(x - 8, y, what, style(12, DIM)).setOrigin(1, 0));
+      menu.add(this.add.text(x + 8, y, key, style(12, TEXT)));
     });
     return menu;
   }
 
   private buildDebrief(): Phaser.GameObjects.Container {
-    const cx = VIEW_W / 2;
-    const bg = this.add.graphics();
-    this.debriefBg = bg;
-    this.debriefTitle = this.add.text(cx, 175, '', style(24, TEXT, { fontStyle: 'bold' })).setOrigin(0.5);
-    this.debriefStars = this.add.text(cx, 222, '', style(40, GOLD)).setOrigin(0.5);
-    this.debriefBody = this.add.text(cx - 220, 262, '', style(14, TEXT, { lineSpacing: 7 }));
-    this.debriefNote = this.add.text(cx - 220, 0, '', style(13, DIM, { fontStyle: 'italic', wordWrap: { width: 440 } }));
-    const box = this.add.container(0, 0, [
-      bg,
-      this.add.text(cx, 145, 'DEBRIEF', style(12, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5),
-      this.debriefTitle, this.debriefStars, this.debriefBody, this.debriefNote,
-    ]).setDepth(90).setVisible(false);
-    return box;
+    return this.add.container(0, 0).setDepth(90).setVisible(false);
   }
 
+  /**
+   * The debrief: the result, then the stars stamped on one by one, the numbers, the case note
+   * and the way on. Laid out to its content and centred.
+   */
   private showDebrief(o: Outcome): void {
     this.shownOutcome = o;
     this.menu.setVisible(false);
-    for (const b of this.buttons.filter((x) => x.owner === this.debrief)) b.text.destroy();
-    this.buttons = this.buttons.filter((x) => x.owner !== this.debrief);
+    this.menuNav.enabled = false;
+    const d = this.debrief;
+    d.removeAll(true);
+    d.setVisible(true).setAlpha(0);
+    const cx = VIEW_W / 2, W = 600, pad = 30;
 
-    this.debriefTitle.setText(o.title).setColor(o.success ? TEXT : RED);
-    this.debriefStars.setText(o.stars ? o.stars.map((b) => (b ? '★' : '☆')).join(' ') : '');
-    this.debriefBody.setY(o.stars ? 262 : 222).setText(o.lines.join('\n'));
-    this.debriefNote.setY(this.debriefBody.y + this.debriefBody.height + 18).setText(o.note ?? '');
-
-    // Size the panel to its content.
-    const cx = VIEW_W / 2;
-    const contentBottom = o.note ? this.debriefNote.y + this.debriefNote.height : this.debriefBody.y + this.debriefBody.height;
-    const buttonsY = contentBottom + 44;
-    const bg = this.debriefBg;
-    bg.clear();
-    bg.fillStyle(0x05070a, 0.75);
-    bg.fillRect(0, 0, VIEW_W, VIEW_H);
-    bg.fillStyle(0x0b1220, 0.97);
-    bg.fillRoundedRect(cx - 280, 120, 560, buttonsY + 36 - 120, 10);
-    bg.lineStyle(1, 0x60a5fa, 0.6);
-    bg.strokeRoundedRect(cx - 280, 120, 560, buttonsY + 36 - 120, 10);
-
-    if (o.careerOver) {
-      this.addButton(this.debrief, cx, buttonsY, () => 'Back to the academy', () => this.game_.toMenu(), 16);
-    } else if (o.success) {
-      this.addButton(this.debrief, cx - 90, buttonsY, () => 'Continue', () => this.game_.toMenu(), 16);
-      this.addButton(this.debrief, cx + 90, buttonsY, () => 'Play again', () => this.game_.retry(), 16);
-    } else {
-      this.addButton(this.debrief, cx - 90, buttonsY, () => 'Retry', () => this.game_.retry(), 16);
-      this.addButton(this.debrief, cx + 90, buttonsY, () => 'Menu', () => this.game_.toMenu(), 16);
+    // Measure first, then place: everything is stacked from the top of the panel.
+    const parts: { obj: Phaser.GameObjects.GameObject & { y: number }; at: number }[] = [];
+    let h = 0;
+    const put = (obj: Phaser.GameObjects.GameObject & { y: number }, height: number) => {
+      parts.push({ obj, at: h });
+      h += height;
+    };
+    put(this.add.text(cx, 0, `DEBRIEF  ·  ${this.game_.levelName.toUpperCase()}`, display(13, ACCENT)).setOrigin(0.5, 0), 26);
+    const title = this.add.text(cx, 0, o.title.toUpperCase(), display(40, o.success ? TEXT : RED)).setOrigin(0.5, 0);
+    put(title, 62);
+    const stars: Phaser.GameObjects.Text[] = [];
+    if (o.stars) {
+      const row = this.add.container(cx, 0);
+      o.stars.forEach((earned, i) => {
+        const t = this.add.text((i - 1) * 64, 26, '★', style(46, earned ? GOLD : '#283548')).setOrigin(0.5).setScale(0);
+        stars.push(t);
+        row.add(t);
+      });
+      put(row, 64);
     }
-    this.debrief.setVisible(true);
+    const lines: Phaser.GameObjects.Text[] = [];
+    for (const line of o.lines) {
+      if (!line) {
+        h += 8;
+        continue;
+      }
+      const t = this.add.text(cx - 210, 0, line, style(14, TEXT));
+      lines.push(t);
+      put(t, 22);
+    }
+    if (o.note) {
+      h += 12;
+      const label = this.add.text(cx - 210, 0, 'CASE NOTE', display(11, FAINT));
+      put(label, 20);
+      const note = this.add.text(cx - 210, 0, o.note, style(13, DIM, { fontStyle: 'italic', wordWrap: { width: 420 }, lineSpacing: 3 }));
+      put(note, note.height);
+      lines.push(label, note);
+    }
+    h += 26;
+    const buttonsAt = h;
+    h += 44;
+
+    const top = (VIEW_H - h) / 2;
+    d.add(this.add.rectangle(cx, VIEW_H / 2, VIEW_W, VIEW_H, 0x05070a, 0.78).setInteractive());
+    d.add(panel(this, cx - W / 2, top - pad, W, h + pad * 2, o.success ? UI.accent : UI.red));
+    for (const p of parts) {
+      p.obj.y = top + p.at;
+      d.add(p.obj);
+    }
+
+    const go = (label: string, action: () => void, primary: boolean, x: number) =>
+      new Button(this, x, top + buttonsAt + 22, 210, 44, label, action, { size: 15, primary });
+    const buttons = o.careerOver
+      ? [go('BACK TO THE ACADEMY', () => this.game_.toMenu(), true, cx)]
+      : o.success
+        ? [go('CONTINUE', () => this.game_.toMenu(), true, cx - 115), go('PLAY AGAIN', () => this.game_.retry(), false, cx + 115)]
+        : [go('RETRY', () => this.game_.retry(), true, cx - 115), go('MENU', () => this.game_.toMenu(), false, cx + 115)];
+    for (const b of buttons) d.add(b.container);
+    this.debriefNav = new KeyNav(this, buttons);
+    buttons.forEach((b, i) => {
+      b.nav = this.debriefNav;
+      b.adjust = (dir) => this.debriefNav!.focus(Math.max(0, Math.min(buttons.length - 1, i + dir)));
+    });
+
+    // The entrance: panel in, title settles, stars stamp, then the numbers.
+    this.tweens.add({ targets: d, alpha: 1, duration: 220 });
+    title.setScale(1.15);
+    this.tweens.add({ targets: title, scale: 1, duration: 420, ease: 'Cubic.Out' });
+    stars.forEach((t, i) => {
+      const earned = o.stars![i];
+      this.tweens.add({
+        targets: t, scale: 1, delay: 380 + i * 240, duration: 320, ease: 'Back.Out',
+        onStart: () => (earned ? sfx.star(i) : sfx.select()),
+      });
+    });
+    stagger(this, lines, 380 + stars.length * 240 + 120, 45, 6);
+    stagger(this, buttons.map((b) => b.container), 380 + stars.length * 240 + 220 + lines.length * 45, 80, 8);
   }
 }

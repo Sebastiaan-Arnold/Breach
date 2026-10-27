@@ -3,6 +3,21 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.5.0
+
+Presentation, part one: menus.
+
+- New title screen: a live backdrop (a level's plan drifting under a sweeping, wall-occluded
+  light), a reworked logo, and career cards with rank insignia and progress.
+- New campaign screen: campaign cards with star progress, and the selected campaign's story,
+  promotion progress and cases with location and time.
+- Every menu works from the keyboard (arrows, Enter, Escape) as well as the mouse, with hover
+  and focus states and their own sounds. Screens fade between each other.
+- Settings panel (title screen and pause menu): volume, blood, screen shake and fullscreen.
+- Reworked pause menu and debrief: stars stamp in one by one, then the numbers and case note.
+- A low ambient bed plays under the menus.
+- Fonts: Barlow Condensed and JetBrains Mono, bundled with the game (SIL Open Font License).
+
 ## v0.4.14
 
 Older levels get the new terrain, so fewer of them read as plain boxes:

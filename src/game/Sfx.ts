@@ -13,7 +13,19 @@ export class Sfx {
   private ctx?: AudioContext;
   private master?: GainNode;
   private noiseBuf?: AudioBuffer;
-  muted = false;
+  private volume = 0.8;
+  /** The menu's ambient bed, while it plays. */
+  private bed: { stop: () => void } | null = null;
+
+  /** Master volume, 0..1 (from the settings). */
+  setVolume(v: number): void {
+    this.volume = Math.max(0, Math.min(1, v));
+    if (this.master && this.ctx) this.master.gain.setTargetAtTime(this.level, this.ctx.currentTime, 0.05);
+  }
+
+  private get level(): number {
+    return 0.55 * this.volume;
+  }
 
   /** Must be called from a user gesture before anything is audible. */
   unlock(): void {
@@ -22,7 +34,7 @@ export class Sfx {
       if (!Ctor) return;
       this.ctx = new Ctor();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.45;
+      this.master.gain.value = this.level;
       this.master.connect(this.ctx.destination);
       const len = this.ctx.sampleRate;
       this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -91,6 +103,84 @@ export class Sfx {
     this.noise(0.02, 4000, 'highpass', 0.3);
   }
 
+  /** Moving over a menu item: the faintest tick. */
+  hover(): void {
+    this.tone(1800, 1700, 0.025, 'sine', 0.05);
+  }
+
+  /** Confirming a menu choice. */
+  confirm(): void {
+    this.tone(520, 780, 0.09, 'triangle', 0.16);
+    this.noise(0.03, 5000, 'highpass', 0.12);
+  }
+
+  /** Backing out of a menu. */
+  back(): void {
+    this.tone(520, 360, 0.09, 'triangle', 0.13);
+  }
+
+  /** A star stamped onto the debrief. */
+  star(i: number): void {
+    const f = [660, 784, 988][i] ?? 988;
+    this.tone(f, f, 0.18, 'triangle', 0.2);
+    this.tone(f * 2, f * 2, 0.12, 'sine', 0.06, {}, 0.02);
+  }
+
+  /**
+   * A low ambient bed for the menus: two detuned drones under a slow filter sweep and a faint
+   * city hiss. Starts once, keeps playing across menu screens, fades out on deploy.
+   */
+  menuAmbience(on: boolean): void {
+    if (!on) {
+      this.bed?.stop();
+      this.bed = null;
+      return;
+    }
+    if (this.bed || !this.ctx || !this.master || !this.noiseBuf) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.linearRampToValueAtTime(0.16, t + 3);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 420;
+    const lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.05;
+    lfoGain.gain.value = 180;
+    lfo.connect(lfoGain).connect(lp.frequency);
+    const oscs = [55, 55.4, 82.4, 110.2].map((f, i) => {
+      const o = ctx.createOscillator();
+      o.type = i < 2 ? 'sawtooth' : 'triangle';
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.value = i < 2 ? 0.35 : 0.25;
+      o.connect(g).connect(lp);
+      return o;
+    });
+    const hiss = ctx.createBufferSource();
+    hiss.buffer = this.noiseBuf;
+    hiss.loop = true;
+    const hf = ctx.createBiquadFilter();
+    hf.type = 'bandpass';
+    hf.frequency.value = 900;
+    const hg = ctx.createGain();
+    hg.gain.value = 0.05;
+    hiss.connect(hf).connect(hg).connect(out);
+    lp.connect(out).connect(this.master);
+    for (const o of [...oscs, lfo]) o.start(t);
+    hiss.start(t);
+    this.bed = {
+      stop: () => {
+        const now = ctx.currentTime;
+        out.gain.cancelScheduledValues(now);
+        out.gain.setValueAtTime(out.gain.value, now);
+        out.gain.linearRampToValueAtTime(0.0001, now + 1.2);
+        for (const o of [...oscs, lfo]) o.stop(now + 1.3);
+        hiss.stop(now + 1.3);
+      },
+    };
+  }
+
   /** The operator takes a hit. */
   hurt(): void {
     this.tone(120, 60, 0.25, 'sine', 0.9);
@@ -118,7 +208,7 @@ export class Sfx {
   }
 
   private out(pan: number | undefined): AudioNode | undefined {
-    if (!this.ctx || !this.master || this.muted) return undefined;
+    if (!this.ctx || !this.master || this.volume <= 0) return undefined;
     if (pan === undefined || !this.ctx.createStereoPanner) return this.master;
     const p = this.ctx.createStereoPanner();
     p.pan.value = Math.max(-1, Math.min(1, pan));
