@@ -29,6 +29,12 @@ export const DIFFICULTY: readonly Difficulty[] = [
   { reaction: 0.6, notice: 0.55, spread: 2.2, fireInterval: [0.45, 0.75], toughness: 2 },
 ];
 
+/**
+ * Suppressors are the last issue: they come with promotion to Lieutenant, after the sniper rifle.
+ * Then earlier cases can be replayed quietly.
+ */
+export const SUPPRESSOR_RANK = 4;
+
 export interface CampaignDef {
   id: string;
   title: string;
@@ -54,9 +60,10 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     levels: ['range'],
     promotion: {
       minStars: 1,
+      unlocks: 'shotgun',
       note: [
         "You've passed the Range. Welcome to the Port Ardley Police Department, Officer.",
-        'Narcotics have a raid lined up on the Ashby estate, and they want you on it.',
+        'Narcotics want you on a raid on the Ashby estate. The armoury has issued you a shotgun for it.',
         'Read the briefing. Then read it again. The plans are never quite right.',
       ],
     },
@@ -68,10 +75,10 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     levels: ['harbour-lane', 'tollgate-flats', 'mercer-street', 'kestrel-road', 'westquay-lockups'],
     promotion: {
       minStars: 10,
-      unlocks: 'smg',
+      unlocks: 'rifle',
       note: [
         'Five raids, and every one of them pointed the same way: Corvan Logistics.',
-        "You're promoted to Senior Officer. The armoury has signed out an SMG in your name.",
+        "You're promoted to Senior Officer. The armoury has signed out an assault rifle in your name.",
         'Supply chain unit. Starts Monday.',
       ],
     },
@@ -80,13 +87,13 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     id: 'senior',
     title: 'Supply chain',
     rank: 2,
-    levels: ['corvan-depot', 'corvan-head-office', 'cold-store', 'ferry-road', 'harbour-freight'],
+    levels: ['corvan-depot', 'corvan-head-office', 'salter-street', 'cold-store', 'ferry-road', 'pier-six', 'harbour-freight'],
     promotion: {
-      minStars: 10,
-      unlocks: 'shotgun',
+      minStars: 14,
+      unlocks: 'sniper',
       note: [
         'Corvan Logistics was never a parcel firm. It was a pipeline, and you followed it to the end.',
-        "You're promoted to Sergeant. The armoury has a shotgun for you. Mind the civilians: it spreads.",
+        "You're promoted to Sergeant. The sniper rifle you carried at the yard is yours now.",
         "The money is next. Somebody has been cleaning Corvan's cash, and they meet at a hotel.",
       ],
     },

@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Senior Officer campaign, case 3: a dark refrigerated warehouse with shotguns waiting between the racks.
+ * Senior Officer campaign, case 4: a dark refrigerated warehouse with shotguns waiting between the racks.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -67,7 +67,7 @@ export const COLD_STORE: LevelDef = {
     "Command: Senior Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 3',
+    caseLabel: 'Senior Officer · Case 4',
     title: 'Cold Store',
     location: 'Corvan cold store, Westquay Docks',
     summary: [

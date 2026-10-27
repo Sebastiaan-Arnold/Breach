@@ -1,4 +1,4 @@
-import { CAMPAIGNS, type CampaignDef } from '../levels/campaigns';
+import { CAMPAIGNS, SUPPRESSOR_RANK, type CampaignDef } from '../levels/campaigns';
 import type { WeaponId } from './weapons';
 
 /**
@@ -63,6 +63,11 @@ export function unlockedWeapons(p: Progress, campaigns: readonly CampaignDef[] =
   const guns: WeaponId[] = ['pistol'];
   for (const c of campaigns) if (p.rank > c.rank && c.promotion.unlocks) guns.push(c.promotion.unlocks);
   return guns;
+}
+
+/** Suppressors are issued with promotion to Lieutenant. */
+export function hasSuppressors(p: Progress): boolean {
+  return p.rank >= SUPPRESSOR_RANK;
 }
 
 /**

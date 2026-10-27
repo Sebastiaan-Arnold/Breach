@@ -30,6 +30,13 @@ import { World } from '../game/World';
 const DEPTH = { world: 0, decals: 1, doors: 4, targets: 5, people: 5, player: 6, glow: 7, fog: 10, light: 12, ripples: 20, laser: 21 };
 const RAIL_NOISE = 250;
 const CAMERA_LOOKAHEAD = 70;
+/**
+ * Looking down a scope (hold Space): the operator stops, a narrow strip of vision reaches far
+ * down the aim, and the camera pulls back and pushes out along it.
+ */
+const SCOPE = { halfFov: 2.5 * DEG, range: 1500, sweepStep: 0.2 * DEG, lookahead: 560, zoomOut: 0.25 };
+/** When the bolt is worked after a shot, in ms. */
+const BOLT_SOUND_DELAY = 450;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
 const ENEMY_SHOT_NOISE = 1000;
 /** Pellet spread either side of a hider's aim, in degrees. */
@@ -44,6 +51,8 @@ export interface GameData {
   situation?: Situation;
   /** The primary gun chosen on the briefing; the pistol is always carried as a sidearm. */
   primary?: WeaponId;
+  /** Suppressors fitted (once issued, chosen on the briefing). */
+  suppressed?: boolean;
 }
 
 export interface Outcome {
@@ -77,7 +86,7 @@ export interface HudState {
 type Hittable = Target | Enemy | Civilian;
 
 interface Tracer { x0: number; y0: number; x1: number; y1: number; age: number; color: number }
-type Keys = Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E', Phaser.Input.Keyboard.Key>;
+type Keys = Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
 
 /**
  * Plays one level: the Range (stations and cardboard targets) or a mission (enemies and
@@ -106,6 +115,9 @@ export class GameScene extends Phaser.Scene {
   private muzzleFlash = 0;
   private triggerPressed = false;
   private lookX = 0;
+  /** Looking down the scope right now, and how far the view has eased into it (0..1). */
+  private scoped = false;
+  private scopeView = 0;
   private lookY = 0;
   private lastStation: StationDef | undefined;
   private stats = { shots: 0, hits: 0 };
@@ -133,6 +145,8 @@ export class GameScene extends Phaser.Scene {
     this.muzzleFlash = 0;
     this.triggerPressed = false;
     this.lookX = this.lookY = 0;
+    this.scoped = false;
+    this.scopeView = 0;
     this.lastStation = undefined;
     this.stats = { shots: 0, hits: 0 };
     this.damaged = false;
@@ -167,8 +181,7 @@ export class GameScene extends Phaser.Scene {
     this.intro = new Intro(entry.approach, this.def.intro.map((l) => l.replace('{entry}', entry.name)));
     this.player = new Player(this, this.intro.start.x, this.intro.start.y, DEPTH.player);
     this.player.facing = this.intro.finalFacing;
-    this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
-    this.player.equip(this.guns[0]);
+    this.issueGuns();
     this.fog = new Fog(this, level.width * TILE, level.height * TILE, DEPTH.glow, DEPTH.fog, exteriorTiles(level));
     this.noise = new NoiseSystem(this, DEPTH.ripples);
     this.noise.onNoise((e) => this.onNoise(e));
@@ -213,6 +226,10 @@ export class GameScene extends Phaser.Scene {
       const wp = this.input.activePointer.positionToCamera(this.cameras.main) as Phaser.Math.Vector2;
       aimAt = Math.atan2(wp.y - p.y, wp.x - p.x);
     }
+    this.scoped = active && !!p.weapon.def.scope && k.SPACE.isDown && !p.weapon.reloading;
+    this.scopeView += ((this.scoped ? 1 : 0) - this.scopeView) * Math.min(1, dt * 6);
+    // Bracing for a scoped shot: the operator stands still.
+    if (this.scoped) mx = my = 0;
     const step = p.update(dt, { moveX: mx, moveY: my, sprint: active && k.SHIFT.isDown, aimAt, pace: inIntro ? INTRO_PACE : 1 }, this.world.solid);
     this.separateBodies();
     const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
@@ -243,8 +260,8 @@ export class GameScene extends Phaser.Scene {
     this.hurt = Math.max(0, this.hurt - dt * 1.5);
 
     // Camera: pulled back during the intro, then a little ahead of where the operator aims.
-    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom);
-    const look = inIntro ? 0 : CAMERA_LOOKAHEAD;
+    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom * (1 - SCOPE.zoomOut * this.scopeView));
+    const look = inIntro ? 0 : CAMERA_LOOKAHEAD + SCOPE.lookahead * this.scopeView;
     this.lookX += (Math.cos(p.facing) * look - this.lookX) * Math.min(1, dt * 4);
     this.lookY += (Math.sin(p.facing) * look - this.lookY) * Math.min(1, dt * 4);
     this.cameras.main.setFollowOffset(-this.lookX, -this.lookY);
@@ -333,6 +350,8 @@ export class GameScene extends Phaser.Scene {
     const cone = visibilityPolygon(p.x, p.y, p.facing, VISION.halfFov, range, segs, VISION.sweepStep);
     const peri = visibilityPolygon(p.x, p.y, 0, Math.PI, VISION.peripheral, segs, 8 * DEG);
     this.visionPolys = [cone.polygon, peri.polygon];
+    const scope = this.scoped ? visibilityPolygon(p.x, p.y, p.facing, SCOPE.halfFov, SCOPE.range, segs, SCOPE.sweepStep) : null;
+    if (scope) this.visionPolys.push(scope.polygon);
 
     // Walls the rays struck get remembered too, otherwise rooms would have no outline.
     const seen = new Set<number>();
@@ -363,11 +382,12 @@ export class GameScene extends Phaser.Scene {
     };
     mark(cone.hits);
     mark(peri.hits);
+    if (scope) mark(scope.hits);
 
     this.fog.update(this.visionPolys, wallTiles, {
       x: p.x,
       y: p.y,
-      range,
+      range: scope ? SCOPE.range : range,
       falloff: dark ? VISION.falloffDark : VISION.falloffLit,
       warmth: dark ? 0.08 : 0.035,
     });
@@ -438,6 +458,7 @@ export class GameScene extends Phaser.Scene {
     this.effects.muzzle(muzzle.x, muzzle.y, w.def.id !== 'pistol');
     this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
     sfx.shot(w.def.id !== 'pistol', {}, w.suppressed);
+    if (w.def.bolt) this.time.delayedCall(BOLT_SOUND_DELAY, () => sfx.bolt());
     this.noise.emit({ x: p.x, y: p.y, radius: w.noise, source: 'player', kind: 'shot' }, p.x, p.y);
   }
 
@@ -614,7 +635,7 @@ export class GameScene extends Phaser.Scene {
 
   private setupInput(): void {
     const kb = this.input.keyboard!;
-    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,E') as Keys;
+    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,E,SPACE') as Keys;
     this.input.mouse?.disableContextMenu();
 
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -669,7 +690,13 @@ export class GameScene extends Phaser.Scene {
     this.player.x = end.x;
     this.player.y = end.y;
     this.player.facing = this.intro.finalFacing;
+    this.issueGuns();
+  }
+
+  /** Hands out the guns for this run: every gun issued on the Range, else the primary and pistol. */
+  private issueGuns(): void {
     this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
+    this.player.suppressors = !this.def.stations && !!this.params.suppressed;
     this.player.equip(this.guns[0]);
   }
 
@@ -840,7 +867,7 @@ export class GameScene extends Phaser.Scene {
       tutorial: !!this.stations && !this.intro.active,
       station: this.stations ? stationAt(ptx, pty) : undefined,
       weapon: {
-        name: w.def.name,
+        name: w.suppressed ? `${w.def.name} · suppressed` : w.def.name,
         mag: w.mag,
         magSize: w.def.magSize,
         reserve: w.reserve,

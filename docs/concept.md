@@ -131,19 +131,27 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 
 | Gun | Trade-off | Unlocked at |
 | --- | --- | --- |
-| Pistol | Accurate and quiet, but small magazine | Start |
-| SMG | High fire rate and fast handling, weak at range | Senior Officer |
-| Shotgun | Devastating up close, wide spread risks civilians | Sergeant |
-| Assault rifle | Accurate at range, loud and slower to swing round corners | Lieutenant |
+| Pistol | Accurate and quick, but small magazine | Start |
+| Shotgun | Devastating up close, wide spread risks civilians, slow to reload | Officer |
+| Assault rifle | Accurate at range, loud and slower to swing round corners | Senior Officer |
+| Sniper rifle | One hit stops anyone at any range; scope; bolt action, very slow to swing | Sergeant |
+| Suppressor | Shots are heard about a third as far. Fits everything but the shotgun | Lieutenant |
 
-Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the SMG is often the better pick for tight houses even once the rifle is unlocked.
+Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the shotgun or pistol is often the better pick for tight houses even once the rifle is unlocked. Suppressors come last on purpose: by then players can replay earlier cases quietly for the stars they missed.
+
+**Specialty missions** issue their own gun, so a campaign can include one before the gun is earned:
+
+- **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
+- **Overwatch** (Pier Six, Senior Officer): the operator starts up a crane with the sniper rifle, takes the lookouts in a container yard, then comes down to clear the gatehouse. Each crane sees different lanes.
+
+**The scope.** Holding Space with the sniper rifle braces the operator: they stop moving, a narrow strip of vision reaches far down the aim, and the camera pulls back and pushes out along it. Enemies can't see that far, so a careful shooter goes unseen until the first shot, which, unsuppressed, brings everyone running.
 
 **Damage and armour.** Street-level suspects in the Officer campaign go down to one hit. From the Senior Officer campaign on they wear light vests and take two, and the briefing says so. That is what gives each gun a job:
 
 - **Pistol:** one hit per shot, so a vested suspect needs a double tap.
-- **SMG:** one hit per shot, but the fastest second hit, and a 30-round magazine.
 - **Shotgun:** one hit per pellet, so a full spread stops anyone in one shot up to about six tiles. Past that the pellets scatter, and they can hit civilians next to the target.
-- **Rifle:** each round counts double, so one hit stops a vested suspect at any range.
+- **Assault rifle:** each round counts double, so one hit stops a vested suspect at any range.
+- **Sniper rifle:** each round counts triple, enough for the heavier armour to come. One shot every second or so.
 
 A hit that doesn't stop a suspect makes them flinch, throwing off their aim for a moment and turning them towards the shooter.
 
@@ -214,7 +222,7 @@ The biggest risk with a game like this is building too much before finding out w
 
 1. **Prototype: the Range.** Movement, vision cone, laser aim, doors and cardboard targets. The training level doubles as the test bed, so nothing gets thrown away. The question to answer: does walking through a door into darkness feel tense?
 2. **Vertical slice: first Officer mission.** Briefing screen, one house, two enemy types, civilians, the debrief with stars. Published on GitHub Pages for a small group of playtesters.
-3. **MVP: Academy plus the Officer campaign.** First case file story, sound ripples, local saves, promotion to Senior Officer with the SMG.
+3. **MVP: Academy plus the Officer campaign.** First case file story, sound ripples, local saves, promotion to Senior Officer.
 4. **Full web release: all four campaigns.** All guns, polish, audio, a proper title screen.
 5. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 

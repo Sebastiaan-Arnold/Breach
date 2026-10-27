@@ -6,7 +6,7 @@ import { moveCircle } from '../src/core/collision';
 import { findPath } from '../src/core/pathfinding';
 import { rollSituation } from '../src/game/situation';
 import { endCareer, isUnlocked, newProgress, recordSuccess, settleAbandonedMission, unlockedWeapons } from '../src/game/progress';
-import { CAMPAIGNS, DIFFICULTY, type CampaignDef } from '../src/levels/campaigns';
+import { CAMPAIGNS, DIFFICULTY, SUPPRESSOR_RANK, type CampaignDef } from '../src/levels/campaigns';
 import { WEAPONS } from '../src/game/weapons';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
@@ -119,6 +119,11 @@ describe('collision', () => {
 });
 
 describe('floor materials', () => {
+  it('the middle of a block of stacked containers outdoors counts as outdoors', () => {
+    const lvl = parseLevel(['#######', '#=====#', '#=TTT=#', '#=TTT=#', '#=TTT=#', '#=====#', '#######']);
+    expect(lvl.material[3 * lvl.width + 3]).toBe('concrete');
+  });
+
   it('parses materials and gives doors the indoor floor', () => {
     const lvl = parseLevel(['#####', '#="~#', '##D##', '#...#', '#####']);
     const m = (x: number, y: number) => lvl.material[y * lvl.width + x];
@@ -235,7 +240,7 @@ describe('level data', () => {
 describe('campaign progress', () => {
   const campaigns: CampaignDef[] = [
     { id: 'a', title: 'A', rank: 0, levels: ['a1'], promotion: { minStars: 1, note: [] } },
-    { id: 'b', title: 'B', rank: 1, levels: ['b1', 'b2'], promotion: { minStars: 5, unlocks: 'smg', note: [] } },
+    { id: 'b', title: 'B', rank: 1, levels: ['b1', 'b2'], promotion: { minStars: 5, unlocks: 'rifle', note: [] } },
   ];
 
   it('unlocks levels in order and campaigns by rank', () => {
@@ -257,7 +262,7 @@ describe('campaign progress', () => {
     expect(p.stars.b1).toBe(3);
     expect(recordSuccess(p, 'b2', 2, campaigns)?.id).toBe('b');
     expect(p.rank).toBe(2);
-    expect(unlockedWeapons(p, campaigns)).toEqual(['pistol', 'smg']);
+    expect(unlockedWeapons(p, campaigns)).toEqual(['pistol', 'rifle']);
   });
 
   it('every campaign level exists and promotion is reachable', () => {
@@ -305,8 +310,20 @@ describe('gun roles', () => {
     expect(WEAPONS.shotgun.damage * WEAPONS.shotgun.pellets).toBeGreaterThanOrEqual(vest);
   });
 
-  it('the SMG lands a second hit sooner than the pistol', () => {
-    expect(WEAPONS.smg.fireDelay).toBeLessThan(WEAPONS.pistol.fireDelay);
+  it('the sniper rifle stops anyone in one hit and outranges everything', () => {
+    expect(WEAPONS.sniper.damage).toBeGreaterThanOrEqual(vest + 1);
+    for (const w of Object.values(WEAPONS)) if (w.id !== 'sniper') expect(WEAPONS.sniper.range).toBeGreaterThan(w.range);
+  });
+
+  it('suppressors fit everything but the shotgun', () => {
+    for (const w of Object.values(WEAPONS)) expect(w.suppressible).toBe(w.id !== 'shotgun');
+  });
+
+  it('guns are issued in order: shotgun, rifle, sniper rifle, then suppressors', () => {
+    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper']);
+    // The sniper rifle comes with the promotion out of its campaign; suppressors a rank later.
+    const sniperRank = CAMPAIGNS.find((c) => c.promotion.unlocks === 'sniper')!.rank + 1;
+    expect(SUPPRESSOR_RANK).toBe(sniperRank + 1);
   });
 
   it('every gun says what it is for', () => {

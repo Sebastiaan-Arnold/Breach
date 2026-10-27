@@ -9,8 +9,8 @@ The full design lives in [docs/concept.md](docs/concept.md).
 ## Status: milestone 4
 
 The build has the police academy Range (training), the Officer campaign (five cases from
-14 Harbour Lane to the Westquay Lockups) and the Senior Officer campaign (five cases inside
-Corvan Logistics), each played from briefing to debrief, with saved progress, stars and
+14 Harbour Lane to the Westquay Lockups) and the Senior Officer campaign (seven cases inside
+Corvan Logistics, including a close-quarters lodging house and a sniper overwatch), each played from briefing to debrief, with saved progress, stars and
 promotions. Enemies get sharper with every rank.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out), command's marks,
@@ -33,12 +33,16 @@ promotions. Enemies get sharper with every rank.
 - **Sound as information:** your own noise shows as a ring of how far it carries. World sounds
   show as vague ripples through walls.
 - **Campaign:** progress is saved; the Range promotes you to Officer and opens the Officer
-  cases, which unlock in order. Finishing them with enough stars promotes you to Senior Officer
-  and issues the SMG. Choose your primary gun on the briefing.
+  cases, which unlock in order. Finishing a campaign with enough stars promotes you. Each
+  promotion issues a gun: the shotgun as Officer, the assault rifle as Senior Officer and the
+  sniper rifle as Sergeant. Suppressors come last, as Lieutenant. Choose your primary gun on the
+  briefing; specialty missions issue their own.
 - **Guns with jobs:** from the Senior Officer campaign suspects wear light vests and take two
-  hits. The pistol needs a double tap, the SMG lands its second hit fastest, the shotgun stops
-  anyone up close in one shot, and rifle rounds count double. A hit that doesn't stop a suspect
-  makes them flinch.
+  hits. The pistol needs a double tap, the shotgun stops anyone up close in one shot, assault
+  rifle rounds count double, and the bolt-action sniper rifle stops anyone at any range. Hold
+  Space to look down its scope. A hit that doesn't stop a suspect makes them flinch.
+- **Suppressors:** fit the pistol, assault rifle and sniper rifle (not the shotgun). A
+  suppressed shot is heard about a third as far. Toggle them on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
 - **Two careers:** the start menu offers a normal career and a realism career, each with its own
@@ -58,6 +62,7 @@ promotions. Enemies get sharper with every rank.
 | Secure a civilian | Hold E next to them |
 | Reload | R |
 | Primary gun / pistol | 1 / 2 (on the Range: 1–4 for every issued gun) |
+| Sniper scope | Hold Space |
 | Skip the intro | Space |
 | Pause, settings and controls | Esc |
 | Frame-rate readout | F3 |

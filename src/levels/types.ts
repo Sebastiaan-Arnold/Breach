@@ -1,3 +1,4 @@
+import type { WeaponId } from '../game/weapons';
 import type { FloorLabel, StationDef } from './range';
 
 /** A position in tile units; fractions are allowed (0.5 is a tile's centre). */
@@ -64,6 +65,8 @@ export interface MissionDef {
   unknownZones: { x0: number; y0: number; x1: number; y1: number }[];
   /** A line for the debrief once the site is secured. */
   debriefNote: string;
+  /** A specialty mission issues its own primary gun instead of the player's choice. */
+  issued?: WeaponId;
 }
 
 /**

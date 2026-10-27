@@ -24,7 +24,9 @@ const DECEL = 16;
 /** How quickly the aim eases towards the cursor, before the gun's turn-rate cap. */
 const TURN_EASE = 24;
 
-const GUN_LENGTH: Record<WeaponId, number> = { pistol: 17, smg: 20, shotgun: 25, rifle: 26 };
+const GUN_LENGTH: Record<WeaponId, number> = { pistol: 17, shotgun: 25, rifle: 26, sniper: 31 };
+/** How much a suppressor adds to the barrel. */
+const SUPPRESSOR_LENGTH = 6;
 
 export class Player {
   x: number;
@@ -38,6 +40,8 @@ export class Player {
   armor = 1;
   health = 2;
   weapon: WeaponState;
+  /** Fit a suppressor to every carried gun that takes one. */
+  suppressors = false;
 
   private vx = 0;
   private vy = 0;
@@ -107,7 +111,7 @@ export class Player {
   }
 
   get muzzle(): { x: number; y: number } {
-    const len = GUN_LENGTH[this.weapon.def.id];
+    const len = GUN_LENGTH[this.weapon.def.id] + (this.weapon.suppressed ? SUPPRESSOR_LENGTH : 0);
     return { x: this.x + Math.cos(this.facing) * len, y: this.y + Math.sin(this.facing) * len };
   }
 
@@ -118,6 +122,7 @@ export class Player {
       this.weapons.set(id, w);
     }
     if (this.weapon && this.weapon !== w) this.weapon.reloadLeft = 0;
+    w.suppressed = this.suppressors && w.def.suppressible;
     this.weapon = w;
     if (this.gunGfx) this.drawGun();
     return w;
@@ -191,7 +196,7 @@ export class Player {
     const g = this.gunGfx;
     const id = this.weapon.def.id;
     const len = GUN_LENGTH[id];
-    const w = id === 'pistol' ? 3.5 : id === 'smg' ? 4.5 : 5;
+    const w = id === 'pistol' ? 3.5 : id === 'sniper' ? 4.5 : 5;
     g.clear();
     // Arms from the shoulders to the grip.
     g.lineStyle(4.5, 0x1e40af, 1);
@@ -205,6 +210,17 @@ export class Player {
     if (id !== 'pistol') {
       g.fillStyle(0x3a4048, 1);
       g.fillRect(9, w / 2 - 0.5, 3, 3.5);
+    }
+    if (id === 'sniper') {
+      // The scope, sitting on top of the receiver.
+      g.fillStyle(0x1f2329, 1);
+      g.fillRect(11, -w / 2 - 1.5, 10, 3);
+      g.fillStyle(0x93c5fd, 0.8);
+      g.fillRect(20, -w / 2 - 1, 1, 2);
+    }
+    if (this.weapon.suppressed) {
+      g.fillStyle(0x1f2329, 1);
+      g.fillRect(len, -w / 2 - 0.5, SUPPRESSOR_LENGTH, w + 1);
     }
     // Gloved hands.
     g.fillStyle(0x27272a, 1);

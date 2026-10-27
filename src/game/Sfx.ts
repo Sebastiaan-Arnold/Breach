@@ -43,6 +43,12 @@ export class Sfx {
     this.tone(heavy ? 120 : 160, 45, 0.14, 'sine', 0.7, o);
   }
 
+  /** Working a bolt: back, then forward. */
+  bolt(o: SfxOpts = {}): void {
+    this.noise(0.035, 2600, 'bandpass', 0.35, o);
+    this.noise(0.045, 1700, 'bandpass', 0.4, o, 0.2);
+  }
+
   dryFire(o: SfxOpts = {}): void {
     this.noise(0.03, 5000, 'highpass', 0.25, o);
   }

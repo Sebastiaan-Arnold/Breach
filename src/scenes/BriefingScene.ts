@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '../config';
 import { isOutdoor, parseLevel } from '../core/grid';
 import { sfx } from '../game/audio';
-import { progress, unlockedWeapons } from '../game/progress';
+import { hasSuppressors, progress, unlockedWeapons } from '../game/progress';
 import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
@@ -14,6 +14,9 @@ import { ACCENT, DIM, RED, setupScreenCamera, style, TEXT } from './ui';
 const MAP = { x: 40, y: 120, w: 720, h: 545 };
 const PANEL = { x: 800, w: 420 };
 const RELIABILITY_COLOR: Record<Reliability, string> = { Confirmed: '#4ade80', Likely: '#facc15', Unverified: RED };
+
+/** The loadout carries over from one briefing to the next. */
+const kit: { primary: WeaponId | null; suppressors: boolean } = { primary: null, suppressors: true };
 
 interface EntryView {
   route: Phaser.GameObjects.Graphics;
@@ -51,8 +54,11 @@ export class BriefingScene extends Phaser.Scene {
     this.entries = [];
     this.rows = [];
     this.gunLabels = [];
-    // Default to the best gun issued so far.
-    this.primary = unlockedWeapons(progress).at(-1) ?? 'pistol';
+    // A specialty mission issues its gun; otherwise the last choice, or the best all-round gun
+    // issued so far (the sniper rifle is a specialist's pick).
+    const guns = unlockedWeapons(progress);
+    this.primary = this.def.mission?.issued
+      ?? (kit.primary && guns.includes(kit.primary) ? kit.primary : guns.filter((g) => g !== 'sniper').at(-1) ?? 'pistol');
   }
 
   create(): void {
@@ -213,21 +219,33 @@ export class BriefingScene extends Phaser.Scene {
     y += 16;
 
     heading('LOADOUT');
-    const guns = unlockedWeapons(progress);
+    const guns = m.issued ? [m.issued] : unlockedWeapons(progress);
     this.add.text(x, y, 'Primary', style(13, DIM));
     let gx = x + 110;
     for (const id of guns) {
-      const label = this.add.text(gx, y, WEAPONS[id].name, style(13, TEXT)).setInteractive({ useHandCursor: true });
+      const label = this.add.text(gx, y, m.issued ? WEAPONS[id].name : WEAPONS[id].short, style(13, TEXT)).setInteractive({ useHandCursor: true });
       label.setData('gun', id);
       label.on('pointerup', () => this.selectGun(id));
       this.gunLabels.push(label);
       gx += label.width + 22;
     }
+    if (m.issued) this.add.text(gx, y + 2, 'Issued for this mission', style(11, DIM));
     y += 22;
     // Room for a two-line description of the chosen gun.
     this.gunBlurb = this.add.text(x + 110, y, '', style(12, TEXT, { lineSpacing: 2, wordWrap: { width: w - 110 } }));
     y += 36;
-    this.add.text(x + 110, y, guns.length > 1 ? 'Pistol always carried as a sidearm (2)' : 'More guns are issued with promotion', style(11, DIM));
+    const sidearm = guns.some((g) => g !== 'pistol');
+    this.add.text(x + 110, y, sidearm ? 'Sidearm: Pistol (2)' : 'More guns are issued with promotion', style(11, DIM));
+    if (hasSuppressors(progress)) {
+      const toggle = this.add.text(x + w, y, '', style(11, ACCENT)).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+      const label = () => toggle.setText(`Suppressors: ${kit.suppressors ? 'On' : 'Off'}`);
+      toggle.on('pointerup', () => {
+        kit.suppressors = !kit.suppressors;
+        sfx.select();
+        label();
+      });
+      label();
+    }
     y += 26;
     this.selectGun(this.primary);
 
@@ -266,6 +284,7 @@ export class BriefingScene extends Phaser.Scene {
   private selectGun(id: WeaponId): void {
     if (id !== this.primary) sfx.select();
     this.primary = id;
+    if (!this.def.mission?.issued) kit.primary = id;
     for (const l of this.gunLabels) {
       const on = l.getData('gun') === id;
       l.setColor(on ? ACCENT : DIM).setFontStyle(on ? 'bold' : 'normal');
@@ -320,6 +339,7 @@ export class BriefingScene extends Phaser.Scene {
     sfx.unlock();
     this.scene.start('game', {
       levelId: this.def.id, entryId: this.def.entries[this.entryIndex].id, situation: this.situation, primary: this.primary,
+      suppressed: hasSuppressors(progress) && kit.suppressors,
     });
   }
 }

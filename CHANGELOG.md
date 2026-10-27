@@ -3,6 +3,22 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.4
+
+A new gun line-up, two specialty cases and suppressors.
+
+- Guns: the SMG is retired. Promotions now issue the shotgun (Officer), the assault rifle (Senior
+  Officer) and a new sniper rifle (Sergeant). Suppressors are the last issue, at Lieutenant.
+- Sniper rifle: bolt action, five rounds, one hit stops anyone. Hold Space to look down the scope:
+  the operator braces, vision reaches far down the aim and the camera pushes out along it.
+- Suppressors fit the pistol, assault rifle and sniper rifle. A suppressed shot is heard about a
+  third as far. Toggle them on the briefing once issued.
+- Supply Chain has seven cases. New: Salter Street, a close-quarters lodging house made for the
+  shotgun, and Pier Six, an overwatch mission that issues the sniper rifle for the job. Promotion
+  out of Supply Chain now takes 14 stars.
+- The briefing remembers your last gun and fits the loadout on one line.
+- Fixed: the middle of stacked containers outdoors showed as an unlit black square.
+
 ## v0.4.3
 
 Every gun now has a job.

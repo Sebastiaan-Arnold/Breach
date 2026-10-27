@@ -95,6 +95,7 @@ export function parseLevel(rows: readonly string[]): ParsedLevel {
 
   // Markers, doors and furniture take the floor around them: darkness if any neighbour is dark,
   // material from the first floor neighbour (indoor floors win, so a doorway counts as inside).
+  const pending: number[] = [];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const ch = at(x, y);
@@ -105,7 +106,23 @@ export function parseLevel(rows: readonly string[]): ParsedLevel {
       const floors = around.filter((c) => FLOORS[c]).map((c) => FLOORS[c]);
       const indoor = floors.find((m) => !isOutdoor(m));
       if (indoor ?? floors[0]) material[i] = indoor ?? floors[0];
+      else if (ch === 'T') pending.push(i);
     }
+  }
+  // The middle of a big block of furniture (stacked containers) has no floor beside it: it takes
+  // the material of the furniture around it, working inwards.
+  while (pending.length) {
+    const before = pending.length;
+    for (let k = pending.length - 1; k >= 0; k--) {
+      const i = pending[k], x = i % width;
+      const from = [i - 1, i + 1, i - width, i + width].find(
+        (j) => j >= 0 && j < width * height && tiles[j] === 'furniture' && !pending.includes(j) && Math.abs((j % width) - x) <= 1,
+      );
+      if (from === undefined) continue;
+      material[i] = material[from];
+      pending.splice(k, 1);
+    }
+    if (pending.length === before) break;
   }
 
   return { width, height, tiles, material, dark, doors, markers };
