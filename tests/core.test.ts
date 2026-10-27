@@ -5,7 +5,7 @@ import { parseLevel, blocksSight } from '../src/core/grid';
 import { moveCircle } from '../src/core/collision';
 import { findPath } from '../src/core/pathfinding';
 import { rollSituation } from '../src/game/situation';
-import { isUnlocked, newProgress, recordSuccess, unlockedWeapons } from '../src/game/progress';
+import { endCareer, isUnlocked, newProgress, recordSuccess, settleAbandonedMission, unlockedWeapons } from '../src/game/progress';
 import { CAMPAIGNS, type CampaignDef } from '../src/levels/campaigns';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
@@ -265,5 +265,29 @@ describe('campaign progress', () => {
       for (const id of c.levels) expect(ids.has(id)).toBe(true);
       expect(c.promotion.minStars).toBeLessThanOrEqual(c.levels.length * 3);
     }
+  });
+});
+
+describe('realism careers', () => {
+  it('going down resets to Recruit and stays in realism mode', () => {
+    const p = { ...newProgress(true), rank: 2, stars: { a: 3, b: 2 }, completed: ['a', 'b'] };
+    const record = endCareer(p, 'b');
+    expect(record).toEqual({ rank: 2, stars: 5, levelId: 'b' });
+    expect(p).toEqual(newProgress(true));
+  });
+
+  it('a mission still deployed on load counts as going down, but only in realism mode', () => {
+    const real = { ...newProgress(true), rank: 1, deployed: 'harbour-lane' };
+    expect(settleAbandonedMission(real)?.levelId).toBe('harbour-lane');
+    expect(real.rank).toBe(0);
+    const normal = { ...newProgress(false), rank: 1, deployed: 'harbour-lane' };
+    expect(settleAbandonedMission(normal)).toBeNull();
+    expect(normal.rank).toBe(1);
+  });
+
+  it('finishing a mission clears the deployment', () => {
+    const p = { ...newProgress(true), rank: 1, deployed: 'harbour-lane' };
+    recordSuccess(p, 'harbour-lane', 2);
+    expect(p.deployed).toBeNull();
   });
 });

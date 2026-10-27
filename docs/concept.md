@@ -211,7 +211,7 @@ The biggest risk with a game like this is building too much before finding out w
 
 Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
 
-**Planned: realism mode.** An optional mode where the operator has one life. The exact rules are still to be decided.
+**Realism mode.** An optional career with one life. Going down ends the career and progress resets to Recruit. Switching realism on always starts a new career; there is no restarting a mission, and quitting one (or closing the game mid-mission) counts as going down.
 
 ## Decisions
 
@@ -221,6 +221,7 @@ Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors
 - **No briefing map** during the mission.
 - **Minimal HUD:** ammo and short messages only. There is no objective checklist; every mission is to secure the area. Tutorial text appears only on the Range.
 - **Blood effects** are a setting, on by default, and never shown on training props.
+- **Realism mode:** one life per career; going down ends it and resets progress to Recruit.
 - **No flashlight toggle:** the weapon light is always on; dark rooms simply limit how far you see.
 - **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
 - **Five missions per campaign**, so 20 missions plus the Range for the full web release.

@@ -10,12 +10,43 @@ export interface Progress {
   rank: number;
   stars: Record<string, number>;
   completed: string[];
+  /** Realism mode: one life. Going down ends the career and progress resets to Recruit. */
+  realism: boolean;
+  /**
+   * The mission a realism career is currently deployed on. Set on deploy, cleared when the
+   * mission ends; still set on the next load means the tab was closed mid-mission.
+   */
+  deployed: string | null;
 }
 
 const KEY = 'breach.progress';
 
-export function newProgress(): Progress {
-  return { rank: 0, stars: {}, completed: [] };
+export function newProgress(realism = false): Progress {
+  return { rank: 0, stars: {}, completed: [], realism, deployed: null };
+}
+
+/** Summary of a career that just ended, for the screen that says so. */
+export interface CareerRecord {
+  rank: number;
+  stars: number;
+  /** Where it ended. */
+  levelId: string;
+}
+
+/** Ends a realism career: everything resets to Recruit, still in realism mode. */
+export function endCareer(p: Progress, levelId: string): CareerRecord {
+  const record: CareerRecord = { rank: p.rank, stars: Object.values(p.stars).reduce((a, b) => a + b, 0), levelId };
+  Object.assign(p, newProgress(true));
+  return record;
+}
+
+/**
+ * Called on load: a realism career that was still deployed was abandoned by closing the game
+ * mid-mission, which counts as going down. Returns the ended career, if any.
+ */
+export function settleAbandonedMission(p: Progress): CareerRecord | null {
+  if (!p.realism || !p.deployed) return null;
+  return endCareer(p, p.deployed);
 }
 
 export function isUnlocked(p: Progress, levelId: string, campaigns: readonly CampaignDef[] = CAMPAIGNS): boolean {
@@ -46,6 +77,7 @@ export function recordSuccess(
   stars: number,
   campaigns: readonly CampaignDef[] = CAMPAIGNS,
 ): CampaignDef | null {
+  p.deployed = null;
   p.stars[levelId] = Math.max(p.stars[levelId] ?? 0, stars);
   if (!p.completed.includes(levelId)) p.completed.push(levelId);
   const c = campaigns.find((x) => x.levels.includes(levelId));
@@ -76,3 +108,13 @@ export function saveProgress(p: Progress): void {
 
 /** The player's progress for this session. */
 export const progress: Progress = loadProgress();
+
+/**
+ * The realism career that most recently ended and why, for the menu to report once. Loading can
+ * set it straight away: a career abandoned by closing the game mid-mission ends here.
+ */
+export const endedCareer: { record: CareerRecord | null; reason: 'down' | 'quit' | 'left' } = {
+  record: settleAbandonedMission(progress),
+  reason: 'left',
+};
+if (endedCareer.record) saveProgress(progress);

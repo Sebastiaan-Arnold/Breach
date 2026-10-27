@@ -263,12 +263,24 @@ export class HudScene extends Phaser.Scene {
     const menu = this.add.container(0, 0, [bg, this.add.text(cx, 130, 'PAUSED', style(30, TEXT, { fontStyle: 'bold' })).setOrigin(0.5)]);
     menu.setDepth(80).setVisible(false);
 
+    // In a realism career there's no restarting a mission, and quitting one ends the career.
+    const realism = this.game_.realism;
+    let quitArmed = false;
     const items: [() => string, () => void][] = [
       [() => 'Resume', () => this.toggleMenu()],
       [() => `Blood effects: ${settings.blood ? 'On' : 'Off'}`, () => { settings.blood = !settings.blood; saveSettings(); }],
       [() => `Sound: ${settings.sound ? 'On' : 'Off'}`, () => { settings.sound = !settings.sound; sfx.muted = !settings.sound; saveSettings(); }],
-      [() => 'Restart', () => { this.scene.resume('game'); this.game_.retry(); }],
-      [() => 'Quit to menu', () => { this.scene.resume('game'); this.game_.toMenu(); }],
+      ...(realism ? [] : [[() => 'Restart', () => { this.scene.resume('game'); this.game_.retry(); }] as [() => string, () => void]]),
+      realism
+        ? [() => (quitArmed ? 'Click again to end your career' : 'Quit (ends your realism career)'), () => {
+          if (!quitArmed) {
+            quitArmed = true;
+            return;
+          }
+          this.scene.resume('game');
+          this.game_.abandon();
+        }]
+        : [() => 'Quit to menu', () => { this.scene.resume('game'); this.game_.toMenu(); }],
     ];
     items.forEach(([label, action], i) => this.addButton(menu, cx, 190 + i * 38, label, action));
 
@@ -320,7 +332,9 @@ export class HudScene extends Phaser.Scene {
     bg.lineStyle(1, 0x60a5fa, 0.6);
     bg.strokeRoundedRect(cx - 280, 120, 560, buttonsY + 36 - 120, 10);
 
-    if (o.success) {
+    if (o.careerOver) {
+      this.addButton(this.debrief, cx, buttonsY, () => 'Back to the academy', () => this.game_.toMenu(), 16);
+    } else if (o.success) {
       this.addButton(this.debrief, cx - 90, buttonsY, () => 'Continue', () => this.game_.toMenu(), 16);
       this.addButton(this.debrief, cx + 90, buttonsY, () => 'Play again', () => this.game_.retry(), 16);
     } else {

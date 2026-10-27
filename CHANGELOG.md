@@ -3,6 +3,16 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.1
+
+- Realism mode: an optional career with one life. Going down ends the career and progress resets
+  to Recruit, with a "Career over" debrief showing the rank and stars it reached.
+- Switching realism on from the menu starts a new career (it asks for a second click); switching
+  it off keeps your progress.
+- In a realism mission the pause menu has no restart, and quitting asks for confirmation because
+  it ends the career. Closing the game mid-mission counts as going down: the next time the game
+  loads, the career ends and the menu says so.
+
 ## v0.4.0
 
 Milestone 4: the Senior Officer campaign.

@@ -6,7 +6,7 @@ import { blocksSight, isOutdoor, parseLevel, type ParsedLevel } from '../core/gr
 import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
 import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
-import { campaignOf, DIFFICULTY } from '../levels/campaigns';
+import { campaignOf, DIFFICULTY, RANKS } from '../levels/campaigns';
 import { propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';
 import { sfx } from '../game/audio';
@@ -20,7 +20,7 @@ import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem, type NoiseEvent } from '../game/Noise';
 import { Player } from '../game/Player';
 import { RangeStations } from '../game/RangeStations';
-import { progress, recordSuccess, saveProgress, unlockedWeapons } from '../game/progress';
+import { endCareer, endedCareer, progress, recordSuccess, saveProgress, unlockedWeapons } from '../game/progress';
 import { settings } from '../game/settings';
 import { rollSituation, type Situation } from '../game/situation';
 import { Target, type TargetKind } from '../game/Target';
@@ -53,6 +53,8 @@ export interface Outcome {
   stars: [boolean, boolean, boolean] | null;
   lines: string[];
   note?: string;
+  /** A realism career just ended: the only way on is a new career. */
+  careerOver?: boolean;
 }
 
 export interface HudState {
@@ -175,6 +177,12 @@ export class GameScene extends Phaser.Scene {
 
     // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
     this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom).startFollow(this.player.displayObject, false, 0.1, 0.1);
+
+    // A realism career is on the line from the moment it deploys.
+    if (this.realism) {
+      progress.deployed = this.def.id;
+      saveProgress(progress);
+    }
 
     this.setupInput();
     if (!this.scene.isActive('hud')) this.scene.launch('hud');
@@ -753,7 +761,29 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  /** True on a mission in a realism career, where going down (or quitting) ends the career. */
+  get realism(): boolean {
+    return progress.realism && !!this.def.mission;
+  }
+
   private failedOutcome(): Outcome {
+    if (this.realism) {
+      const record = endCareer(progress, this.def.id);
+      saveProgress(progress);
+      return {
+        success: false,
+        title: 'Career over',
+        stars: null,
+        careerOver: true,
+        lines: [
+          `You went down at ${this.def.name}.`,
+          'In realism mode that ends the career.',
+          '',
+          `Rank reached     ${RANKS[record.rank]}`,
+          `Stars earned     ${record.stars}`,
+        ],
+      };
+    }
     return {
       success: false,
       title: 'Operator down',
@@ -764,9 +794,19 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  /** Quitting a realism mission ends the career, the same as going down. */
+  abandon(): void {
+    const record = endCareer(progress, this.def.id);
+    saveProgress(progress);
+    endedCareer.record = record;
+    endedCareer.reason = 'quit';
+    this.leave('menu', {});
+  }
+
   /** Retry: missions go back to the briefing (and a fresh roll), the Range restarts. */
   retry(): void {
-    if (this.def.mission) this.leave('briefing', { levelId: this.def.id });
+    if (this.outcome?.careerOver) this.toMenu();
+    else if (this.def.mission) this.leave('briefing', { levelId: this.def.id });
     else this.scene.restart({ levelId: this.def.id });
   }
 

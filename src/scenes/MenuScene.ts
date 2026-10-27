@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
 import { COLORS, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
-import { campaignStars, isUnlocked, newProgress, progress, saveProgress } from '../game/progress';
+import { campaignStars, endedCareer, isUnlocked, newProgress, progress, saveProgress } from '../game/progress';
 import { saveSettings, settings } from '../game/settings';
 import { levelById } from '../levels';
 import { CAMPAIGNS, RANKS, type CampaignDef } from '../levels/campaigns';
-import { ACCENT, DIM, GOLD, setupScreenCamera, style, TEXT, textButton } from './ui';
+import { ACCENT, DIM, GOLD, RED, setupScreenCamera, style, TEXT, textButton } from './ui';
 
 const LOCKED = '#4b5563';
 const LEFT = { x: 200, w: 300 };
@@ -37,7 +37,19 @@ export class MenuScene extends Phaser.Scene {
     const cx = VIEW_W / 2;
     this.add.text(cx, 82, 'BREACH', style(64, TEXT, { fontStyle: 'bold' })).setOrigin(0.5);
     this.add.text(cx, 136, 'PORT ARDLEY POLICE DEPARTMENT', style(13, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5);
-    this.add.text(cx, 162, `Rank: ${RANKS[progress.rank]}`, style(14, TEXT)).setOrigin(0.5);
+    this.add.text(cx, 162, `Rank: ${RANKS[progress.rank]}${progress.realism ? '   ·   REALISM CAREER' : ''}`, style(14, progress.realism ? RED : TEXT)).setOrigin(0.5);
+
+    // A realism career that just ended gets one notice.
+    const ended = endedCareer.record;
+    if (ended) {
+      const why = { down: 'You went down at', quit: 'You quit a mission at', left: 'You left a mission unfinished at' }[endedCareer.reason];
+      const where = levelById(ended.levelId).name;
+      this.add.text(cx, VIEW_H - 136, [
+        `Realism career over: ${why.toLowerCase()} ${where}.`,
+        `Rank reached: ${RANKS[ended.rank]}, ${ended.stars} ★. A new career starts as Recruit.`,
+      ].join('\n'), style(13, RED, { align: 'center', lineSpacing: 4 })).setOrigin(0.5, 0);
+      endedCareer.record = null;
+    }
 
     // Campaigns, one per rank. The current one (the highest open) is selected.
     this.add.text(LEFT.x, TOP - 30, 'CAMPAIGNS', style(11, ACCENT, { fontStyle: 'bold' }));
@@ -61,20 +73,31 @@ export class MenuScene extends Phaser.Scene {
     const current = CAMPAIGNS.map((c, i) => ({ c, i })).filter(({ c }) => progress.rank >= c.rank).at(-1);
     this.select(current?.i ?? 0);
 
-    const blood = textButton(this, cx - 200, VIEW_H - 74, '', () => {
+    const blood = textButton(this, cx - 300, VIEW_H - 74, '', () => {
       settings.blood = !settings.blood;
       saveSettings();
       refresh();
     }, 12, DIM);
-    const sound = textButton(this, cx, VIEW_H - 74, '', () => {
+    const sound = textButton(this, cx - 100, VIEW_H - 74, '', () => {
       settings.sound = !settings.sound;
       sfx.muted = !settings.sound;
       saveSettings();
       refresh();
     }, 12, DIM);
-    const reset = textButton(this, cx + 200, VIEW_H - 74, 'Reset progress', () => {
+    // Switching realism on always starts a new career; switching it off keeps your progress.
+    const realism = textButton(this, cx + 100, VIEW_H - 74, '', () => {
+      if (!realism.getData('armed')) {
+        realism.setData('armed', true).setText(progress.realism ? 'Click again to leave realism' : 'Click again: new realism career');
+        return;
+      }
+      if (progress.realism) Object.assign(progress, { realism: false, deployed: null });
+      else Object.assign(progress, newProgress(true));
+      saveProgress(progress);
+      this.scene.restart();
+    }, 12, DIM);
+    const reset = textButton(this, cx + 300, VIEW_H - 74, 'Reset progress', () => {
       if (reset.getData('armed')) {
-        Object.assign(progress, newProgress());
+        Object.assign(progress, newProgress(progress.realism));
         saveProgress(progress);
         this.scene.restart();
         return;
@@ -84,6 +107,7 @@ export class MenuScene extends Phaser.Scene {
     const refresh = () => {
       blood.setText(`Blood effects: ${settings.blood ? 'On' : 'Off'}`);
       sound.setText(`Sound: ${settings.sound ? 'On' : 'Off'}`);
+      realism.setText(`Realism: ${progress.realism ? 'On' : 'Off'}`);
     };
     refresh();
 

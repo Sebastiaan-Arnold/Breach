@@ -37,6 +37,8 @@ promotions. Enemies get sharper with every rank.
   and issues the SMG. Choose your primary gun on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
+- **Realism mode:** an optional career with one life. Going down, or quitting a mission, ends
+  the career and resets progress to Recruit. Switch it on from the menu.
 - **Minimal HUD and settings:** ammo, short messages and, on the Range only, tutorial text.
   Esc pauses and opens settings (blood effects, sound) and the controls.
 
@@ -106,4 +108,4 @@ when it lands on `main`.
 ## Next
 
 Playtest and tune both campaigns, then the Sergeant campaign (hotel floors, the Heavy enemy
-type) and the Lieutenant campaign, and later an optional realism mode with one life.
+type) and the Lieutenant campaign.
