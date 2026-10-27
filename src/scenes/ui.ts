@@ -271,10 +271,12 @@ export function openSettings(scene: Phaser.Scene, onClose: () => void, depth = 1
   layer.add(scene.add.text(cx, cy - h / 2 + 34, 'SETTINGS', display(22, TEXT)).setOrigin(0.5));
 
   const pct = (v: number) => `${Math.round(v * 100)}%`;
-  const rows: { label: string; value: () => string; change: (dir: -1 | 1) => void }[] = [
+  // `wrap`: a plain click on the row goes round from the top back to the bottom.
+  const rows: { label: string; value: () => string; change: (dir: -1 | 1, wrap?: boolean) => void }[] = [
     {
-      label: 'VOLUME', value: () => pct(settings.volume), change: (d) => {
-        settings.volume = Math.round(Math.max(0, Math.min(1, settings.volume + d * 0.1)) * 10) / 10;
+      label: 'VOLUME', value: () => pct(settings.volume), change: (d, wrap) => {
+        const v = wrap && settings.volume >= 1 ? 0 : settings.volume + d * 0.1;
+        settings.volume = Math.round(Math.max(0, Math.min(1, v)) * 10) / 10;
         sfx.setVolume(settings.volume);
       },
     },
@@ -297,7 +299,17 @@ export function openSettings(scene: Phaser.Scene, onClose: () => void, depth = 1
   };
   const items: Focusable[] = rows.map((r, i) => {
     const y = cy - h / 2 + 96 + i * 50;
-    const btn = new Button(scene, cx, y, w - 64, 40, r.label, () => { r.change(1); refresh(); }, { align: 'left', size: 14 });
+    // A click on ‹ steps down, on › steps up; anywhere else on the row steps round.
+    const click = () => {
+      const p = scene.input.activePointer;
+      const px = scene.cameras.main.getWorldPoint(p.x, p.y).x;
+      const right = cx + w / 2 - 50, left = right - value.width;
+      if (px > left - 8 && px < left + value.width / 2) r.change(-1);
+      else if (px >= left + value.width / 2 && px < right + 8) r.change(1);
+      else r.change(1, true);
+      refresh();
+    };
+    const btn = new Button(scene, cx, y, w - 64, 40, r.label, click, { align: 'left', size: 14 });
     const value = scene.add.text(w / 2 - 50, 0, '', style(14, ACCENT)).setOrigin(1, 0.5);
     btn.container.add(value);
     layer.add(btn.container);

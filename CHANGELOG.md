@@ -3,6 +3,18 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.0.3
+
+Playtest fixes.
+
+- Glass connects again. A wall that meets a glass front side-on now runs on to the frame instead
+  of stopping half a tile short, and a glass run that turns a building corner closes into the
+  wall. Glass runs are drawn evenly, without a brighter block at every tile.
+- Volume goes down with the mouse: click ‹ or › beside the value; a click on the rest of the row
+  steps up and wraps from 100% back to 0%.
+- The campaign screen header keeps the rank insignia clear of the stars and cases line at every
+  rank (at Captain the chevrons ran into it).
+
 ## v1.0.2
 
 Playtest fixes.

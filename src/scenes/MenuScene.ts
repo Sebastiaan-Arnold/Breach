@@ -50,7 +50,9 @@ export class MenuScene extends Phaser.Scene {
       this.add.text(1224, 52, RANKS[progress.rank].toUpperCase(), display(26, TEXT)).setOrigin(1, 0),
       this.add.text(1224, 86, `${stars} ★   ·   ${progress.completed.length} cases closed`, style(12, DIM)).setOrigin(1, 0),
     ];
-    head.push(insignia(this, 1224 - (head[2] as Phaser.GameObjects.Text).width - 30, 68, progress.rank, progress.realism ? UI.red : UI.accent));
+    // The insignia sits clear of both lines; at the top ranks the chevrons are as tall as the pair.
+    const lines = Math.max((head[2] as Phaser.GameObjects.Text).width, (head[3] as Phaser.GameObjects.Text).width);
+    head.push(insignia(this, 1224 - lines - 32, 76, progress.rank, progress.realism ? UI.red : UI.accent));
     head.push(this.add.rectangle(640, 116, 1168, 1, UI.line, 1));
 
     // Campaign cards.
