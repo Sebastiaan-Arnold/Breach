@@ -22,6 +22,10 @@ export interface WeaponDef {
   /** Noise radius in px, unsuppressed. Gunfire is heard through a whole building. */
   noise: number;
   range: number;
+  /** Damage per bullet (per pellet for the shotgun). Vested suspects take 2 to stop. */
+  damage: number;
+  /** What the gun is good at, for the loadout choice. */
+  blurb: string;
 }
 
 /** Handling matters as much as damage: heavier guns wobble more and turn more slowly. */
@@ -29,18 +33,22 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   pistol: {
     id: 'pistol', name: 'Pistol', magSize: 12, spareMags: 3, auto: false, fireDelay: 140, reloadTime: 1.3,
     pellets: 1, spread: 0, wobble: 2.5, recoil: 0.12, turnRate: 620, noise: 1000, range: 900,
+    damage: 1, blurb: 'Accurate and quick to aim. Vested suspects need a double tap.',
   },
   smg: {
     id: 'smg', name: 'SMG', magSize: 30, spareMags: 3, auto: true, fireDelay: 80, reloadTime: 1.8,
     pellets: 1, spread: 0, wobble: 3.5, recoil: 0.06, turnRate: 540, noise: 1050, range: 800,
+    damage: 1, blurb: 'Short bursts land two hits fastest. Big magazine, but it wobbles at range.',
   },
   shotgun: {
     id: 'shotgun', name: 'Shotgun', magSize: 6, spareMags: 4, auto: false, fireDelay: 650, reloadTime: 2.4,
     pellets: 8, spread: 8, wobble: 4, recoil: 0.4, turnRate: 430, noise: 1200, range: 460,
+    damage: 1, blurb: 'Stops anyone up close in one shot. The spread risks civilians; slow to reload.',
   },
   rifle: {
     id: 'rifle', name: 'Assault rifle', magSize: 30, spareMags: 3, auto: true, fireDelay: 110, reloadTime: 2.1,
     pellets: 1, spread: 0, wobble: 5, recoil: 0.12, turnRate: 300, noise: 1300, range: 1400,
+    damage: 2, blurb: 'One hit stops a vested suspect, and it is accurate at range. Slow to swing round.',
   },
 };
 

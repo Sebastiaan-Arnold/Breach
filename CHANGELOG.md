@@ -3,6 +3,20 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.3
+
+Every gun now has a job.
+
+- From the Senior Officer campaign on, suspects wear light vests (a grey chest plate) and take two
+  hits to stop. Officer-campaign suspects still go down to one. The briefing says when suspects
+  are vested.
+- Damage per gun: the pistol and SMG do one hit per shot, so the SMG's fire rate gives the
+  fastest double tap. The shotgun does one hit per pellet and stops anyone up close in one shot.
+  Rifle rounds count double.
+- A hit that doesn't stop a suspect makes them flinch: their aim is thrown off for a moment and
+  they turn towards the shooter.
+- The briefing describes the chosen gun under the loadout.
+
 ## v0.4.2
 
 Fixes and changes from a playthrough of both campaigns.

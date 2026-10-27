@@ -138,6 +138,15 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 
 Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the SMG is often the better pick for tight houses even once the rifle is unlocked.
 
+**Damage and armour.** Street-level suspects in the Officer campaign go down to one hit. From the Senior Officer campaign on they wear light vests and take two, and the briefing says so. That is what gives each gun a job:
+
+- **Pistol:** one hit per shot, so a vested suspect needs a double tap.
+- **SMG:** one hit per shot, but the fastest second hit, and a 30-round magazine.
+- **Shotgun:** one hit per pellet, so a full spread stops anyone in one shot up to about six tiles. Past that the pellets scatter, and they can hit civilians next to the target.
+- **Rifle:** each round counts double, so one hit stops a vested suspect at any range.
+
+A hit that doesn't stop a suspect makes them flinch, throwing off their aim for a moment and turning them towards the shooter.
+
 **Scoring and stars**
 
 Each mission ends with a debrief and up to three stars: one for completing it, one for no civilian hit and one for finishing without taking damage. Promotion to the next rank needs a minimum number of stars from the current campaign, which gives players a reason to replay a mission more carefully. There is no time-based score, because it would push players to rush.

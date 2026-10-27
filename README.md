@@ -35,6 +35,10 @@ promotions. Enemies get sharper with every rank.
 - **Campaign:** progress is saved; the Range promotes you to Officer and opens the Officer
   cases, which unlock in order. Finishing them with enough stars promotes you to Senior Officer
   and issues the SMG. Choose your primary gun on the briefing.
+- **Guns with jobs:** from the Senior Officer campaign suspects wear light vests and take two
+  hits. The pistol needs a double tap, the SMG lands its second hit fastest, the shotgun stops
+  anyone up close in one shot, and rifle rounds count double. A hit that doesn't stop a suspect
+  makes them flinch.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill
   house whose targets re-roll on every run. Ends with the debrief and stars.
 - **Two careers:** the start menu offers a normal career and a realism career, each with its own

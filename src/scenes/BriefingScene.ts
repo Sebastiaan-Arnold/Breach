@@ -6,6 +6,7 @@ import { progress, unlockedWeapons } from '../game/progress';
 import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
+import { campaignOf, DIFFICULTY } from '../levels/campaigns';
 import { propSize } from '../levels/props';
 import type { LevelDef, Reliability } from '../levels/types';
 import { ACCENT, DIM, RED, setupScreenCamera, style, TEXT } from './ui';
@@ -35,6 +36,7 @@ export class BriefingScene extends Phaser.Scene {
   private rows: Phaser.GameObjects.Text[] = [];
   private primary: WeaponId = 'pistol';
   private gunLabels: Phaser.GameObjects.Text[] = [];
+  private gunBlurb?: Phaser.GameObjects.Text;
   private deployLabel!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -198,7 +200,7 @@ export class BriefingScene extends Phaser.Scene {
 
     heading('INTEL');
     const rows: [string, string, string?][] = [
-      ['Hostiles', `${m.hostiles.min} to ${m.hostiles.max} suspects`],
+      ['Hostiles', `${m.hostiles.min} to ${m.hostiles.max} suspects${this.armoured ? ' in light vests' : ''}`],
       ['Loadout', m.loadout],
       ['Civilians', m.civilians.text],
       ['Reliability', m.reliability, RELIABILITY_COLOR[m.reliability]],
@@ -222,8 +224,11 @@ export class BriefingScene extends Phaser.Scene {
       gx += label.width + 22;
     }
     y += 22;
+    // Room for a two-line description of the chosen gun.
+    this.gunBlurb = this.add.text(x + 110, y, '', style(12, TEXT, { lineSpacing: 2, wordWrap: { width: w - 110 } }));
+    y += 36;
     this.add.text(x + 110, y, guns.length > 1 ? 'Pistol always carried as a sidearm (2)' : 'More guns are issued with promotion', style(11, DIM));
-    y += 34;
+    y += 26;
     this.selectGun(this.primary);
 
     heading('CHOOSE ENTRY');
@@ -265,6 +270,12 @@ export class BriefingScene extends Phaser.Scene {
       const on = l.getData('gun') === id;
       l.setColor(on ? ACCENT : DIM).setFontStyle(on ? 'bold' : 'normal');
     }
+    this.gunBlurb?.setText(WEAPONS[id].blurb);
+  }
+
+  /** Suspects at this rank wear vests. */
+  private get armoured(): boolean {
+    return DIFFICULTY[campaignOf(this.def.id)?.rank ?? 1].toughness > 1;
   }
 
   private hover(i: number): void {

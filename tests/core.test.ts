@@ -6,7 +6,8 @@ import { moveCircle } from '../src/core/collision';
 import { findPath } from '../src/core/pathfinding';
 import { rollSituation } from '../src/game/situation';
 import { endCareer, isUnlocked, newProgress, recordSuccess, settleAbandonedMission, unlockedWeapons } from '../src/game/progress';
-import { CAMPAIGNS, type CampaignDef } from '../src/levels/campaigns';
+import { CAMPAIGNS, DIFFICULTY, type CampaignDef } from '../src/levels/campaigns';
+import { WEAPONS } from '../src/game/weapons';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
 import { LEVELS } from '../src/levels';
@@ -289,5 +290,26 @@ describe('realism careers', () => {
     const p = { ...newProgress(true), rank: 1, deployed: 'harbour-lane' };
     recordSuccess(p, 'harbour-lane', 2);
     expect(p.deployed).toBeNull();
+  });
+});
+
+describe('gun roles', () => {
+  const vest = Math.max(...DIFFICULTY.map((d) => d.toughness));
+
+  it('suspects get no softer as rank goes up', () => {
+    for (let i = 1; i < DIFFICULTY.length; i++) expect(DIFFICULTY[i].toughness).toBeGreaterThanOrEqual(DIFFICULTY[i - 1].toughness);
+  });
+
+  it('the rifle stops a vested suspect in one hit and the shotgun can at close range', () => {
+    expect(WEAPONS.rifle.damage).toBeGreaterThanOrEqual(vest);
+    expect(WEAPONS.shotgun.damage * WEAPONS.shotgun.pellets).toBeGreaterThanOrEqual(vest);
+  });
+
+  it('the SMG lands a second hit sooner than the pistol', () => {
+    expect(WEAPONS.smg.fireDelay).toBeLessThan(WEAPONS.pistol.fireDelay);
+  });
+
+  it('every gun says what it is for', () => {
+    for (const w of Object.values(WEAPONS)) expect(w.blurb.length).toBeGreaterThan(0);
   });
 });

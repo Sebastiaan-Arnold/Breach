@@ -62,13 +62,15 @@ export class Target {
     return rayCircle(ox, oy, dx, dy, this.x, this.y, RADIUS);
   }
 
-  hit(): void {
-    if (this.state !== 'up') return;
+  /** Cardboard goes down to any hit. Returns true if this hit took it down. */
+  hit(): boolean {
+    if (this.state !== 'up') return false;
     this.state = 'down';
     this.wasHit = true;
     this.downTimer = this.opts.respawn;
     this.redraw();
     this.scene.tweens.add({ targets: this.container, scale: 0.8, duration: 160, ease: 'Quad.Out' });
+    return true;
   }
 
   /**

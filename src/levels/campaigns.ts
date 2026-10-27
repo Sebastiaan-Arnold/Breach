@@ -16,15 +16,17 @@ export interface Difficulty {
   spread: number;
   /** Seconds between an enemy's shots, min and max. */
   fireInterval: [number, number];
+  /** Damage it takes to stop a suspect: 1 unarmoured, 2 in a light vest. Each gun's damage counts against it. */
+  toughness: number;
 }
 
 /** Indexed by rank (see RANKS). The Range has no enemies, so Recruit shares Officer's values. */
 export const DIFFICULTY: readonly Difficulty[] = [
-  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1] },
-  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1] },
-  { reaction: 0.85, notice: 0.8, spread: 3.2, fireInterval: [0.6, 0.95] },
-  { reaction: 0.72, notice: 0.65, spread: 2.6, fireInterval: [0.5, 0.85] },
-  { reaction: 0.6, notice: 0.55, spread: 2.2, fireInterval: [0.45, 0.75] },
+  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1], toughness: 1 },
+  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1], toughness: 1 },
+  { reaction: 0.85, notice: 0.8, spread: 3.2, fireInterval: [0.6, 0.95], toughness: 2 },
+  { reaction: 0.72, notice: 0.65, spread: 2.6, fireInterval: [0.5, 0.85], toughness: 2 },
+  { reaction: 0.6, notice: 0.55, spread: 2.2, fireInterval: [0.45, 0.75], toughness: 2 },
 ];
 
 export interface CampaignDef {

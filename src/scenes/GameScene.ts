@@ -423,8 +423,9 @@ export class GameScene extends Phaser.Scene {
       const dx = Math.cos(a), dy = Math.sin(a);
       const shot = this.traceShot(a, w.def.range);
       if (shot.target) {
-        this.hitEffect(shot.target, shot.x, shot.y, dx, dy);
-        this.onHit(shot.target);
+        const alive = shot.target.alive;
+        const downed = this.onHit(shot.target, w.def.damage);
+        this.hitEffect(shot.target, shot.x, shot.y, dx, dy, alive && downed);
         landed = true;
       } else if (shot.dist < w.def.range) {
         this.effects.bulletHole(shot.x, shot.y, dx, dy);
@@ -440,19 +441,22 @@ export class GameScene extends Phaser.Scene {
     this.noise.emit({ x: p.x, y: p.y, radius: w.noise, source: 'player', kind: 'shot' }, p.x, p.y);
   }
 
-  private hitEffect(t: Hittable, x: number, y: number, dx: number, dy: number): void {
+  /** Spatter where the shot landed; a pool too if it just took them down. */
+  private hitEffect(t: Hittable, x: number, y: number, dx: number, dy: number, downed: boolean): void {
     if (t.prop) {
       this.effects.cardboardHit(x, y, dx, dy);
       return;
     }
     if (!settings.blood) return;
     this.effects.bloodHit(x, y, dx, dy);
-    if (t.alive) this.effects.bloodPool(t.x, t.y);
+    if (downed) this.effects.bloodPool(t.x, t.y);
   }
 
-  private onHit(t: Hittable): void {
-    if (!t.alive) return;
-    t.hit();
+  /** Applies a hit of `damage`. Returns true if it took the target down. */
+  private onHit(t: Hittable, damage: number): boolean {
+    if (!t.alive) return false;
+    const p = this.player;
+    const downed = t instanceof Enemy ? t.hit(damage, p.x, p.y) : t.hit();
     if (t instanceof Target) this.stations?.onTargetHit(t);
     if (t.kind === 'civilian') {
       sfx.penalty();
@@ -460,6 +464,7 @@ export class GameScene extends Phaser.Scene {
     } else {
       sfx.hit();
     }
+    return downed;
   }
 
   private enemyShoot(e: Enemy, angle: number, pellets = 1): void {

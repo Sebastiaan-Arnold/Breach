@@ -55,11 +55,13 @@ export class Civilian {
     return this.alive ? rayCircle(ox, oy, dx, dy, this.x, this.y, RADIUS) : Infinity;
   }
 
-  hit(): void {
-    if (!this.alive) return;
+  /** Any hit takes a civilian down. Returns true if this hit did. */
+  hit(): boolean {
+    if (!this.alive) return false;
     this.state = 'down';
     this.wasHit = true;
     this.redraw();
+    return true;
   }
 
   secure(): void {

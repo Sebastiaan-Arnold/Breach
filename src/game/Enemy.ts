@@ -47,7 +47,10 @@ const HIDER_RANGE = 5 * TILE;
 const HIDER_PELLETS = 6;
 
 const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gun: true };
-const HIDER_STYLE: FigureStyle = { ...STYLE, longGun: true };
+/** A grey vest plate over the red marks someone who takes more than one hit. */
+const VEST_CHEST = 0x52525b;
+/** How long a wounded enemy is thrown off its aim. */
+const FLINCH = 0.4;
 
 /**
  * A hostile. Readable rather than clever: Idle (post or patrol), Alert (investigates a noise)
@@ -69,6 +72,9 @@ export class Enemy {
   facing: number;
   wasHit = false;
   readonly temperament: Temperament;
+  /** Damage left before going down. */
+  hp: number;
+  private flinch = 0;
 
   private post: { x: number; y: number; facing: number };
   private route: { x: number; y: number }[];
@@ -101,6 +107,7 @@ export class Enemy {
     this.post = { x: this.x, y: this.y, facing: this.facing };
     this.route = (slot.route ?? []).map((p) => ({ x: p.tx * TILE, y: p.ty * TILE }));
     this.temperament = slot.temperament ?? (Math.random() < HOLD_CHANCE[type] ? 'holder' : 'pusher');
+    this.hp = difficulty.toughness;
     this.gfx = scene.add.graphics();
     drawFigure(this.gfx, this.style);
     // Hiders crouch behind their cover.
@@ -117,15 +124,33 @@ export class Enemy {
   }
 
   private get style(): FigureStyle {
-    return this.type === 'hider' ? HIDER_STYLE : STYLE;
+    return {
+      ...STYLE,
+      longGun: this.type === 'hider',
+      chest: this.difficulty.toughness > 1 ? VEST_CHEST : STYLE.chest,
+    };
   }
 
-  hit(): void {
-    if (!this.alive) return;
-    this.state = 'down';
+  /**
+   * Takes `damage` from a shot fired at (fromX, fromY). Returns true if it took them down. A hit
+   * that doesn't flinches them off their aim and turns them towards the shooter.
+   */
+  hit(damage = 1, fromX = this.x, fromY = this.y): boolean {
+    if (!this.alive) return false;
     this.wasHit = true;
-    this.gfx.clear().setScale(1);
+    this.hp -= damage;
+    if (this.hp > 0) {
+      this.flinch = FLINCH;
+      this.reactTimer = Math.max(this.reactTimer, FLINCH);
+      this.fireTimer = Math.max(this.fireTimer, FLINCH);
+      if (fromX !== this.x || fromY !== this.y) this.facing = Math.atan2(fromY - this.y, fromX - this.x);
+      this.sightTime = 1;
+      return false;
+    }
+    this.state = 'down';
+    this.gfx.clear().setScale(1).setRotation(0);
     drawDowned(this.gfx, this.style);
+    return true;
   }
 
   /** Called for every noise in the level. */
@@ -168,6 +193,10 @@ export class Enemy {
       return;
     }
     this.time += dt;
+    if (this.flinch > 0) {
+      this.flinch -= dt;
+      this.gfx.rotation = this.flinch > 0 ? Math.sin(this.flinch * 60) * 0.25 : 0;
+    }
 
     const p = ctx.player;
     const dx = p.x - this.x, dy = p.y - this.y;
