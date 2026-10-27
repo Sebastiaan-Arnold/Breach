@@ -2,8 +2,10 @@ import type { PropDef } from './types';
 
 /** Width and height of a prop in tiles, as drawn. */
 export function propSize(p: PropDef): { w: number; h: number } {
-  const long = p.kind === 'van' ? 4.4 : 4;
-  return p.vertical ? { w: 2, h: long } : { w: long, h: 2 };
+  if (p.w !== undefined && p.h !== undefined) return { w: p.w, h: p.h };
+  const long = p.kind === 'van' ? 4.4 : p.kind === 'truck' ? 9 : 4;
+  const wide = p.kind === 'truck' ? 3 : 2;
+  return p.vertical ? { w: wide, h: long } : { w: long, h: wide };
 }
 
 /**

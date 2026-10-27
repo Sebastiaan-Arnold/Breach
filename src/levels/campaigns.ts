@@ -3,6 +3,30 @@ import type { WeaponId } from '../game/weapons';
 /** Ranks in order; a campaign is played at one rank and promotes to the next. */
 export const RANKS = ['Recruit', 'Officer', 'Senior Officer', 'Sergeant', 'Lieutenant'] as const;
 
+/**
+ * How sharp enemies are. Every rank's campaign is harder than the last: faster reactions,
+ * quicker to notice you, tighter aim and a faster rate of fire.
+ */
+export interface Difficulty {
+  /** Multiplier on how long an enemy takes to react before its first shot. */
+  reaction: number;
+  /** Multiplier on how long an enemy takes to notice the operator. */
+  notice: number;
+  /** Angular error of an enemy's shot, in degrees. */
+  spread: number;
+  /** Seconds between an enemy's shots, min and max. */
+  fireInterval: [number, number];
+}
+
+/** Indexed by rank (see RANKS). The Range has no enemies, so Recruit shares Officer's values. */
+export const DIFFICULTY: readonly Difficulty[] = [
+  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1] },
+  { reaction: 1, notice: 1, spread: 4, fireInterval: [0.7, 1.1] },
+  { reaction: 0.85, notice: 0.8, spread: 3.2, fireInterval: [0.6, 0.95] },
+  { reaction: 0.72, notice: 0.65, spread: 2.6, fireInterval: [0.5, 0.85] },
+  { reaction: 0.6, notice: 0.55, spread: 2.2, fireInterval: [0.45, 0.75] },
+];
+
 export interface CampaignDef {
   id: string;
   title: string;
@@ -47,6 +71,21 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
         'Five raids, and every one of them pointed the same way: Corvan Logistics.',
         "You're promoted to Senior Officer. The armoury has signed out an SMG in your name.",
         'Supply chain unit. Starts Monday.',
+      ],
+    },
+  },
+  {
+    id: 'senior',
+    title: 'Supply chain',
+    rank: 2,
+    levels: ['corvan-depot', 'corvan-head-office', 'cold-store', 'ferry-road', 'harbour-freight'],
+    promotion: {
+      minStars: 10,
+      unlocks: 'shotgun',
+      note: [
+        'Corvan Logistics was never a parcel firm. It was a pipeline, and you followed it to the end.',
+        "You're promoted to Sergeant. The armoury has a shotgun for you. Mind the civilians: it spreads.",
+        "The money is next. Somebody has been cleaning Corvan's cash, and they meet at a hotel.",
       ],
     },
   },

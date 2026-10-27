@@ -17,7 +17,11 @@ export interface EntryDef {
   approach: TilePos[];
 }
 
-export type HostileType = 'lookout' | 'patroller';
+/**
+ * Lookouts hold a post, patrollers walk a route, hiders wait behind cover with a shotgun and only
+ * fire at close range.
+ */
+export type HostileType = 'lookout' | 'patroller' | 'hider';
 
 /**
  * How a hostile reacts to a fight it hears: pushers come for you, holders dig in and cover the
@@ -67,11 +71,14 @@ export interface MissionDef {
  * containers sit on furniture tiles ('T') in the map, which do.
  */
 export interface PropDef {
-  kind: 'van' | 'car' | 'container';
+  kind: 'van' | 'car' | 'container' | 'rack' | 'truck';
   tx: number;
   ty: number;
-  /** Cars and containers lie east-west unless vertical. */
+  /** Vehicles and containers lie east-west unless vertical. */
   vertical?: boolean;
+  /** Size in tiles for racking (and to override the default size of anything else). */
+  w?: number;
+  h?: number;
   color?: number;
 }
 

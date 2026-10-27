@@ -105,6 +105,10 @@ Each enemy runs a simple state machine with three states: Idle (standing or patr
 
 A fight splits them by temperament. **Pushers** come for you, fast and loud, so you can hear them coming. **Holders** dig in: they take a spot a few tiles back from the door you'd come through, aim at it and wait. Going loud never empties a building by itself; the rooms with someone covering the door still have to be cleared.
 
+**Difficulty rises with rank**
+
+Each campaign is harder than the one before. From one rank to the next, enemies react faster, notice the operator sooner, aim tighter and fire more often. The Officer campaign sets the baseline; by Lieutenant, reactions are close to twice as fast. New enemy types arrive on top of that: the Hider in the Senior Officer campaign, the Heavy with the Sergeant campaign.
+
 **Civilians**
 
 Civilians panic, run or freeze and sometimes block a doorway. Hitting one costs a large score penalty and the second star, but the mission carries on. Securing them adds to the score. On early levels they wear bright clothing and stay clearly visible, so players aren't punished for things they couldn't read.
@@ -206,6 +210,8 @@ The biggest risk with a game like this is building too much before finding out w
 5. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 
 Cut on purpose for now: shouting and arrests, hostages, gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
+
+**Planned: realism mode.** An optional mode where the operator has one life. The exact rules are still to be decided.
 
 ## Decisions
 

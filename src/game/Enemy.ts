@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MOVE, TILE } from '../config';
 import { moveCircle } from '../core/collision';
 import { DEG, rayCircle, wrapAngle } from '../core/geometry';
+import type { Difficulty } from '../levels/campaigns';
 import type { HostileSlot, HostileType, Temperament } from '../levels/types';
 import type { Door } from './Door';
 import { drawDowned, drawFigure, type FigureStyle } from './figures';
@@ -14,8 +15,8 @@ export type EnemyState = 'idle' | 'alert' | 'combat' | 'down';
 export interface EnemyContext {
   world: World;
   player: { x: number; y: number; alive: boolean; inDark: boolean };
-  /** Fires a shot from the enemy along `angle`; the scene resolves what it hits. */
-  shoot(e: Enemy, angle: number): void;
+  /** Fires from the enemy along `angle` (several pellets for a shotgun); the scene resolves hits. */
+  shoot(e: Enemy, angle: number, pellets?: number): void;
   /** A sound the enemy makes (footsteps, a shout). Shouts alert other enemies. */
   noise(e: Enemy, radius: number, kind: NoiseEvent['kind']): void;
 }
@@ -31,20 +32,22 @@ const SPEED_ALERT = 88;
 /** Pushers move fast (and loud) towards a fight. */
 const SPEED_PUSH = 108;
 const TURN = 4.5;
-const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6 };
+const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6, hider: 0.3 };
 /** Someone already aimed at a doorway reacts quicker. */
 const REACTION_HOLDING = 0.28;
 /** Chance to hold rather than push, when not set by the level. */
-const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3 };
+const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3, hider: 1 };
 /** How far (in tiles) a holder looks for a spot covering its door, and the distances it likes. */
 const HOLD_SEARCH = 5;
 const HOLD_MIN = 2.5 * TILE;
 const HOLD_MAX = 6.5 * TILE;
 const LOOK_AROUND = 2.6;
-/** Angular error of an enemy's shot, in radians (about 4 degrees). */
-const SPREAD = 4 * DEG;
+/** Hiders hold fire until the operator is this close, then open up with a shotgun. */
+const HIDER_RANGE = 5 * TILE;
+const HIDER_PELLETS = 6;
 
 const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gun: true };
+const HIDER_STYLE: FigureStyle = { ...STYLE, longGun: true };
 
 /**
  * A hostile. Readable rather than clever: Idle (post or patrol), Alert (investigates a noise)
@@ -53,6 +56,9 @@ const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gu
  *
  * Gunfire and shouts split them by temperament: pushers come for you, holders take a spot
  * covering the door you'd come through and wait for you there.
+ *
+ * Hiders never move: they wait behind cover, track you silently and only fire, with a shotgun,
+ * once you're close. They punish rushing into a room.
  */
 export class Enemy {
   readonly prop = false;
@@ -88,7 +94,7 @@ export class Enemy {
   private container: Phaser.GameObjects.Container;
   private gfx: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, readonly type: HostileType, slot: HostileSlot, depth: number) {
+  constructor(scene: Phaser.Scene, readonly type: HostileType, slot: HostileSlot, depth: number, private difficulty: Difficulty) {
     this.x = slot.tx * TILE;
     this.y = slot.ty * TILE;
     this.facing = slot.facing * DEG;
@@ -96,7 +102,9 @@ export class Enemy {
     this.route = (slot.route ?? []).map((p) => ({ x: p.tx * TILE, y: p.ty * TILE }));
     this.temperament = slot.temperament ?? (Math.random() < HOLD_CHANCE[type] ? 'holder' : 'pusher');
     this.gfx = scene.add.graphics();
-    drawFigure(this.gfx, STYLE);
+    drawFigure(this.gfx, this.style);
+    // Hiders crouch behind their cover.
+    if (type === 'hider') this.gfx.setScale(0.9);
     this.container = scene.add.container(this.x, this.y, [this.gfx]).setDepth(depth).setVisible(false);
   }
 
@@ -108,12 +116,16 @@ export class Enemy {
     return this.alive ? rayCircle(ox, oy, dx, dy, this.x, this.y, RADIUS) : Infinity;
   }
 
+  private get style(): FigureStyle {
+    return this.type === 'hider' ? HIDER_STYLE : STYLE;
+  }
+
   hit(): void {
     if (!this.alive) return;
     this.state = 'down';
     this.wasHit = true;
-    this.gfx.clear();
-    drawDowned(this.gfx, STYLE);
+    this.gfx.clear().setScale(1);
+    drawDowned(this.gfx, this.style);
   }
 
   /** Called for every noise in the level. */
@@ -122,8 +134,12 @@ export class Enemy {
     // Their own side's footsteps aren't interesting; shouts, shots, doors and you are.
     if (e.source === 'world' && e.kind !== 'shout' && e.kind !== 'shot') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
-    // Once dug in, a holder stays put whatever it hears.
+    // Once dug in, a holder stays put whatever it hears; a hider never leaves its cover.
     if (this.hold) return;
+    if (this.type === 'hider') {
+      this.state = 'alert';
+      return;
+    }
     const fight = e.kind === 'shot' || e.kind === 'shout';
     this.state = 'alert';
     this.goal = null;
@@ -167,7 +183,7 @@ export class Enemy {
       this.lastSeen = { x: p.x, y: p.y };
       this.lostTime = 0;
       // Closer, already alert or dug in and aimed means noticing faster.
-      const notice = this.dugIn ? 0.06 + dist / 2400 : (this.state === 'alert' ? 0.12 : 0.35) + dist / 1600;
+      const notice = (this.dugIn ? 0.06 + dist / 2400 : (this.state === 'alert' ? 0.12 : 0.35) + dist / 1600) * this.difficulty.notice;
       this.sightTime += dt;
       if (this.state !== 'combat' && this.sightTime >= notice) this.enterCombat(ctx);
     } else {
@@ -192,7 +208,7 @@ export class Enemy {
 
   private enterCombat(ctx: EnemyContext): void {
     this.state = 'combat';
-    this.reactTimer = this.dugIn ? REACTION_HOLDING : REACTION[this.type];
+    this.reactTimer = (this.dugIn ? REACTION_HOLDING : REACTION[this.type]) * this.difficulty.reaction;
     this.fireTimer = 0;
     this.path = [];
     this.goal = null;
@@ -200,6 +216,11 @@ export class Enemy {
   }
 
   private updateIdle(dt: number, ctx: EnemyContext): void {
+    if (this.type === 'hider') {
+      // Still, behind cover, watching their arc.
+      this.turnTo(this.post.facing + Math.sin(this.time * 0.4) * 12 * DEG, dt, 0.8);
+      return;
+    }
     if (this.type === 'patroller' && this.route.length) {
       const target = this.route[this.routeIndex];
       if (this.walkTo(target, SPEED_PATROL, dt, ctx)) this.routeIndex = (this.routeIndex + 1) % this.route.length;
@@ -215,6 +236,10 @@ export class Enemy {
   }
 
   private updateAlert(dt: number, ctx: EnemyContext): void {
+    if (this.type === 'hider') {
+      this.turnTo(this.post.facing + Math.sin(this.time * 0.8) * 18 * DEG, dt, 2);
+      return;
+    }
     if (this.threat) {
       this.hold = this.chooseHold(this.threat, ctx.world);
       this.threat = null;
@@ -246,10 +271,10 @@ export class Enemy {
     if (!sees) {
       this.lostTime += dt;
       if (this.lostTime > 0.7 && this.lastSeen) {
-        // Lost them: holders go back to covering their door, pushers chase.
+        // Lost them: holders go back to covering their door, pushers chase, hiders stay put.
         this.state = 'alert';
         this.goal = null;
-        if (!this.hold) {
+        if (!this.hold && this.type !== 'hider') {
           this.investigate = this.lastSeen;
           this.pushing = true;
         }
@@ -257,14 +282,18 @@ export class Enemy {
       return;
     }
     this.turnTo(toPlayer, dt, TURN);
+    // A hider tracks you silently and holds fire until you're close.
+    const hider = this.type === 'hider';
+    if (hider && Math.hypot(ctx.player.x - this.x, ctx.player.y - this.y) > HIDER_RANGE) return;
     this.reactTimer -= dt;
     const aligned = Math.abs(wrapAngle(toPlayer - this.facing)) < 12 * DEG;
     if (this.reactTimer > 0 || !aligned) return;
     this.fireTimer -= dt;
     if (this.fireTimer <= 0) {
-      this.fireTimer = Phaser.Math.FloatBetween(0.7, 1.1);
-      const error = (Math.random() + Math.random() - 1) * SPREAD;
-      ctx.shoot(this, this.facing + error);
+      const [min, max] = this.difficulty.fireInterval;
+      this.fireTimer = Phaser.Math.FloatBetween(min, max) * (hider ? 1.3 : 1);
+      const error = (Math.random() + Math.random() - 1) * this.difficulty.spread * DEG;
+      ctx.shoot(this, this.facing + error, hider ? HIDER_PELLETS : 1);
     }
   }
 

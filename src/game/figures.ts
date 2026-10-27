@@ -7,6 +7,8 @@ export interface FigureStyle {
   chest: number;
   head: number;
   gun?: boolean;
+  /** A long gun (shotgun or rifle) instead of a handgun. */
+  longGun?: boolean;
   handsUp?: boolean;
   /** Kneeling with hands behind the back. */
   restrained?: boolean;
@@ -20,10 +22,11 @@ export function drawFigure(g: Phaser.GameObjects.Graphics, s: FigureStyle): void
     g.lineStyle(4.5, darken(s.body, 0.75), 1);
     g.lineBetween(0, -8.5, 10, -1.5);
     g.lineBetween(0, 8.5, 7, 1.8);
+    const len = s.longGun ? 20 : 12;
     g.fillStyle(0x3a4048, 1);
-    g.fillRect(6, -1.8, 12, 3.6);
+    g.fillRect(6, -1.8, len, 3.6);
     g.fillStyle(0x8b95a3, 1);
-    g.fillRect(6, -1.8, 12, 1);
+    g.fillRect(6, -1.8, len, 1);
     g.fillStyle(0xd6b08c, 1);
     g.fillCircle(10, -1.5, 2.2);
     g.fillCircle(7, 1.8, 2.2);

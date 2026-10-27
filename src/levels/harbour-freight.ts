@@ -1,0 +1,92 @@
+import type { LevelDef } from './types';
+
+/**
+ * Senior Officer campaign, case 5: the Harbourmaster's own office on Pier Seven. Confirmed intel, his best men.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '################################################',
+  '#=========TTTT================TTTT=============#',
+  '#=========TTTT================TTTT=============#',
+  '#==============================================#',
+  '#==============================================#',
+  '#====##################D###################====#',
+  '#====#;;;;;;;;;;;;;;;i....i...............#====#',
+  '#====#;;TT;;;TT;;;;;;i....i...............#====#',
+  '#====#;;TT;;;TT;;;;;;D....i.......TTTTT...#====#',
+  '#====#;;TT;;;TT;;;;;;i....D.......TTTTT...#====#',
+  '#====#;;TT;;;TT;;;;;;i....i...............#====#',
+  '#====#;;;;;;;;;;;;;;;i....i...............#====#',
+  '#====#iiiiiiiiiiiiiiii....i...............#====#',
+  '#====#...............i....iiiiiiiiiiiiiiii#====#',
+  '#====#...............i....i~~~~~~~~~~~~~~~#====#',
+  '#====#..TTT..........D....i~~~TTTTTTTT~~~~#====#',
+  '#====#...............i....D~~~TTTTTTTT~~~~#====#',
+  '#====#...............i....i~~~~~~~~~~~~~~~#====#',
+  '#====#...............i....i~~~~~~~~~~~~~~~#====#',
+  '#====#iiiiiiiiiiiiiiii....iiiiiiiiiiiiiiii#====#',
+  '#====#...........i~~~~~~~~~~~~i:::::::::::#====#',
+  '#====#...........i~~~~~~~~~~~~i:::::::::::#====#',
+  '#====#...........D~~~~~~~~~~~~D:::::::::::#====#',
+  '#====#...........i~~~~~~~~~~~~i:::TTTTTT::D====#',
+  '#====#...........i~~~~~~~~~~~~i:::TTTTTT::#====#',
+  '#====#...........i~~~~~~~~~~~~i:::::::::::#====#',
+  '#====##################D###################====#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '################################################',
+];
+
+export const HARBOUR_FREIGHT: LevelDef = {
+  id: 'harbour-freight',
+  name: 'Harbour Freight Office',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'van', tx: 12, ty: 29 },
+    { kind: 'container', tx: 10, ty: 1 },
+    { kind: 'container', tx: 30, ty: 1, color: 0x1e3a8a },
+  ],
+  entries: [
+    { id: 'front', name: 'front door', approach: [{ tx: 19.5, ty: 29.5 }, { tx: 19.5, ty: 27.6 }, { tx: 23.5, ty: 27.6 }] },
+    { id: 'rear', name: 'quay door', approach: [{ tx: 16.5, ty: 3.5 }, { tx: 23.5, ty: 3.5 }, { tx: 23.5, ty: 4.4 }] },
+    { id: 'loading', name: 'loading door', approach: [{ tx: 45.5, ty: 30.5 }, { tx: 45.5, ty: 23.5 }, { tx: 43.4, ty: 23.5 }] },
+  ],
+  intro: [
+    'Dispatch: Unit 7, you are on Pier Seven.',
+    'Command: Rook is inside. Go in by the {entry}.',
+    "Command: Senior Officer, you're cleared to enter.",
+  ],
+  mission: {
+    caseLabel: 'Senior Officer · Case 5',
+    title: 'Harbour Freight Office',
+    location: 'Harbour Freight Office, Pier Seven',
+    summary: [
+      "Elias Rook, the Harbourmaster, runs Corvan's freight office on Pier Seven. Tonight he is there with his best men.",
+      "This time the intel is solid: we've had eyes on the building all evening. The numbers are confirmed.",
+      'Expect men waiting in the corridor and the back rooms, and someone patrolling the quay outside.',
+      'Warrant: arrest Elias Rook and everyone protecting him.',
+    ],
+    hostiles: { min: 5, max: 6 },
+    loadout: 'Handguns and shotguns',
+    civilians: { min: 1, max: 1, text: "Rook's secretary may be working late" },
+    reliability: 'Confirmed',
+    hostileSlots: [
+      { type: 'lookout', tx: 38.5, ty: 10.5, facing: 180 },
+      { type: 'lookout', tx: 23.5, ty: 22.5, facing: 90 },
+      { type: 'lookout', tx: 11.5, ty: 16.5, facing: 0 },
+      { type: 'hider', tx: 24.5, ty: 7.5, facing: 90 },
+      { type: 'hider', tx: 38.5, ty: 21.5, facing: 180 },
+      { type: 'hider', tx: 10.5, ty: 8.5, facing: 0 },
+      { type: 'patroller', tx: 22.5, ty: 18.5, facing: 90, route: [{ tx: 28.5, ty: 22.5 }, { tx: 19.5, ty: 22.5 }, { tx: 22.5, ty: 18.5 }] },
+      { type: 'patroller', tx: 2.5, ty: 3.5, facing: 0, route: [{ tx: 45.5, ty: 3.5 }, { tx: 45.5, ty: 30.5 }, { tx: 2.5, ty: 30.5 }, { tx: 2.5, ty: 3.5 }] },
+    ],
+    civilianSlots: [{ tx: 34.5, ty: 17.5 }, { tx: 10.5, ty: 22.5 }],
+    unknownZones: [{ x0: 6, y0: 6, x1: 20, y1: 11 }],
+    debriefNote: "Rook's ledgers show where the money went: through Meridian Partners, accountants who meet this Friday at the Grand Atlas Hotel.",
+  },
+};

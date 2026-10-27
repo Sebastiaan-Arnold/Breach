@@ -235,6 +235,8 @@ function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, 
 function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   if (p.kind === 'car') return drawCar(g, p);
   if (p.kind === 'container') return drawContainer(g, p);
+  if (p.kind === 'rack') return drawRack(g, p);
+  if (p.kind === 'truck') return drawTruck(g, p);
   const { w: tw, h: th } = propSize(p);
   const x = p.tx * TILE, y = p.ty * TILE, w = tw * TILE, h = th * TILE;
   g.fillStyle(0x000000, 0.35);
@@ -295,6 +297,56 @@ function drawContainer(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   else for (let i = 4; i < w; i += 6) g.fillRect(x + i, y, 2, h);
   g.lineStyle(1.5, tone(color, 1.4), 0.8);
   g.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5);
+}
+
+/** Warehouse racking: a steel frame with boxes and pallets on it. */
+function drawRack(g: Phaser.GameObjects.Graphics, p: PropDef): void {
+  const { w, h } = propSize(p);
+  const x = p.tx * TILE, y = p.ty * TILE, pw = w * TILE, ph = h * TILE;
+  g.fillStyle(0x000000, 0.35);
+  g.fillRect(x + 3, y + 4, pw, ph);
+  g.fillStyle(0x334155, 1);
+  g.fillRect(x, y, pw, ph);
+  // Boxes in bays along the rack.
+  const along = pw >= ph;
+  const bays = Math.round((along ? pw : ph) / TILE);
+  for (let i = 0; i < bays; i++) {
+    const bx = along ? x + i * TILE + 3 : x + 3, by = along ? y + 3 : y + i * TILE + 3;
+    const bw = along ? TILE - 6 : pw - 6, bh = along ? ph - 6 : TILE - 6;
+    g.fillStyle(tone(0xb08a5a, 0.8 + hash(p.tx + i, p.ty, 11) * 0.35), 1);
+    g.fillRect(bx, by, bw, bh);
+    g.fillStyle(0x000000, 0.15);
+    g.fillRect(bx, by + bh / 2 - 0.5, bw, 1);
+  }
+  g.lineStyle(2, 0xf59e0b, 0.85);
+  g.strokeRect(x + 1, y + 1, pw - 2, ph - 2);
+}
+
+/** An articulated lorry: cab and trailer, cab at the east end (south when vertical). */
+function drawTruck(g: Phaser.GameObjects.Graphics, p: PropDef): void {
+  const { w, h } = propSize(p);
+  const x = p.tx * TILE, y = p.ty * TILE, pw = w * TILE, ph = h * TILE;
+  const color = p.color ?? 0xe5e7eb;
+  g.fillStyle(0x000000, 0.35);
+  g.fillRect(x + 4, y + 5, pw, ph);
+  if (p.vertical) {
+    g.fillStyle(color, 1);
+    g.fillRect(x + 2, y, pw - 4, ph - 2.2 * TILE);
+    g.fillStyle(0x1e3a8a, 1);
+    g.fillRoundedRect(x + 4, y + ph - 2 * TILE, pw - 8, 2 * TILE, 6);
+    g.fillStyle(0x93c5fd, 0.5);
+    g.fillRect(x + 10, y + ph - 0.7 * TILE, pw - 20, 8);
+  } else {
+    g.fillStyle(color, 1);
+    g.fillRect(x, y + 2, pw - 2.2 * TILE, ph - 4);
+    g.fillStyle(0x1e3a8a, 1);
+    g.fillRoundedRect(x + pw - 2 * TILE, y + 4, 2 * TILE, ph - 8, 6);
+    g.fillStyle(0x93c5fd, 0.5);
+    g.fillRect(x + pw - 0.7 * TILE, y + 10, 8, ph - 20);
+  }
+  g.fillStyle(0x000000, 0.12);
+  if (p.vertical) for (let i = 8; i < ph - 2.2 * TILE; i += 12) g.fillRect(x + 2, y + i, pw - 4, 2);
+  else for (let i = 8; i < pw - 2.2 * TILE; i += 12) g.fillRect(x + i, y + 2, 2, ph - 4);
 }
 
 /** Deterministic pseudo-random number in [0, 1) for a grid position. */

@@ -6,6 +6,7 @@ import { blocksSight, isOutdoor, parseLevel, type ParsedLevel } from '../core/gr
 import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
 import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
+import { campaignOf, DIFFICULTY } from '../levels/campaigns';
 import { propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';
 import { sfx } from '../game/audio';
@@ -31,6 +32,8 @@ const RAIL_NOISE = 250;
 const CAMERA_LOOKAHEAD = 70;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
 const ENEMY_SHOT_NOISE = 1000;
+/** Pellet spread either side of a hider's aim, in degrees. */
+const ENEMY_SHOTGUN_SPREAD = 7;
 /** Pause between the last hostile going down (or the operator) and the debrief. */
 const OUTCOME_DELAY = 1.6;
 
@@ -153,7 +156,8 @@ export class GameScene extends Phaser.Scene {
     if (this.def.stations) this.spawnTargets(level.markers);
     const situation = this.params.situation ?? (this.def.mission ? rollSituation(this.def.mission) : null);
     if (situation) {
-      this.enemies = situation.hostiles.map((s) => new Enemy(this, s.type, s, DEPTH.people));
+      const difficulty = DIFFICULTY[campaignOf(this.def.id)?.rank ?? 1];
+      this.enemies = situation.hostiles.map((s) => new Enemy(this, s.type, s, DEPTH.people, difficulty));
       this.civilians = situation.civilians.map((s) => new Civilian(this, s, DEPTH.people));
     }
 
@@ -295,7 +299,7 @@ export class GameScene extends Phaser.Scene {
     return {
       world: this.world,
       player: { x: p.x, y: p.y, alive: p.alive, inDark: this.world.isDark(ptx, pty) },
-      shoot: (e, angle) => this.enemyShoot(e, angle),
+      shoot: (e, angle, pellets) => this.enemyShoot(e, angle, pellets),
       noise: (e, radius, kind) => {
         this.worldNoise(e.x, e.y, radius, kind);
         if (kind === 'shout') sfx.shout(this.soundAt(e.x, e.y, radius));
@@ -448,30 +452,36 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private enemyShoot(e: Enemy, angle: number): void {
+  private enemyShoot(e: Enemy, angle: number, pellets = 1): void {
     const p = this.player;
-    const dx = Math.cos(angle), dy = Math.sin(angle);
-    const mx = e.x + dx * 16, my = e.y + dy * 16;
-    const wall = this.world.castRay(mx, my, dx, dy, 900);
-    const toPlayer = p.alive ? rayCircle(mx, my, dx, dy, p.x, p.y, MOVE.radius) : Infinity;
-    const dist = Math.min(wall, toPlayer);
-    const hx = mx + dx * dist, hy = my + dy * dist;
-    if (toPlayer < wall) {
+    const seen = this.canSee(e.x, e.y);
+    const mx = e.x + Math.cos(angle) * 16, my = e.y + Math.sin(angle) * 16;
+    let hitPlayer = false;
+    for (let i = 0; i < pellets; i++) {
+      const a = angle + (pellets > 1 ? Phaser.Math.FloatBetween(-1, 1) * ENEMY_SHOTGUN_SPREAD * DEG : 0);
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const wall = this.world.castRay(mx, my, dx, dy, 900);
+      const toPlayer = p.alive ? rayCircle(mx, my, dx, dy, p.x, p.y, MOVE.radius) : Infinity;
+      const dist = Math.min(wall, toPlayer);
+      const hx = mx + dx * dist, hy = my + dy * dist;
+      if (toPlayer < wall) {
+        if (!hitPlayer && settings.blood) this.effects.bloodHit(p.x, p.y, dx, dy);
+        hitPlayer = true;
+      } else {
+        this.effects.bulletHole(hx, hy, dx, dy);
+      }
+      if (seen) this.tracers.push({ x0: mx, y0: my, x1: hx, y1: hy, age: 0, color: 0xffb4a8 });
+    }
+    // However many pellets land, it counts as one hit.
+    if (hitPlayer) {
       this.damaged = true;
       this.hurt = 1;
       if (p.damage()) this.toast('Operator down');
       sfx.hurt();
       this.cameras.main.shake(140, 0.006);
-      if (settings.blood) this.effects.bloodHit(p.x, p.y, dx, dy);
-    } else {
-      this.effects.bulletHole(hx, hy, dx, dy);
     }
-    const seen = this.canSee(e.x, e.y);
-    if (seen) {
-      this.tracers.push({ x0: mx, y0: my, x1: hx, y1: hy, age: 0, color: 0xffb4a8 });
-      this.effects.muzzle(mx, my, false);
-    }
-    sfx.shot(false, this.soundAt(e.x, e.y, 1200));
+    if (seen) this.effects.muzzle(mx, my, pellets > 1);
+    sfx.shot(pellets > 1, this.soundAt(e.x, e.y, 1200));
     this.worldNoise(e.x, e.y, ENEMY_SHOT_NOISE, 'shot');
   }
 

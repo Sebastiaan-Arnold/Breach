@@ -6,18 +6,19 @@ sees, and clear every room without getting hit or harming civilians.
 
 The full design lives in [docs/concept.md](docs/concept.md).
 
-## Status: milestone 3, MVP
+## Status: milestone 4
 
-The build has the police academy Range (training) and the full Officer campaign: five cases
-from 14 Harbour Lane to the Westquay Lockups, each played from briefing to debrief, with saved
-progress, stars and promotion to Senior Officer.
+The build has the police academy Range (training), the Officer campaign (five cases from
+14 Harbour Lane to the Westquay Lockups) and the Senior Officer campaign (five cases inside
+Corvan Logistics), each played from briefing to debrief, with saved progress, stars and
+promotions. Enemies get sharper with every rank.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out), command's marks,
   the case file and intel given as ranges with a reliability rating. Pick one of three entries,
   then deploy. The real situation is rolled from the intel on every deploy.
 - **Intro:** each level opens with a short, skippable cutscene of the operator approaching the
   entry while radio lines play.
-- **Enemies:** Lookouts and Patrollers with an Idle / Alert / Combat state machine. They see in a
+- **Enemies:** Lookouts, Patrollers and (from Senior Officer) Hiders with an Idle / Alert / Combat state machine. They see in a
   cone with real line of sight, hear your noise, investigate it, path through the house (opening
   doors) and shoot back. Lookouts shout to alert the others.
 - **Civilians:** freeze or flee when shooting starts; hold E next to one to secure them.
@@ -104,5 +105,5 @@ when it lands on `main`.
 
 ## Next
 
-Playtest and tune the Officer campaign, then milestone 4: the Senior Officer campaign (offices
-and warehouses of the logistics firm), the Hider enemy type, and the remaining guns.
+Playtest and tune both campaigns, then the Sergeant campaign (hotel floors, the Heavy enemy
+type) and the Lieutenant campaign, and later an optional realism mode with one life.

@@ -3,6 +3,26 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.0
+
+Milestone 4: the Senior Officer campaign.
+
+- Difficulty rises with rank. Each campaign has a difficulty profile: from Senior Officer on,
+  enemies react faster, notice you sooner, aim tighter and fire more often. Officer stays as it
+  was; Sergeant and Lieutenant profiles are ready for their campaigns.
+- New enemy: the Hider. It waits behind cover with a shotgun, tracks you silently at range and
+  only opens fire once you're within about five tiles. It never leaves its spot.
+- The Supply Chain campaign, five cases following Corvan Logistics:
+  1. Corvan Depot: racking aisles with Hiders waiting among the shelves.
+  2. Corvan Head Office: an open-plan office with staff working late among the hostiles.
+  3. Cold Store: a dark refrigerated warehouse with shotguns between the racks.
+  4. Ferry Road: a truck yard with patrols between the lorries, on unverified intel.
+  5. Harbour Freight Office: the Harbourmaster's own office, on confirmed intel.
+- Promotion to Sergeant (all five cases and 10 of 15 stars) issues the shotgun.
+- New set dressing: warehouse racking and lorries. Props can have custom sizes.
+- The menu lists campaigns on the left and the chosen campaign's cases on the right, so it
+  scales to every rank.
+
 ## v0.3.3
 
 - The exterior is always lit: streets, gardens, yards and the outside of buildings are never

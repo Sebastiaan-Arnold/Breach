@@ -1,0 +1,92 @@
+import type { LevelDef } from './types';
+
+/**
+ * Senior Officer campaign, case 2: an open-plan office with staff working late among the hostiles.
+ * Legend: see src/core/grid.ts.
+ */
+const MAP: readonly string[] = [
+  '################################################',
+  '#==============================================#',
+  '#==============================================#',
+  '#==##############################D###########==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................i..i.TTTTTT..#==#',
+  '#==#...TT...TT...TT...TT...TT..i..D.TTTTTT..#==#',
+  '#==#...........................i..i.TTTTTT..#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................D..i.........#==#',
+  '#==#...TT...TT...TT...TT...TT..i..iiiiiiiiii#==#',
+  '#==D...........................i..i.........#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...TT...TT...TT...TT...TT..i..D....TTT..#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................D..i.........#==#',
+  '#==#...........................i..i.........#==#',
+  '#==#...........................i..iiiiiiiiii#==#',
+  '#==#iiiiiiiiiiiiiiiiiiiDiiiiiiii..i;;;;;;;;;#==#',
+  '#==#~~~~~~~~~~~~~i.............i..i;;TTTTTT;#==#',
+  '#==#~TTTTT~~~~~~~i..TTTTTT.....i..D;;;;;;;;;#==#',
+  '#==#~~~~~~~~~~~~~D.............D..i;;TTTTTT;#==#',
+  '#==#~~~~~~~~~~~~~i.............i..i;;;;;;;;;#==#',
+  '#==#~~~~~~~~~~~~~i.............i..i;;TTTTTT;#==#',
+  '#==####################D#####################==#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '#==============================================#',
+  '################################################',
+];
+
+export const CORVAN_HEAD_OFFICE: LevelDef = {
+  id: 'corvan-head-office',
+  name: 'Corvan Head Office',
+  map: MAP,
+  labels: [],
+  props: [
+    { kind: 'van', tx: 12, ty: 28 },
+    { kind: 'car', tx: 36, ty: 28, color: 0x1f2937 },
+    { kind: 'car', tx: 40, ty: 28, color: 0x7f1d1d },
+  ],
+  entries: [
+    { id: 'front', name: 'front door', approach: [{ tx: 18.5, ty: 29.5 }, { tx: 18.5, ty: 27.6 }, { tx: 23.5, ty: 27.6 }] },
+    { id: 'rear', name: 'rear door', approach: [{ tx: 40.5, ty: 1.6 }, { tx: 33.5, ty: 1.6 }, { tx: 33.5, ty: 2.4 }] },
+    { id: 'fire', name: 'fire exit', approach: [{ tx: 1.6, ty: 22.5 }, { tx: 1.6, ty: 12.5 }, { tx: 2.4, ty: 12.5 }] },
+  ],
+  intro: [
+    'Dispatch: Unit 7, you are at Corvan Logistics head office.',
+    'Command: Staff are still inside. Check every target. Go in by the {entry}.',
+    "Command: Senior Officer, you're cleared to enter.",
+  ],
+  mission: {
+    caseLabel: 'Senior Officer · Case 2',
+    title: 'Corvan Head Office',
+    location: 'Corvan Logistics head office, Quayside',
+    summary: [
+      'The sign-off on the depot records belongs to an operations manager at Corvan head office.',
+      'Tonight he is working late with security he pays himself. Some office staff are still at their desks.',
+      'The open-plan floor has long sight lines and only desks for cover. The server room is not on the plans.',
+      'Warrant: arrest the operations manager and his security, and seize his files.',
+    ],
+    hostiles: { min: 4, max: 6 },
+    loadout: 'Handguns and shotguns',
+    civilians: { min: 2, max: 3, text: 'Office staff are working late' },
+    reliability: 'Likely',
+    hostileSlots: [
+      { type: 'lookout', tx: 24.5, ty: 23.5, facing: 90 },
+      { type: 'lookout', tx: 40.5, ty: 16.5, facing: 180 },
+      { type: 'lookout', tx: 40.5, ty: 22.5, facing: 180 },
+      { type: 'lookout', tx: 39.5, ty: 9.5, facing: 180 },
+      { type: 'hider', tx: 14.5, ty: 12.5, facing: 180 },
+      { type: 'hider', tx: 26.5, ty: 8.5, facing: 90 },
+      { type: 'patroller', tx: 5.5, ty: 5.5, facing: 0, route: [{ tx: 29.5, ty: 5.5 }, { tx: 29.5, ty: 18.5 }, { tx: 5.5, ty: 18.5 }, { tx: 5.5, ty: 5.5 }] },
+      { type: 'patroller', tx: 32.5, ty: 5.5, facing: 90, route: [{ tx: 32.5, ty: 24.5 }, { tx: 32.5, ty: 5.5 }] },
+    ],
+    civilianSlots: [{ tx: 9.5, ty: 9.5 }, { tx: 20.5, ty: 17.5 }, { tx: 8.5, ty: 24.5 }, { tx: 41.5, ty: 5.5 }],
+    unknownZones: [{ x0: 35, y0: 20, x1: 43, y1: 25 }],
+    debriefNote: "The manager's files name the man behind the deliveries: Elias Rook, 'the Harbourmaster', who runs Corvan's freight office on the docks.",
+  },
+};
