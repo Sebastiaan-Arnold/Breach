@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.7.0
+
+Presentation, part three: briefing and promotion.
+
+- Briefing: the display face for the case title and section headings (each with a rule), gun
+  choices as chips, and proper Deploy and Back buttons. The plan scans in under a moving line,
+  command's marks fade in after it, and the chosen entry point pulses. Up and down pick an
+  entry, left and right a gun, Enter deploys, Escape goes back.
+- Promotion is a ceremony: the insignia stamped in with a flash, the new rank, the note line by
+  line with its signature, and a card for whatever is issued with it.
+- Every briefing was rechecked for overlapping text with every gun selected, after the
+  entrance animations.
+
 ## v0.6.0
 
 Presentation, part two: game feel.

@@ -9,7 +9,7 @@ import { levelById } from '../levels';
 import { campaignOf, DIFFICULTY } from '../levels/campaigns';
 import { propSize } from '../levels/props';
 import type { LevelDef, Reliability } from '../levels/types';
-import { ACCENT, DIM, fadeIn, goTo, RED, setupScreenCamera, style, TEXT } from './ui';
+import { ACCENT, Button, DIM, display, fadeIn, goTo, RED, setupScreenCamera, stagger, style, TEXT, UI } from './ui';
 
 const MAP = { x: 40, y: 120, w: 720, h: 545 };
 const PANEL = { x: 800, w: 420 };
@@ -40,7 +40,11 @@ export class BriefingScene extends Phaser.Scene {
   private primary: WeaponId = 'pistol';
   private gunLabels: Phaser.GameObjects.Text[] = [];
   private gunBlurb?: Phaser.GameObjects.Text;
-  private deployLabel!: Phaser.GameObjects.Text;
+  private deployButton!: Button;
+  /** A ring that pulses round the chosen entry point on the plan. */
+  private pulse!: Phaser.GameObjects.Graphics;
+  /** Command's marks on the plan: faded in once the plan has scanned in. */
+  private marks: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super('briefing');
@@ -54,6 +58,7 @@ export class BriefingScene extends Phaser.Scene {
     this.entries = [];
     this.rows = [];
     this.gunLabels = [];
+    this.marks = [];
     // A specialty mission issues its gun; otherwise the last choice, or the best all-round gun
     // issued so far (the sniper rifle is a specialist's pick).
     const guns = unlockedWeapons(progress);
@@ -80,23 +85,65 @@ export class BriefingScene extends Phaser.Scene {
     // Header: which case of which campaign, the address and the time.
     const c = campaignOf(this.def.id);
     const caseNo = c ? `${c.title.toUpperCase()}  ·  CASE ${c.levels.indexOf(this.def.id) + 1} OF ${c.levels.length}` : 'CASE';
-    this.add.text(MAP.x, 40, caseNo, style(12, ACCENT, { fontStyle: 'bold' }));
-    this.add.text(MAP.x, 58, m.title, style(30, TEXT, { fontStyle: 'bold' }));
-    this.add.text(MAP.x, 96, `${m.location}  ·  ${m.time}  ·  Unit 7`, style(13, DIM));
+    const header = [
+      this.add.text(MAP.x, 40, caseNo, display(13, ACCENT)),
+      this.add.text(MAP.x, 56, m.title.toUpperCase(), display(34, '#f8fafc')),
+      this.add.text(MAP.x, 96, `${m.location}  ·  ${m.time}  ·  Unit 7`, style(13, DIM)),
+    ];
 
     this.drawMap();
-    this.drawPanel();
+    const panelObjects = this.drawPanel();
     this.refreshEntries();
 
+    // The entrance: header and panel settle in while the plan scans in from the top.
+    stagger(this, header, 0, 60, 6);
+    stagger(this, panelObjects, 150, 14, 4);
+    this.scanIn();
+
+    // Keys: 1-9 or up and down pick an entry, left and right a gun, Enter deploys.
     this.input.keyboard?.on('keydown', (e: KeyboardEvent) => {
+      if (this.data.get('leaving')) return;
       const digit = /^Digit([1-9])$/.exec(e.code);
-      if (digit && Number(digit[1]) <= this.def.entries.length) this.selectEntry(Number(digit[1]) - 1);
-      if (e.code === 'Enter') this.deploy();
+      const n = this.def.entries.length;
+      if (digit && Number(digit[1]) <= n) this.selectEntry(Number(digit[1]) - 1);
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') this.selectEntry((this.entryIndex - 1 + n) % n);
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') this.selectEntry((this.entryIndex + 1) % n);
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') this.cycleGun(-1);
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') this.cycleGun(1);
+      if (e.code === 'Enter') this.deployButton.activate();
       if (e.code === 'Escape') {
         sfx.back();
         goTo(this, 'menu');
       }
     });
+  }
+
+  /**
+   * The plan scans in under a moving line, top to bottom, then command's marks fade in on it.
+   */
+  private scanIn(): void {
+    const cover = this.add.rectangle(MAP.x - 4, MAP.y - 4, MAP.w + 8, MAP.h + 28, UI.panel).setOrigin(0).setDepth(5);
+    const line = this.add.rectangle(MAP.x - 4, MAP.y - 4, MAP.w + 8, 2, UI.accent, 0.9).setOrigin(0).setDepth(6);
+    const glow = this.add.rectangle(MAP.x - 4, MAP.y - 4, MAP.w + 8, 16, UI.accent, 0.12).setOrigin(0, 1).setDepth(6);
+    const travel = MAP.h + 28;
+    this.tweens.add({
+      targets: [cover], y: MAP.y - 4 + travel, height: 0, duration: 900, ease: 'Cubic.InOut', delay: 120,
+      onUpdate: () => {
+        line.y = cover.y;
+        glow.y = cover.y;
+      },
+      onComplete: () => {
+        this.tweens.add({ targets: [line, glow], alpha: 0, duration: 200, onComplete: () => { line.destroy(); glow.destroy(); cover.destroy(); } });
+        for (const m of this.marks) (m as unknown as Phaser.GameObjects.Components.Alpha).setAlpha(0);
+        this.tweens.add({ targets: this.marks, alpha: 1, duration: 300 });
+      },
+    });
+  }
+
+  private cycleGun(dir: -1 | 1): void {
+    const ids = this.gunLabels.map((l) => l.getData('gun') as WeaponId);
+    if (ids.length < 2) return;
+    this.selectGun(ids[(ids.indexOf(this.primary) + dir + ids.length) % ids.length]);
   }
 
   // ---------------------------------------------------------------- floor plan
@@ -154,6 +201,7 @@ export class BriefingScene extends Phaser.Scene {
 
     // Command's marks: last known suspect positions and the reported civilian.
     const marks = this.add.graphics();
+    this.marks.push(marks);
     for (const p of this.situation.suspectMarks) {
       const x = ox + p.tx * s, y = oy + p.ty * s;
       marks.lineStyle(3, 0xef4444, 0.95);
@@ -168,8 +216,11 @@ export class BriefingScene extends Phaser.Scene {
       marks.strokeCircle(ox + c.tx * s, oy + c.ty * s, s * 1.6);
     }
     // A case's twist gets a label on the plan, in the same yellow as its intel line.
-    const tag = (text: string, x: number, y: number) =>
-      this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold', backgroundColor: '#0b1220', padding: { x: 3, y: 1 } })).setOrigin(0.5, 0);
+    const tag = (text: string, x: number, y: number) => {
+      const t = this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold', backgroundColor: '#0b1220', padding: { x: 3, y: 1 } })).setOrigin(0.5, 0);
+      this.marks.push(t);
+      return t;
+    };
     for (const p of m.alarmPanels ?? []) {
       const ax = ox + p.tx * s, ay = oy + p.ty * s;
       marks.lineStyle(2, 0xfacc15, 0.9);
@@ -192,6 +243,10 @@ export class BriefingScene extends Phaser.Scene {
 
     // Entry points: a route from the van, a numbered marker and a name.
     const cx = ox + (level.width * s) / 2, cy = oy + (level.height * s) / 2;
+    this.pulse = this.add.graphics();
+    this.pulse.lineStyle(2, UI.accent, 1);
+    this.pulse.strokeCircle(0, 0, 14);
+    this.tweens.add({ targets: this.pulse, scale: { from: 1, to: 1.9 }, alpha: { from: 0.9, to: 0 }, duration: 1100, repeat: -1, ease: 'Quad.Out' });
     this.def.entries.forEach((entry, i) => {
       const pts = entry.approach.map((p) => ({ x: ox + p.tx * s, y: oy + p.ty * s }));
       const end = pts[pts.length - 1];
@@ -229,12 +284,14 @@ export class BriefingScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- case file, intel, entry
 
-  private drawPanel(): void {
+  private drawPanel(): Phaser.GameObjects.GameObject[] {
     const m = this.def.mission!;
     const x = PANEL.x, w = PANEL.w;
     let y = 40;
+    const before = this.children.list.length;
     const heading = (t: string) => {
-      this.add.text(x, y, t, style(11, ACCENT, { fontStyle: 'bold' }));
+      const h = this.add.text(x, y - 1, t, display(13, ACCENT));
+      this.add.rectangle(x + h.width + 10, y + 8, w - h.width - 10, 1, UI.line).setOrigin(0, 0.5);
       y += 20;
     };
 
@@ -270,8 +327,10 @@ export class BriefingScene extends Phaser.Scene {
     this.add.text(x, y, 'Primary', style(13, DIM));
     let gx = x + 110;
     for (const id of guns) {
-      const label = this.add.text(gx, y, m.issued ? WEAPONS[id].name : WEAPONS[id].short, style(13, TEXT)).setInteractive({ useHandCursor: true });
+      const label = this.add.text(gx, y - 2, (m.issued ? WEAPONS[id].name : WEAPONS[id].short).toUpperCase(), display(15, TEXT)).setInteractive({ useHandCursor: true });
       label.setData('gun', id);
+      label.on('pointerover', () => id !== this.primary && (label.setColor(TEXT), sfx.hover()));
+      label.on('pointerout', () => this.selectGun(this.primary, true));
       label.on('pointerup', () => this.selectGun(id));
       this.gunLabels.push(label);
       gx += label.width + 22;
@@ -299,8 +358,11 @@ export class BriefingScene extends Phaser.Scene {
 
     heading('ENTRY POINT');
     this.def.entries.forEach((entry, i) => {
-      const row = this.add.text(x, y, '', style(15, TEXT)).setInteractive({ useHandCursor: true });
-      row.on('pointerover', () => this.hover(i));
+      const row = this.add.text(x, y, '', display(17, TEXT)).setInteractive({ useHandCursor: true });
+      row.on('pointerover', () => {
+        if (i !== this.hoverIndex) sfx.hover();
+        this.hover(i);
+      });
       row.on('pointerout', () => this.hover(-1));
       row.on('pointerup', () => this.selectEntry(i));
       row.setData('label', `${i + 1}   ${cap(entry.name)}`);
@@ -308,37 +370,22 @@ export class BriefingScene extends Phaser.Scene {
       y += 28;
     });
 
-    // Deploy button.
-    const by = VIEW_H - 112, bw = w, bh = 48;
-    const box = this.add.graphics();
-    const drawBox = (hover: boolean) => {
-      box.clear();
-      box.fillStyle(hover ? 0x2563eb : 0x1d4ed8, 1);
-      box.fillRoundedRect(x, by, bw, bh, 8);
-    };
-    drawBox(false);
-    this.deployLabel = this.add.text(x + bw / 2, by + bh / 2, '', style(18, '#ffffff', { fontStyle: 'bold' })).setOrigin(0.5);
-    const zone = this.add.zone(x + bw / 2, by + bh / 2, bw, bh).setInteractive({ useHandCursor: true });
-    zone.on('pointerover', () => drawBox(true));
-    zone.on('pointerout', () => drawBox(false));
-    zone.on('pointerup', () => this.deploy());
-
-    const back = this.add.text(x + bw / 2, by + bh + 22, 'Back to menu', style(12, DIM)).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    back.on('pointerover', () => back.setColor(ACCENT));
-    back.on('pointerout', () => back.setColor(DIM));
-    back.on('pointerup', () => {
+    const by = VIEW_H - 112, bh = 48;
+    this.deployButton = new Button(this, x + w / 2, by + bh / 2, w, bh, 'DEPLOY', () => this.deploy(), { primary: true, size: 19 });
+    new Button(this, x + w / 2, by + bh + 26, 200, 30, 'BACK TO MENU', () => {
       sfx.back();
       goTo(this, 'menu');
-    });
+    }, { size: 12 });
+    return this.children.list.slice(before);
   }
 
-  private selectGun(id: WeaponId): void {
-    if (id !== this.primary) sfx.select();
+  private selectGun(id: WeaponId, quiet = false): void {
+    if (id !== this.primary && !quiet) sfx.select();
     this.primary = id;
     if (!this.def.mission?.issued) kit.primary = id;
     for (const l of this.gunLabels) {
       const on = l.getData('gun') === id;
-      l.setColor(on ? ACCENT : DIM).setFontStyle(on ? 'bold' : 'normal');
+      l.setColor(on ? ACCENT : DIM);
     }
     this.gunBlurb?.setText(WEAPONS[id].blurb);
   }
@@ -383,12 +430,13 @@ export class BriefingScene extends Phaser.Scene {
       const row = this.rows[i];
       row.setText(`${on ? '▸' : ' '} ${row.getData('label')}`).setColor(on ? ACCENT : hot ? TEXT : DIM);
     });
-    this.deployLabel.setText(`DEPLOY  ·  ${cap(this.def.entries[this.entryIndex].name)}`);
+    this.deployButton.setText(`DEPLOY  ·  ${this.def.entries[this.entryIndex].name.toUpperCase()}`);
+    const sel = this.entries[this.entryIndex];
+    const end = sel.pts[sel.pts.length - 1];
+    this.pulse.setPosition(end.x, end.y);
   }
 
   private deploy(): void {
-    sfx.unlock();
-    sfx.confirm();
     sfx.menuAmbience(false);
     goTo(this, 'game', {
       levelId: this.def.id, entryId: this.def.entries[this.entryIndex].id, situation: this.situation, primary: this.primary,
