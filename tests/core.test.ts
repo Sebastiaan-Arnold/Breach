@@ -241,7 +241,7 @@ describe('level data', () => {
         const m = def.mission!;
         const points = [
           ...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? []),
-          ...(m.hostage ? [m.hostage] : []), ...(m.evidence ? [m.evidence] : []),
+          ...(m.hostage ? [m.hostage] : []), ...(m.evidence ? [m.evidence] : []), ...(m.alarmPanels ?? []),
         ];
         const passable = (x: number, y: number) => lvl.tiles[y * lvl.width + x] === 'floor';
         const reach = (a: { tx: number; ty: number }, b: { tx: number; ty: number }) =>

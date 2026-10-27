@@ -1,8 +1,8 @@
 import type { LevelDef } from './types';
 
 /**
- * Lieutenant campaign, case 3, silent: a country house round a cloistered courtyard. The mission
- * fails if the alarm goes up, so it's made for suppressors.
+ * Lieutenant campaign, case 3, silent: a country house round a cloistered courtyard. Alerted
+ * guards run for the alarm panels; one reaching a panel fails the mission. Made for suppressors.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -73,11 +73,10 @@ export const ARDLEY_LODGE: LevelDef = {
     situation: [
       "Deputy Commissioner Calloway's country house. Her records are in the study.",
       'Ex-police security in the house and on the grounds. Glass round the courtyard.',
-      'If the alarm goes up, Calloway is tipped off. Drop each guard in one go.',
+      'Alarm panels in the library and the drawing room. If a guard reaches one, Calloway is tipped off.',
     ],
     objective: 'Neutralise the security without raising the alarm.',
-    twist: { label: 'Silent', text: 'Fails if the alarm goes up' },
-    silent: true,
+    twist: { label: 'Silent', text: 'No guard reaches an alarm panel' },
     hostiles: { min: 5, max: 6 },
     loadout: 'Handguns',
     civilians: { min: 1, max: 2, text: 'A housekeeper, a gardener' },
@@ -93,6 +92,7 @@ export const ARDLEY_LODGE: LevelDef = {
     ],
     civilianSlots: [{ tx: 11.5, ty: 22.5 }, { tx: 48.5, ty: 30.5 }, { tx: 29.5, ty: 8.5 }],
     unknownZones: [],
+    alarmPanels: [{ tx: 12.5, ty: 8.5 }, { tx: 42.5, ty: 23.5 }],
     debriefNote: "Calloway's records: cash and files held at the Gull Point lighthouse, her private retreat.",
   },
 };

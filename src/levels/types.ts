@@ -95,8 +95,12 @@ export interface MissionDef {
    * one reaching it fails the mission. Ground units secure the civilians.
    */
   overwatch?: { getaway: TilePos };
-  /** Silent: the mission fails the moment the alarm goes up. Made for suppressors. */
-  silent?: boolean;
+  /**
+   * Alarm panels. When guards hear or see trouble they push or dig in as usual, and the alerted
+   * guard nearest a panel runs for it. If he reaches it and sets it off, the mission fails;
+   * drop him first and the next alerted guard takes up the run. Made for suppressors.
+   */
+  alarmPanels?: TilePos[];
 }
 
 /**

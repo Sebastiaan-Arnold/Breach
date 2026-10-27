@@ -3,6 +3,14 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.12
+
+- Ardley Lodge reworked, from playtesting: being seen or heard no longer fails the mission on
+  the spot. The house has two alarm panels, marked ALARM on the plan. Alerted guards push or
+  dig in as usual, and the alerted guard nearest a panel runs for it ("A guard is running for
+  the alarm"). Drop him before he has set it off and the mission goes on; the next alerted
+  guard takes up the run. Reaching a panel and staying 1.5 s raises the alarm and fails it.
+
 ## v0.4.11
 
 - Glass breaks: any shot through a window shatters it, with a crash every suspect in earshot

@@ -43,6 +43,8 @@ const SCOPE = { halfFov: 4 * DEG, range: 1800, sweepStep: 0.25 * DEG, lookahead:
 const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 68, lookahead: 520 };
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
+/** Seconds a guard needs at a panel to set the alarm off. */
+const ALARM_ARM_TIME = 1.5;
 /** Breaking glass is loud: suppressed or not, a shattered window carries through the house. */
 const GLASS_NOISE = 700;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
@@ -56,7 +58,7 @@ const ENEMY_SHOTGUN_SPREAD = 7;
 const MISSION_FAILURES = {
   time: { title: 'Out of time', lines: ['Hostage not reached in time.', 'On redeploy, go for the hostage room first.'] },
   escaped: { title: 'Suspect escaped', lines: ['A suspect reached the car.', 'On redeploy, take the ones nearest the car first.'] },
-  alarm: { title: 'Compromised', lines: ['The alarm went up.', 'On redeploy, stay unseen and keep shots quiet.'] },
+  alarm: { title: 'Alarm raised', lines: ['A guard reached an alarm panel.', 'On redeploy, stop whoever runs for a panel.'] },
 } as const;
 type MissionFailure = keyof typeof MISSION_FAILURES;
 
@@ -159,6 +161,9 @@ export class GameScene extends Phaser.Scene {
   private destroyer: Enemy | null = null;
   private destroying = 0;
   private evidenceLost = false;
+  /** The guard running for an alarm panel, and how long he's been at it. */
+  private alarmRunner: Enemy | null = null;
+  private arming = 0;
   /** Guns on the number keys: primary then pistol in a mission, everything unlocked on the Range. */
   private guns: WeaponId[] = ['pistol'];
   /** Set when this run earned a promotion; shown on the way back to the menu. */
@@ -194,6 +199,8 @@ export class GameScene extends Phaser.Scene {
     this.destroyer = null;
     this.destroying = 0;
     this.evidenceLost = false;
+    this.alarmRunner = null;
+    this.arming = 0;
     this.promotion = null;
   }
 
@@ -815,6 +822,7 @@ export class GameScene extends Phaser.Scene {
     this.updateHostage(dt);
     this.updateEvidence(dt);
     this.updateGetaway();
+    this.updateAlarmPanels(dt);
     // The area is secure once every suspect is down and every civilian is secured (or hit).
     const suspectsDown = this.enemies.length > 0 && this.enemies.every((e) => !e.alive);
     // On overwatch, ground units see to the civilians.
@@ -848,11 +856,6 @@ export class GameScene extends Phaser.Scene {
     if (this.alarm || this.intro.active || !this.def.mission) return;
     this.alarm = true;
     const m = this.def.mission;
-    if (m.silent) {
-      this.failure = 'alarm';
-      this.toast('Compromised');
-      return;
-    }
     if (m.hostage && this.hostage?.canBeSecured) {
       this.clock = m.hostage.seconds;
       this.toast(`Compromised. ${m.hostage.seconds} s to reach the hostage.`);
@@ -887,6 +890,41 @@ export class GameScene extends Phaser.Scene {
       this.failure = 'time';
       this.clock = null;
       this.toast('Out of time');
+    }
+  }
+
+  /**
+   * Alarm panels: the alerted guard nearest a panel runs for it, one at a time. Reaching it and
+   * staying long enough sets it off.
+   */
+  private updateAlarmPanels(dt: number): void {
+    const panels = this.def.mission?.alarmPanels;
+    if (!panels?.length || this.failure) return;
+    if (this.alarmRunner && !this.alarmRunner.alive) {
+      this.alarmRunner = null;
+      this.toast('Alarm runner down');
+    }
+    if (!this.alarmRunner) {
+      let best: { e: Enemy; x: number; y: number; d: number } | null = null;
+      for (const e of this.enemies) {
+        if (!e.alive || e.errand || (e.state !== 'alert' && e.state !== 'combat')) continue;
+        for (const p of panels) {
+          const x = p.tx * TILE, y = p.ty * TILE, d = Math.hypot(x - e.x, y - e.y);
+          if (!best || d < best.d) best = { e, x, y, d };
+        }
+      }
+      if (!best) return;
+      best.e.sendTo(best.x, best.y);
+      this.alarmRunner = best.e;
+      this.arming = 0;
+      this.toast('A guard is running for the alarm');
+    }
+    if (!this.alarmRunner.atErrand) return;
+    this.arming += dt;
+    if (this.arming >= ALARM_ARM_TIME) {
+      this.failure = 'alarm';
+      sfx.penalty();
+      this.toast('Alarm raised');
     }
   }
 
