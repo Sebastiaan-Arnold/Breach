@@ -85,6 +85,8 @@ export class Enemy {
    * ignores the operator; `atErrand` says it has arrived.
    */
   errand: { x: number; y: number } | null = null;
+  /** Has seen the operator or heard a fight (a shot, a shout, glass), not just a footstep. */
+  alarmed = false;
   atErrand = false;
   private errandSpeed = SPEED_PUSH;
   private flinch = 0;
@@ -199,6 +201,7 @@ export class Enemy {
       return;
     }
     const fight = e.kind === 'shot' || e.kind === 'shout' || e.kind === 'glass';
+    if (fight) this.alarmed = true;
     this.state = 'alert';
     this.goal = null;
     this.lookTimer = 0;
@@ -277,6 +280,7 @@ export class Enemy {
 
   private enterCombat(ctx: EnemyContext): void {
     this.state = 'combat';
+    this.alarmed = true;
     this.reactTimer = (this.dugIn ? REACTION_HOLDING : REACTION[this.type]) * this.difficulty.reaction;
     this.fireTimer = 0;
     this.path = [];

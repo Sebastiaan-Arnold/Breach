@@ -61,8 +61,8 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
 };
 
-/** A suppressor cuts how far a shot is heard to this fraction. */
-export const SUPPRESSED_NOISE = 0.3;
+/** A suppressor cuts how far a shot is heard to this fraction: a few rooms, not the house. */
+export const SUPPRESSED_NOISE = 0.15;
 
 export class WeaponState {
   mag: number;

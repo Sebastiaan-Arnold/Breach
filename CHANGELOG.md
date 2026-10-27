@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.13
+
+Ardley Lodge, from playtesting:
+
+- Kitchen Garden entry: the grounds patrol no longer walks past the kitchen door, and the
+  kitchen guard no longer stands facing it. Spawning there (or at the other entries) no longer
+  gets you seen straight away.
+- Only real trouble sends a guard to the alarm: seeing you, or hearing a shot, a shout or
+  breaking glass. Footsteps and doors only make a guard curious. He walks briskly rather than
+  sprints, and needs 3 s at the panel instead of 1.5 s, with an ALARM countdown at the top of
+  the screen.
+- Suppressors are stronger: a suppressed shot is heard about half as far as before.
+
 ## v0.4.12
 
 - Ardley Lodge reworked, from playtesting: being seen or heard no longer fails the mission on

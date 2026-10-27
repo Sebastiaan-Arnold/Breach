@@ -143,11 +143,11 @@ export class HudScene extends Phaser.Scene {
     this.subtitle.setText(cut?.subtitle ?? '');
     this.skipHint.setVisible(!!cut);
     this.securing.setVisible(s.securing !== null);
-    // The hostage clock: the only timer in the game, so it sits alone at the top.
+    // A countdown (the hostage clock, or a guard at an alarm panel) sits alone at the top.
     this.clock.setVisible(s.clock !== null && !cut);
     if (s.clock !== null) {
-      const t = Math.ceil(s.clock);
-      this.clock.setText(`HOSTAGE  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`).setColor(t <= 10 ? RED : TEXT);
+      const t = Math.ceil(s.clock.seconds);
+      this.clock.setText(`${s.clock.label}  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`).setColor(t <= 10 ? RED : TEXT);
     }
 
     this.toasts = this.toasts.filter((t) => {

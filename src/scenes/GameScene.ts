@@ -44,7 +44,9 @@ const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 68, lookahead: 520 };
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
 /** Seconds a guard needs at a panel to set the alarm off. */
-const ALARM_ARM_TIME = 1.5;
+const ALARM_ARM_TIME = 3;
+/** A guard running for a panel goes at a brisk walk, not a sprint: there's time to catch him. */
+const ALARM_RUN_SPEED = 80;
 /** Breaking glass is loud: suppressed or not, a shattered window carries through the house. */
 const GLASS_NOISE = 700;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
@@ -100,8 +102,8 @@ export interface HudState {
   cutscene: { bars: number; subtitle: string | null } | null;
   /** 0..1 while holding E on a civilian. */
   securing: number | null;
-  /** Seconds left to reach the hostage, once the alarm is up. */
-  clock: number | null;
+  /** A countdown at the top of the screen: the hostage clock, or a guard setting off an alarm. */
+  clock: { label: string; seconds: number } | null;
   outcome: Outcome | null;
 }
 
@@ -907,14 +909,15 @@ export class GameScene extends Phaser.Scene {
     if (!this.alarmRunner) {
       let best: { e: Enemy; x: number; y: number; d: number } | null = null;
       for (const e of this.enemies) {
-        if (!e.alive || e.errand || (e.state !== 'alert' && e.state !== 'combat')) continue;
+        // Footsteps and doors only make a guard curious; a fight sends him to the alarm.
+        if (!e.alive || e.errand || !e.alarmed) continue;
         for (const p of panels) {
           const x = p.tx * TILE, y = p.ty * TILE, d = Math.hypot(x - e.x, y - e.y);
           if (!best || d < best.d) best = { e, x, y, d };
         }
       }
       if (!best) return;
-      best.e.sendTo(best.x, best.y);
+      best.e.sendTo(best.x, best.y, ALARM_RUN_SPEED);
       this.alarmRunner = best.e;
       this.arming = 0;
       this.toast('A guard is running for the alarm');
@@ -1080,7 +1083,8 @@ export class GameScene extends Phaser.Scene {
       hurt: this.hurt,
       cutscene: this.intro.active ? { bars: this.intro.bars, subtitle: this.intro.subtitle } : null,
       securing: this.securing ? this.securing.secureProgress : null,
-      clock: this.clock,
+      clock: this.clock !== null ? { label: 'HOSTAGE', seconds: this.clock }
+        : this.alarmRunner?.atErrand ? { label: 'ALARM', seconds: Math.max(0, ALARM_ARM_TIME - this.arming) } : null,
       outcome: this.outcome,
     };
   }
