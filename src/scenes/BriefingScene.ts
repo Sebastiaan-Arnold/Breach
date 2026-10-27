@@ -150,15 +150,22 @@ export class BriefingScene extends Phaser.Scene {
       marks.lineBetween(x - 7, y - 7, x + 7, y + 7);
       marks.lineBetween(x - 7, y + 7, x + 7, y - 7);
     }
-    for (const c of this.situation.civilians) {
+    // At most three civilians are marked, so a crowded case doesn't bury the plan. A hostage is
+    // always marked.
+    const m = this.def.mission!;
+    for (const c of [...(m.hostage ? [m.hostage] : []), ...this.situation.civilians].slice(0, 3)) {
       marks.lineStyle(2, 0xfacc15, 0.9);
       marks.strokeCircle(ox + c.tx * s, oy + c.ty * s, s * 1.6);
     }
-    // Where a runner would make for.
-    const exits = this.def.mission?.exits ?? [];
-    for (const e of exits) {
-      marks.lineStyle(2, 0xef4444, 0.9);
-      marks.strokeRect(ox + e.tx * s - 7, oy + e.ty * s - 7, 14, 14);
+    // A case's twist gets a label on the plan, in the same yellow as its intel line.
+    const tag = (text: string, x: number, y: number) =>
+      this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold' })).setOrigin(0.5, 0);
+    if (m.hostage) tag('HOSTAGE', ox + m.hostage.tx * s, oy + m.hostage.ty * s + s * 1.6 + 2);
+    if (m.evidence) {
+      const ex = ox + m.evidence.tx * s, ey = oy + m.evidence.ty * s;
+      marks.lineStyle(2, 0xfacc15, 0.9);
+      marks.strokeRect(ex - 6, ey - 6, 12, 12);
+      tag('EVIDENCE', ex, ey + 9);
     }
 
     // Entry points: a route from the van, a numbered marker and a name.
@@ -174,6 +181,9 @@ export class BriefingScene extends Phaser.Scene {
       const lx = end.x + Math.cos(away) * 22, ly = end.y + Math.sin(away) * 22;
       const mapLabel = this.add.text(lx, ly, cap(entry.name), style(11, TEXT, { fontStyle: 'bold' }))
         .setOrigin(Math.cos(away) < -0.3 ? 1 : Math.cos(away) > 0.3 ? 0 : 0.5, Math.sin(away) > 0.3 ? 0 : Math.sin(away) < -0.3 ? 1 : 0.5);
+      // An entry at the edge of the map has no room beside it: the label goes underneath.
+      const b = mapLabel.getBounds();
+      if (b.x < MAP.x - 12 || b.right > MAP.x + MAP.w + 12) mapLabel.setPosition(end.x, end.y + 16).setOrigin(0.5, 0);
       const zone = this.add.zone(end.x, end.y, 34, 34).setInteractive({ useHandCursor: true });
       zone.on('pointerover', () => this.hover(i));
       zone.on('pointerout', () => this.hover(-1));
@@ -193,11 +203,6 @@ export class BriefingScene extends Phaser.Scene {
     legend.fillStyle(0x2563eb, 1);
     legend.fillCircle(MAP.x + 370, ly, 8);
     this.add.text(MAP.x + 384, ly, 'Entry point: click to choose', style(11, DIM)).setOrigin(0, 0.5);
-    if (exits.length) {
-      legend.lineStyle(2, 0xef4444, 1);
-      legend.strokeRect(MAP.x + 600, ly - 6, 12, 12);
-      this.add.text(MAP.x + 618, ly, 'Way out', style(11, DIM)).setOrigin(0, 0.5);
-    }
   }
 
   // ---------------------------------------------------------------- case file, intel, entry
@@ -217,6 +222,7 @@ export class BriefingScene extends Phaser.Scene {
 
     heading('INTEL');
     const rows: [string, string, string?][] = [
+      ...(m.twist ? [[m.twist.label, m.twist.text, '#facc15'] as [string, string, string]] : []),
       ['Hostiles', `${m.hostiles.min} to ${m.hostiles.max} suspects${this.armoured ? ' in light vests' : ''}`],
       ['Loadout', m.loadout],
       ['Civilians', m.civilians.text],

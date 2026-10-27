@@ -1,8 +1,8 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 2: a terraced house with back gardens and an alley behind. The runner
- * bolts for the end of the street or the alley the moment he knows you're there.
+ * Officer campaign, case 2: a house party in a terraced house and its back garden. Armed men
+ * among a crowd of guests who freeze or scatter when the shooting starts.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -55,7 +55,7 @@ export const FENWICK_TERRACE: LevelDef = {
   ],
   intro: [
     'Dispatch: Unit 7, you are on Fenwick Terrace.',
-    'Command: Marsh runs. Get close before he knows you are there. Go in by the {entry}.',
+    'Command: The place is full of guests. Check every target. Go in by the {entry}.',
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
@@ -63,25 +63,30 @@ export const FENWICK_TERRACE: LevelDef = {
     title: 'Fenwick Terrace',
     location: '12 Fenwick Terrace, Ashby estate',
     summary: [
-      "The Harbour Lane ledger names the crew's runner: Kyle Marsh, 19, who deals from his mother's house.",
-      'Marsh runs, every time. If he sees you or hears trouble, he is out the other side of the house.',
-      "He's unarmed. Don't shoot him: catch him before he reaches the end of the street or the alley.",
-      'Warrant: arrest Marsh and anyone with him.',
+      "The Harbour Lane ledger names Kyle Marsh, 19, who deals for the crew from his mother's house.",
+      "Tonight he's throwing a party. The house and back garden are full of guests, and some of the crew are armed.",
+      'When the shooting starts, guests will freeze or scatter. Check every target.',
+      'Warrant: arrest the armed men and get every guest out safely.',
     ],
+    twist: { label: 'Party', text: 'A crowd of guests. Secure them all' },
     hostiles: { min: 3, max: 4 },
-    loadout: 'Handguns. Marsh is unarmed',
-    civilians: { min: 1, max: 2, text: 'His mother, and neighbours in the gardens' },
+    loadout: 'Handguns',
+    civilians: { min: 6, max: 8, text: 'Six to eight guests' },
     reliability: 'Likely',
     hostileSlots: [
-      { type: 'runner', tx: 25.5, ty: 14.5, facing: 180 },
+      { type: 'lookout', tx: 27.5, ty: 14.5, facing: 180 },
       { type: 'lookout', tx: 24.5, ty: 18.5, facing: 90 },
       { type: 'lookout', tx: 19.5, ty: 8.5, facing: 270 },
       { type: 'lookout', tx: 20.5, ty: 12.5, facing: 270 },
       { type: 'lookout', tx: 18.5, ty: 18.5, facing: 90 },
+      { type: 'lookout', tx: 27.5, ty: 9.5, facing: 180 },
     ],
-    civilianSlots: [{ tx: 28.5, ty: 19.5 }, { tx: 10.5, ty: 8.5 }, { tx: 35.5, ty: 7.5 }],
+    civilianSlots: [
+      { tx: 17.5, ty: 14.5 }, { tx: 24.5, ty: 12.5 }, { tx: 28.5, ty: 13.5 },
+      { tx: 22.5, ty: 17.5 }, { tx: 28.5, ty: 19.5 }, { tx: 26.5, ty: 18.5 }, { tx: 17.5, ty: 20.5 },
+      { tx: 17.5, ty: 6.5 }, { tx: 23.5, ty: 8.5 }, { tx: 25.5, ty: 9.5 },
+    ],
     unknownZones: [],
-    exits: [{ tx: 1.5, ty: 2.5 }, { tx: 44.5, ty: 2.5 }, { tx: 1.5, ty: 26.5 }, { tx: 44.5, ty: 26.5 }],
     debriefNote: "Marsh's phone has the crew's other address: a ground-floor flat in Tollgate House, where they cut and bag.",
   },
 };

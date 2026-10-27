@@ -35,8 +35,6 @@ const CAMERA_LOOKAHEAD = 70;
  * down the aim, and the camera pulls back and pushes out along it.
  */
 const SCOPE = { halfFov: 4 * DEG, range: 1800, sweepStep: 0.25 * DEG, lookahead: 640, zoomOut: 0.4 };
-/** How close the operator has to get to a runner to catch him. */
-const CATCH_DISTANCE = MOVE.radius * 2 + 10;
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
@@ -81,6 +79,8 @@ export interface HudState {
   cutscene: { bars: number; subtitle: string | null } | null;
   /** 0..1 while holding E on a civilian. */
   securing: number | null;
+  /** Seconds left to reach the hostage, once the alarm is up. */
+  clock: number | null;
   outcome: Outcome | null;
 }
 
@@ -124,13 +124,20 @@ export class GameScene extends Phaser.Scene {
   private lastStation: StationDef | undefined;
   private stats = { shots: 0, hits: 0 };
   private damaged = false;
-  /** Unarmed suspects shot: costs the same star as hitting a civilian. */
-  private unarmedHits = 0;
   private hurt = 0;
   private securing: Civilian | null = null;
   private outcomeTimer = -1;
   private outcome: Outcome | null = null;
   private remindedCivilians = false;
+  /** Raised the first time a suspect sees the operator, or on any shot or shout. */
+  private alarm = false;
+  private hostage: Civilian | null = null;
+  private clock: number | null = null;
+  private timedOut = false;
+  /** The suspect sent to destroy the evidence, and how long they've been at it. */
+  private destroyer: Enemy | null = null;
+  private destroying = 0;
+  private evidenceLost = false;
   /** Guns on the number keys: primary then pistol in a mission, everything unlocked on the Range. */
   private guns: WeaponId[] = ['pistol'];
   /** Set when this run earned a promotion; shown on the way back to the menu. */
@@ -154,12 +161,18 @@ export class GameScene extends Phaser.Scene {
     this.lastStation = undefined;
     this.stats = { shots: 0, hits: 0 };
     this.damaged = false;
-    this.unarmedHits = 0;
     this.hurt = 0;
     this.securing = null;
     this.outcomeTimer = -1;
     this.outcome = null;
     this.remindedCivilians = false;
+    this.alarm = false;
+    this.hostage = null;
+    this.clock = null;
+    this.timedOut = false;
+    this.destroyer = null;
+    this.destroying = 0;
+    this.evidenceLost = false;
     this.promotion = null;
   }
 
@@ -181,6 +194,11 @@ export class GameScene extends Phaser.Scene {
       const difficulty = DIFFICULTY[campaignOf(this.def.id)?.rank ?? 1];
       this.enemies = situation.hostiles.map((s) => new Enemy(this, s.type, s, DEPTH.people, difficulty));
       this.civilians = situation.civilians.map((s) => new Civilian(this, s, DEPTH.people));
+      const held = this.def.mission?.hostage;
+      if (held) {
+        this.hostage = new Civilian(this, held, DEPTH.people, true);
+        this.civilians.push(this.hostage);
+      }
     }
 
     this.intro = new Intro(entry.approach, this.def.intro.map((l) => l.replace('{entry}', entry.name)));
@@ -252,6 +270,7 @@ export class GameScene extends Phaser.Scene {
     }
     const ctx = this.enemyContext(ptx, pty);
     for (const e of this.enemies) e.update(dt, ctx, this.canSee(e.x, e.y));
+    if (this.enemies.some((e) => e.alive && e.state === 'combat')) this.raiseAlarm();
     for (const c of this.civilians) c.update(dt, this.world, this.canSee(c.x, c.y), p.x, p.y);
     this.updateSecuring(dt);
 
@@ -332,8 +351,6 @@ export class GameScene extends Phaser.Scene {
       // The intro is a cutscene: nobody can spot (or shoot) the operator until it's over.
       player: { x: p.x, y: p.y, alive: p.alive && !this.intro.active, inDark: this.world.isDark(ptx, pty) },
       shoot: (e, angle, pellets) => this.enemyShoot(e, angle, pellets),
-      exits: (this.def.mission?.exits ?? []).map((t) => ({ x: t.tx * TILE, y: t.ty * TILE })),
-      bolted: () => this.toast("He's running!"),
       noise: (e, radius, kind) => {
         this.worldNoise(e.x, e.y, radius, kind);
         if (kind === 'shout') sfx.shout(this.soundAt(e.x, e.y, radius));
@@ -343,6 +360,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onNoise(e: NoiseEvent): void {
+    if (e.kind === 'shot' || e.kind === 'shout') this.raiseAlarm();
     for (const en of this.enemies) en.hear(e);
     for (const c of this.civilians) c.hear(e, this.world);
   }
@@ -489,10 +507,6 @@ export class GameScene extends Phaser.Scene {
     if (t.kind === 'civilian') {
       sfx.penalty();
       this.toast('Civilian hit. That costs you a star.');
-    } else if (t instanceof Enemy && !t.armed) {
-      this.unarmedHits++;
-      sfx.penalty();
-      this.toast('He was unarmed. That costs you a star.');
     } else {
       sfx.hit();
     }
@@ -638,7 +652,7 @@ export class GameScene extends Phaser.Scene {
       c.secure();
       this.securing = null;
       sfx.ok();
-      this.toast('Civilian secured');
+      this.toast(c.hostage ? 'Hostage safe' : 'Civilian secured');
     }
   }
 
@@ -756,20 +770,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.outcome) return;
-    // Runners are caught by getting to them.
-    for (const e of this.enemies) {
-      if (e.type !== 'runner' || !e.alive || !p.alive) continue;
-      if (Math.hypot(e.x - p.x, e.y - p.y) < CATCH_DISTANCE) {
-        e.arrest();
-        sfx.ok();
-        this.toast('Runner caught');
-      }
-    }
-    // A runner reaching a way out ends the mission.
-    if (this.enemies.some((e) => e.state === 'escaped') && this.outcomeTimer < 0) {
-      this.outcomeTimer = 0;
-      this.toast('He got away');
-    }
+    this.updateHostage(dt);
+    this.updateEvidence(dt);
     // The area is secure once every suspect is down and every civilian is secured (or hit).
     const suspectsDown = this.enemies.length > 0 && this.enemies.every((e) => !e.alive);
     const civiliansSafe = this.civilians.every((c) => c.state === 'secured' || c.state === 'down');
@@ -778,9 +780,9 @@ export class GameScene extends Phaser.Scene {
       this.toast('All suspects down. Secure the civilians.');
     }
     const done = this.stations ? this.stations.allDone : suspectsDown && civiliansSafe;
-    if ((done || !p.alive) && this.outcomeTimer < 0) {
+    if ((done || !p.alive || this.timedOut) && this.outcomeTimer < 0) {
       this.outcomeTimer = 0;
-      if (done && !this.stations) {
+      if (done && !this.stations && !this.timedOut) {
         sfx.secured();
         this.toast('Site secured');
       }
@@ -788,9 +790,69 @@ export class GameScene extends Phaser.Scene {
     if (this.outcomeTimer >= 0) {
       this.outcomeTimer += dt;
       if (this.outcomeTimer >= OUTCOME_DELAY) {
-        const escaped = this.enemies.some((e) => e.state === 'escaped');
-        this.outcome = !p.alive ? this.failedOutcome() : escaped ? this.escapedOutcome() : this.successOutcome();
+        this.outcome = !p.alive ? this.failedOutcome() : this.timedOut ? this.timeOutcome() : this.successOutcome();
       }
+    }
+  }
+
+  /**
+   * The first time a suspect sees the operator, or anyone fires or shouts: the hostage clock
+   * starts and someone goes for the evidence.
+   */
+  private raiseAlarm(): void {
+    if (this.alarm || this.intro.active || !this.def.mission) return;
+    this.alarm = true;
+    const m = this.def.mission;
+    if (m.hostage && this.hostage?.canBeSecured) {
+      this.clock = m.hostage.seconds;
+      this.toast(`They know you're here. ${m.hostage.seconds} seconds to reach the hostage.`);
+    }
+    if (m.evidence) {
+      const x = m.evidence.tx * TILE, y = m.evidence.ty * TILE;
+      const nearest = this.enemies
+        .filter((e) => e.alive && e.type !== 'hider')
+        .sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
+      if (nearest) {
+        nearest.sendTo(x, y);
+        this.destroyer = nearest;
+        this.toast('Someone is going for the evidence.');
+      }
+    }
+  }
+
+  /** The clock runs until the hostage is secured (or hit); at zero the mission is lost. */
+  private updateHostage(dt: number): void {
+    if (this.clock === null || !this.hostage) return;
+    if (!this.hostage.canBeSecured) {
+      this.clock = null;
+      return;
+    }
+    this.clock = Math.max(0, this.clock - dt);
+    if (this.clock === 0) {
+      this.timedOut = true;
+      this.clock = null;
+      this.toast('Out of time');
+    }
+  }
+
+  /** Whoever was sent for the evidence destroys it unless stopped first. */
+  private updateEvidence(dt: number): void {
+    const e = this.destroyer;
+    const m = this.def.mission;
+    if (!e || !m?.evidence) return;
+    if (!e.alive) {
+      this.destroyer = null;
+      this.toast('Evidence safe');
+      return;
+    }
+    if (!e.atErrand) return;
+    this.destroying += dt;
+    if (this.destroying >= m.evidence.seconds) {
+      this.evidenceLost = true;
+      this.destroyer = null;
+      e.release();
+      sfx.penalty();
+      this.toast('The evidence is gone. That costs you a star.');
     }
   }
 
@@ -805,7 +867,7 @@ export class GameScene extends Phaser.Scene {
     }
     lines.push(`Shots fired         ${this.stats.shots}`, `Accuracy            ${accuracy}%`);
     if (this.stations) sfx.secured();
-    const stars: [boolean, boolean, boolean] = [true, civiliansHit === 0 && this.unarmedHits === 0, !this.damaged];
+    const stars: [boolean, boolean, boolean] = [!this.evidenceLost, civiliansHit === 0, !this.damaged];
     const earned = recordSuccess(progress, this.def.id, stars.filter(Boolean).length);
     saveProgress(progress);
     if (earned) this.promotion = earned.id;
@@ -814,8 +876,8 @@ export class GameScene extends Phaser.Scene {
       title: this.def.mission ? 'Site secured' : 'Range qualification complete',
       stars,
       lines: [
+        ...(this.def.mission?.evidence ? [this.evidenceLost ? 'Evidence destroyed' : 'Evidence seized'] : []),
         civiliansHit ? `Civilians hit: ${civiliansHit}` : 'No civilians hit',
-        ...(this.unarmedHits ? [`Unarmed suspects shot: ${this.unarmedHits}`] : []),
         this.damaged ? 'Took damage' : 'No damage taken',
         '',
         ...lines,
@@ -857,15 +919,15 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
-  /** A runner got away. The operator is still standing, so even a realism career goes on. */
-  private escapedOutcome(): Outcome {
+  /** The hostage clock ran out. The operator is still standing, so even a realism career goes on. */
+  private timeOutcome(): Outcome {
     progress.deployed = null;
     saveProgress(progress);
     return {
       success: false,
-      title: 'Suspect escaped',
+      title: 'Out of time',
       stars: null,
-      lines: ['The runner got away.', 'Get closer before he knows you are there, and cover his way out.'],
+      lines: ["You didn't reach the hostage in time.", 'Next time, go for that room first.'],
     };
   }
 
@@ -920,6 +982,7 @@ export class GameScene extends Phaser.Scene {
       hurt: this.hurt,
       cutscene: this.intro.active ? { bars: this.intro.bars, subtitle: this.intro.subtitle } : null,
       securing: this.securing ? this.securing.secureProgress : null,
+      clock: this.clock,
       outcome: this.outcome,
     };
   }

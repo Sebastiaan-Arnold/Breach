@@ -2,6 +2,7 @@ import type { LevelDef } from './types';
 
 /**
  * Senior Officer campaign, case 2: an open-plan office with staff working late among the hostiles.
+ * If the alarm goes up, someone runs for the shredder in the manager's office.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -17,7 +18,7 @@ const MAP: readonly string[] = [
   '#==#...........................i..i.........#==#',
   '#==#...........................D..i.........#==#',
   '#==#...TT...TT...TT...TT...TT..i..iiiiiiiiii#==#',
-  '#==D...........................i..i.........#==#',
+  '#==D...........................i..i........T#==#',
   '#==#...........................i..i.........#==#',
   '#==#...........................i..i.........#==#',
   '#==#...TT...TT...TT...TT...TT..i..D....TTT..#==#',
@@ -68,9 +69,10 @@ export const CORVAN_HEAD_OFFICE: LevelDef = {
     summary: [
       'The sign-off on the depot records belongs to an operations manager at Corvan head office.',
       'Tonight he is working late with security he pays himself. Some office staff are still at their desks.',
-      'The open-plan floor has long sight lines and only desks for cover. The server room is not on the plans.',
+      'The open-plan floor has long sight lines and only desks for cover. His office has a shredder.',
       'Warrant: arrest the operations manager and his security, and seize his files.',
     ],
+    twist: { label: 'Files', text: 'Shredded if the alarm goes up' },
     hostiles: { min: 4, max: 6 },
     loadout: 'Handguns and shotguns',
     civilians: { min: 2, max: 3, text: 'Office staff are working late' },
@@ -87,6 +89,7 @@ export const CORVAN_HEAD_OFFICE: LevelDef = {
     ],
     civilianSlots: [{ tx: 9.5, ty: 9.5 }, { tx: 20.5, ty: 17.5 }, { tx: 8.5, ty: 24.5 }, { tx: 41.5, ty: 5.5 }],
     unknownZones: [{ x0: 35, y0: 20, x1: 43, y1: 25 }],
+    evidence: { tx: 42.5, ty: 12.5, seconds: 8 },
     debriefNote: "The manager's files name the man behind the deliveries: Elias Rook, 'the Harbourmaster', who runs Corvan's freight office on the docks.",
   },
 };

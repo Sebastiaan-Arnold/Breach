@@ -1,7 +1,8 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 5: a family home taken over by the crew. Several civilians, thin intel.
+ * Officer campaign, case 5: a family home taken over by the crew, one of the owners held in a
+ * back bedroom. Once the alarm goes up, a clock runs.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -54,7 +55,7 @@ export const KESTREL_ROAD: LevelDef = {
   ],
   intro: [
     'Dispatch: Unit 7, you are on Kestrel Road.',
-    'Command: The homeowners may be in there. Check before you shoot. Go in by the {entry}.',
+    "Command: They're holding one of the owners. Go in by the {entry}.",
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
@@ -63,16 +64,16 @@ export const KESTREL_ROAD: LevelDef = {
     location: '22 Kestrel Road, Ashby Heights',
     summary: [
       'Two of the Mercer Street crew were seen carrying bags into a detached house on Kestrel Road.',
-      'The owners, a retired couple, have not answered their phone since yesterday. They may be inside with them.',
-      'Intel on numbers is thin. Treat the marks on the plan as a guess.',
+      'The owners, a retired couple, are inside with them. One of them is being held in a back bedroom.',
       'Warrant: arrest the suspects and get the homeowners out safely.',
     ],
+    twist: { label: 'Hostage', text: '30 s to reach them once seen' },
     hostiles: { min: 2, max: 4 },
     loadout: 'Handguns reported',
-    civilians: { min: 2, max: 3, text: 'The homeowners are believed to be inside' },
+    civilians: { min: 1, max: 2, text: 'The other homeowner, maybe a visitor' },
     reliability: 'Unverified',
     hostileSlots: [
-      { type: 'lookout', tx: 12.5, ty: 10.5, facing: 117 },
+      { type: 'lookout', tx: 12.5, ty: 10.5, facing: 117, always: true },
       { type: 'lookout', tx: 30.5, ty: 10.5, facing: 120 },
       { type: 'lookout', tx: 26.5, ty: 22.5, facing: 225 },
       { type: 'lookout', tx: 36.5, ty: 21.5, facing: 338 },
@@ -80,6 +81,7 @@ export const KESTREL_ROAD: LevelDef = {
     ],
     civilianSlots: [{ tx: 16.5, ty: 21.5 }, { tx: 18.5, ty: 10.5 }, { tx: 21.5, ty: 22.5 }, { tx: 36.5, ty: 10.5 }],
     unknownZones: [],
-    debriefNote: 'The homeowners were paid to look the other way, in cash, by a man in a Corvan Logistics jacket.',
+    hostage: { tx: 10.5, ty: 11.5, seconds: 30 },
+    debriefNote: 'The homeowners say the men who moved in wore Corvan Logistics jackets.',
   },
 };

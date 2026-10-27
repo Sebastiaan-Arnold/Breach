@@ -98,7 +98,6 @@ The AI doesn't need to be clever; it needs to be readable. Players should be abl
 | Patroller | Handgun | Walks a fixed route between rooms. Makes footstep sounds you can track. | Officer campaign |
 | Hider | Shotgun | Waits behind furniture or in a corner, only fires at close range. Punishes rushing. | Senior Officer campaign |
 | Heavy | Rifle, armour | Takes extra hits, pushes towards noise. | Sergeant campaign |
-| Runner | None | Bolts for the nearest way out the moment he spots you or hears trouble. Catch him by running him down; shooting him (he's unarmed) costs a star, and if he gets away the mission fails. | Officer campaign |
 
 **AI states**
 
@@ -142,7 +141,11 @@ Before each mission players pick one primary gun and always carry the pistol. Ha
 
 **Specialty missions.** Every campaign has at least one case with a twist of its own. A specialty mission can also issue its own gun, so it can come before the gun is earned.
 
-- **The runner** (Fenwick Terrace, Officer): the crew's runner bolts through the back gardens or down the street the moment he knows you're there. Get close quietly, cover his way out, and run him down.
+Twists hang off one moment, the **alarm**: the first time a suspect sees the operator, or anyone fires or shouts. Each twist is one yellow line in the briefing's intel and, where it has a place, a yellow label on the plan. Nothing else to learn.
+
+- **House party** (Fenwick Terrace, Officer): armed men among a crowd of guests who freeze or scatter. Check every target and secure everyone.
+- **Hostage on the clock** (Kestrel Road, Officer): one of the homeowners is held in a back bedroom. Once the alarm goes up, a 30-second clock runs at the top of the screen; secure the hostage before it hits zero or the mission fails.
+- **Evidence** (Corvan Head Office, Senior Officer): when the alarm goes up, the nearest suspect runs for the shredder. Stop him before he has had eight seconds there, or the files are gone and so is the first star.
 - **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
 - **Rooftop overwatch** (planned, Sergeant): from a roof across from a yard, with the camera pulled right out and sight over the containers. Once you fire, the suspects run for their van: nobody leaves.
 

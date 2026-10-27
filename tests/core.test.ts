@@ -8,8 +8,8 @@ import { rollSituation } from '../src/game/situation';
 import { endCareer, isUnlocked, newProgress, recordSuccess, settleAbandonedMission, unlockedWeapons } from '../src/game/progress';
 import { CAMPAIGNS, DIFFICULTY, SUPPRESSOR_RANK, type CampaignDef } from '../src/levels/campaigns';
 import { WEAPONS } from '../src/game/weapons';
-import { FENWICK_TERRACE } from '../src/levels/fenwick-terrace';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
+import { KESTREL_ROAD } from '../src/levels/kestrel-road';
 import { RANGE_MAP } from '../src/levels/range';
 import { LEVELS } from '../src/levels';
 import { propTiles } from '../src/levels/props';
@@ -181,14 +181,10 @@ describe('situation roll', () => {
     }
   });
 
-  it('always includes the runner, and marks him on the map', () => {
-    const f = FENWICK_TERRACE.mission!;
-    for (let i = 0; i < 50; i++) {
-      const s = rollSituation(f);
-      const runner = f.hostileSlots.find((h) => h.type === 'runner')!;
-      expect(s.hostiles).toContain(runner);
-      expect(s.suspectMarks).toContainEqual({ tx: runner.tx, ty: runner.ty });
-    }
+  it("always includes a hostage's captor", () => {
+    const k = KESTREL_ROAD.mission!;
+    const captor = k.hostileSlots.find((h) => h.always)!;
+    for (let i = 0; i < 50; i++) expect(rollSituation(k).hostiles).toContain(captor);
   });
 
   it('can exceed the range by one on unverified intel', () => {
@@ -233,11 +229,12 @@ describe('level data', () => {
     if (def.mission) {
       it(`${def.id}: every spawn slot and patrol point is on floor and reachable from each entry`, () => {
         const m = def.mission!;
-        const points = [...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? []), ...(m.exits ?? [])];
+        const points = [
+          ...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? []),
+          ...(m.hostage ? [m.hostage] : []), ...(m.evidence ? [m.evidence] : []),
+        ];
         const passable = (x: number, y: number) => lvl.tiles[y * lvl.width + x] === 'floor';
         for (const p of points) expect(walkable(p.tx, p.ty)).toBe(true);
-        // A level with a runner needs somewhere for him to run to.
-        if (m.hostileSlots.some((h) => h.type === 'runner')) expect(m.exits?.length).toBeGreaterThan(0);
         for (const e of def.entries) {
           const end = e.approach.at(-1)!;
           for (const p of points) {

@@ -3,6 +3,24 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.6
+
+The runner is out; three simpler twists are in, all started by the same moment: the alarm (a
+suspect sees you, or a shot or shout).
+
+- Fenwick Terrace is now a house party: armed men among six to eight guests who freeze or
+  scatter. Check every target and secure everyone.
+- Kestrel Road: one of the homeowners is held in a back bedroom. Once the alarm goes up, a
+  30-second clock runs at the top of the screen. Secure the hostage in time or the mission
+  fails (a realism career goes on).
+- Corvan Head Office: when the alarm goes up, the nearest suspect runs for the shredder in the
+  manager's office. Stop him within eight seconds of him getting there, or the files are gone
+  and so is the first star.
+- Briefing: a case's twist is one yellow line at the top of the intel, with a yellow label on
+  the plan (HOSTAGE, EVIDENCE). At most three civilians are marked, so the party doesn't bury
+  the plan. Entry labels at the edge of the map sit under their marker instead of running off
+  the tablet. Every briefing was checked for overlapping text.
+
 ## v0.4.5
 
 From playtesting v0.4.4: the overwatch case is out, and Street Crime gets a specialty case.

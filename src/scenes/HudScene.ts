@@ -55,6 +55,7 @@ export class HudScene extends Phaser.Scene {
   private subtitle!: Phaser.GameObjects.Text;
   private skipHint!: Phaser.GameObjects.Text;
   private securing!: Phaser.GameObjects.Text;
+  private clock!: Phaser.GameObjects.Text;
 
   private menu!: Phaser.GameObjects.Container;
   private debrief!: Phaser.GameObjects.Container;
@@ -95,6 +96,7 @@ export class HudScene extends Phaser.Scene {
     this.subtitle = this.add.text(VIEW_W / 2, VIEW_H - BAR_HEIGHT - 34, '', style(16, TEXT)).setOrigin(0.5, 0);
     this.skipHint = this.add.text(VIEW_W - 28, VIEW_H - 44, 'Space to skip', style(11, DIM)).setOrigin(1, 0);
     this.securing = this.add.text(VIEW_W / 2, VIEW_H * 0.62, 'Securing', style(12, TEXT)).setOrigin(0.5, 0);
+    this.clock = this.add.text(VIEW_W / 2, 24, '', style(18, TEXT, { fontStyle: 'bold' })).setOrigin(0.5, 0);
 
     // F3 toggles a frame-rate readout, handy for checking performance on different machines.
     this.fps = this.add.text(VIEW_W - 16, 12, '', style(11, DIM)).setOrigin(1, 0).setVisible(false);
@@ -141,6 +143,12 @@ export class HudScene extends Phaser.Scene {
     this.subtitle.setText(cut?.subtitle ?? '');
     this.skipHint.setVisible(!!cut);
     this.securing.setVisible(s.securing !== null);
+    // The hostage clock: the only timer in the game, so it sits alone at the top.
+    this.clock.setVisible(s.clock !== null && !cut);
+    if (s.clock !== null) {
+      const t = Math.ceil(s.clock);
+      this.clock.setText(`HOSTAGE  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`).setColor(t <= 10 ? RED : TEXT);
+    }
 
     this.toasts = this.toasts.filter((t) => {
       t.age += dt;

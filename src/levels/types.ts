@@ -20,10 +20,9 @@ export interface EntryDef {
 
 /**
  * Lookouts hold a post, patrollers walk a route, hiders wait behind cover with a shotgun and only
- * fire at close range. A runner is unarmed and bolts for the nearest way out the moment he spots
- * you or hears trouble: catch him (run him down) before he gets away.
+ * fire at close range.
  */
-export type HostileType = 'lookout' | 'patroller' | 'hider' | 'runner';
+export type HostileType = 'lookout' | 'patroller' | 'hider';
 
 /**
  * How a hostile reacts to a fight it hears: pushers come for you, holders dig in and cover the
@@ -41,6 +40,8 @@ export interface HostileSlot {
   route?: TilePos[];
   /** Fixes the reaction to a fight; rolled per deploy when left out. */
   temperament?: Temperament;
+  /** Always there, whatever the roll (a hostage's captor, say). */
+  always?: boolean;
 }
 
 export interface CivilianSlot {
@@ -68,8 +69,18 @@ export interface MissionDef {
   debriefNote: string;
   /** A specialty mission issues its own primary gun instead of the player's choice. */
   issued?: WeaponId;
-  /** Where a runner makes for. Reaching one means he got away, and the mission fails. */
-  exits?: TilePos[];
+  /** What makes this case different, as one highlighted line in the briefing's intel. */
+  twist?: { label: string; text: string };
+  /**
+   * Someone held against their will. Once the alarm goes up (a suspect sees you, or a shot or
+   * shout), the operator has `seconds` to reach and secure them, or the mission fails.
+   */
+  hostage?: TilePos & { seconds: number };
+  /**
+   * Evidence that gets destroyed (shredded, flushed) if the alarm goes up: the nearest suspect
+   * runs to it, and after `seconds` there it's gone, and with it the first star.
+   */
+  evidence?: TilePos & { seconds: number };
 }
 
 /**

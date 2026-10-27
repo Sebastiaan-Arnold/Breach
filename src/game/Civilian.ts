@@ -35,9 +35,11 @@ export class Civilian {
   private container: Phaser.GameObjects.Container;
   private gfx: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, slot: CivilianSlot, depth: number) {
+  /** @param hostage held where they are: kneeling, and never runs */
+  constructor(scene: Phaser.Scene, slot: CivilianSlot, depth: number, readonly hostage = false) {
     this.x = slot.tx * TILE;
     this.y = slot.ty * TILE;
+    if (hostage) this.state = 'cower';
     this.gfx = scene.add.graphics();
     this.container = scene.add.container(this.x, this.y, [this.gfx]).setDepth(depth).setVisible(false);
     this.redraw();
@@ -71,7 +73,7 @@ export class Civilian {
   }
 
   hear(e: NoiseEvent, world: World): void {
-    if (this.state !== 'idle') return;
+    if (this.state !== 'idle' || this.hostage) return;
     if (e.kind !== 'shot' && e.kind !== 'shout') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
     if (Math.random() < 0.5) {
