@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 3: an open garage workshop with cars for cover and two patrols.
+ * Officer campaign, case 4: an open garage workshop with cars for cover and two patrols.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -62,7 +62,7 @@ export const MERCER_STREET: LevelDef = {
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Officer · Case 3',
+    caseLabel: 'Officer · Case 4',
     title: 'Mercer Street Garage',
     location: 'Mercer Street, Old Docks',
     summary: [

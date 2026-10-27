@@ -98,6 +98,7 @@ The AI doesn't need to be clever; it needs to be readable. Players should be abl
 | Patroller | Handgun | Walks a fixed route between rooms. Makes footstep sounds you can track. | Officer campaign |
 | Hider | Shotgun | Waits behind furniture or in a corner, only fires at close range. Punishes rushing. | Senior Officer campaign |
 | Heavy | Rifle, armour | Takes extra hits, pushes towards noise. | Sergeant campaign |
+| Runner | None | Bolts for the nearest way out the moment he spots you or hears trouble. Catch him by running him down; shooting him (he's unarmed) costs a star, and if he gets away the mission fails. | Officer campaign |
 
 **AI states**
 
@@ -139,10 +140,11 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 
 Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the shotgun or pistol is often the better pick for tight houses even once the rifle is unlocked. Suppressors come last on purpose: by then players can replay earlier cases quietly for the stars they missed.
 
-**Specialty missions** issue their own gun, so a campaign can include one before the gun is earned:
+**Specialty missions.** Every campaign has at least one case with a twist of its own. A specialty mission can also issue its own gun, so it can come before the gun is earned.
 
+- **The runner** (Fenwick Terrace, Officer): the crew's runner bolts through the back gardens or down the street the moment he knows you're there. Get close quietly, cover his way out, and run him down.
 - **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
-- **Overwatch** (Pier Six, Senior Officer): the operator starts up a crane with the sniper rifle, takes the lookouts in a container yard, then comes down to clear the gatehouse. Each crane sees different lanes.
+- **Rooftop overwatch** (planned, Sergeant): from a roof across from a yard, with the camera pulled right out and sight over the containers. Once you fire, the suspects run for their van: nobody leaves.
 
 **The scope.** Holding Space with the sniper rifle braces the operator: they stop moving, a narrow strip of vision reaches far down the aim, and the camera pulls back and pushes out along it. Enemies can't see that far, so a careful shooter goes unseen until the first shot, which, unsuppressed, brings everyone running.
 

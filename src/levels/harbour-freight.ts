@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Senior Officer campaign, case 7: the Harbourmaster's own office on Pier Seven. Confirmed intel, his best men.
+ * Senior Officer campaign, case 6: the Harbourmaster's own office on Pier Seven. Confirmed intel, his best men.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -62,7 +62,7 @@ export const HARBOUR_FREIGHT: LevelDef = {
     "Command: Senior Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 7',
+    caseLabel: 'Senior Officer · Case 6',
     title: 'Harbour Freight Office',
     location: 'Harbour Freight Office, Pier Seven',
     summary: [

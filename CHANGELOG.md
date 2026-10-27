@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.5
+
+From playtesting v0.4.4: the overwatch case is out, and Street Crime gets a specialty case.
+
+- New Officer case 2, Fenwick Terrace: the crew's runner, Kyle Marsh, bolts for the end of the
+  street or the back alley the moment he sees you or hears trouble. He's unarmed: catch him by
+  running him down. Shooting him costs a star, and if he gets away the mission fails (even a
+  realism career goes on). The briefing marks the ways out. Promotion out of Street Crime now
+  takes 12 stars.
+- Pier Six is removed. Overwatch returns as a rooftop mission in the Sergeant campaign.
+  Supply Chain is back to six cases (12 stars for promotion).
+- The sniper scope pulls the camera further out and shows a wider strip.
+
 ## v0.4.4
 
 A new gun line-up, two specialty cases and suppressors.

@@ -8,9 +8,10 @@ The full design lives in [docs/concept.md](docs/concept.md).
 
 ## Status: milestone 4
 
-The build has the police academy Range (training), the Officer campaign (five cases from
-14 Harbour Lane to the Westquay Lockups) and the Senior Officer campaign (seven cases inside
-Corvan Logistics, including a close-quarters lodging house and a sniper overwatch), each played from briefing to debrief, with saved progress, stars and
+The build has the police academy Range (training), the Officer campaign (six cases from
+14 Harbour Lane to the Westquay Lockups, including a runner you have to catch) and the Senior
+Officer campaign (six cases inside Corvan Logistics, including a close-quarters lodging house),
+each played from briefing to debrief, with saved progress, stars and
 promotions. Enemies get sharper with every rank.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out), command's marks,

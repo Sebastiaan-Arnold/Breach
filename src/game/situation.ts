@@ -19,15 +19,17 @@ export function rollSituation(m: MissionDef, rng: () => number = Math.random): S
   if (m.reliability === 'Unverified' && rng() < 0.35) count++;
   count = Math.min(count, m.hostileSlots.length);
 
-  // Always include a patroller when the level has one: the moving threat you can hear.
+  // Always include a patroller when the level has one: the moving threat you can hear. Runners
+  // are who the warrant is for, so they're always there.
   const pool = shuffle([...m.hostileSlots], rng);
   const patroller = pool.findIndex((s) => s.type === 'patroller');
   if (patroller > 0) pool.unshift(pool.splice(patroller, 1)[0]);
+  pool.sort((a, b) => Number(b.type === 'runner') - Number(a.type === 'runner'));
   const hostiles = pool.slice(0, count);
 
   const civilians = shuffle([...m.civilianSlots], rng).slice(0, Math.min(between(m.civilians.min, m.civilians.max), m.civilianSlots.length));
 
-  const stationary = hostiles.filter((h) => h.type === 'lookout');
+  const stationary = hostiles.filter((h) => h.type === 'runner' || h.type === 'lookout');
   const suspectMarks = stationary.slice(0, 2).map((h) => ({ tx: h.tx, ty: h.ty }));
   if (m.reliability === 'Unverified' && suspectMarks.length && rng() < 0.5) {
     const decoy = m.hostileSlots.find((s) => !hostiles.includes(s));

@@ -8,6 +8,7 @@ import { rollSituation } from '../src/game/situation';
 import { endCareer, isUnlocked, newProgress, recordSuccess, settleAbandonedMission, unlockedWeapons } from '../src/game/progress';
 import { CAMPAIGNS, DIFFICULTY, SUPPRESSOR_RANK, type CampaignDef } from '../src/levels/campaigns';
 import { WEAPONS } from '../src/game/weapons';
+import { FENWICK_TERRACE } from '../src/levels/fenwick-terrace';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
 import { LEVELS } from '../src/levels';
@@ -180,6 +181,16 @@ describe('situation roll', () => {
     }
   });
 
+  it('always includes the runner, and marks him on the map', () => {
+    const f = FENWICK_TERRACE.mission!;
+    for (let i = 0; i < 50; i++) {
+      const s = rollSituation(f);
+      const runner = f.hostileSlots.find((h) => h.type === 'runner')!;
+      expect(s.hostiles).toContain(runner);
+      expect(s.suspectMarks).toContainEqual({ tx: runner.tx, ty: runner.ty });
+    }
+  });
+
   it('can exceed the range by one on unverified intel', () => {
     const s = rollSituation({ ...m, reliability: 'Unverified' }, seq([0.99, 0.1, 0.5]));
     expect(s.hostiles.length).toBe(m.hostiles.max + 1);
@@ -222,9 +233,11 @@ describe('level data', () => {
     if (def.mission) {
       it(`${def.id}: every spawn slot and patrol point is on floor and reachable from each entry`, () => {
         const m = def.mission!;
-        const points = [...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? [])];
+        const points = [...m.hostileSlots, ...m.civilianSlots, ...m.hostileSlots.flatMap((h) => h.route ?? []), ...(m.exits ?? [])];
         const passable = (x: number, y: number) => lvl.tiles[y * lvl.width + x] === 'floor';
         for (const p of points) expect(walkable(p.tx, p.ty)).toBe(true);
+        // A level with a runner needs somewhere for him to run to.
+        if (m.hostileSlots.some((h) => h.type === 'runner')) expect(m.exits?.length).toBeGreaterThan(0);
         for (const e of def.entries) {
           const end = e.approach.at(-1)!;
           for (const p of points) {

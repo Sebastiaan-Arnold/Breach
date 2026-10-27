@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 2: a ground-floor flat with the power cut. Darkness inside a real raid.
+ * Officer campaign, case 3: a ground-floor flat with the power cut. Darkness inside a real raid.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -55,11 +55,11 @@ export const TOLLGATE_FLATS: LevelDef = {
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Officer · Case 2',
+    caseLabel: 'Officer · Case 3',
     title: 'Tollgate Flats',
     location: 'Flat 1, Tollgate House, Ashby estate',
     summary: [
-      'The phone seized at Harbour Lane led to a ground-floor flat the same crew uses to cut and bag.',
+      "Marsh's phone led to a ground-floor flat the same crew uses to cut and bag.",
       "The power to the flat was cut this afternoon. Inside, you'll only see as far as your weapon light reaches.",
       'Neighbours report people coming and going through the back garden at all hours.',
       'Warrant: search the flat and arrest everyone inside.',

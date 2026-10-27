@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 5: the lockup yard where the supplier's courier collects. Open ground, many doors.
+ * Officer campaign, case 6: the lockup yard where the supplier's courier collects. Open ground, many doors.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -62,7 +62,7 @@ export const WESTQUAY_LOCKUPS: LevelDef = {
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Officer · Case 5',
+    caseLabel: 'Officer · Case 6',
     title: 'Westquay Lockups',
     location: 'Westquay Industrial Estate',
     summary: [

@@ -20,9 +20,10 @@ export interface EntryDef {
 
 /**
  * Lookouts hold a post, patrollers walk a route, hiders wait behind cover with a shotgun and only
- * fire at close range.
+ * fire at close range. A runner is unarmed and bolts for the nearest way out the moment he spots
+ * you or hears trouble: catch him (run him down) before he gets away.
  */
-export type HostileType = 'lookout' | 'patroller' | 'hider';
+export type HostileType = 'lookout' | 'patroller' | 'hider' | 'runner';
 
 /**
  * How a hostile reacts to a fight it hears: pushers come for you, holders dig in and cover the
@@ -67,6 +68,8 @@ export interface MissionDef {
   debriefNote: string;
   /** A specialty mission issues its own primary gun instead of the player's choice. */
   issued?: WeaponId;
+  /** Where a runner makes for. Reaching one means he got away, and the mission fails. */
+  exits?: TilePos[];
 }
 
 /**

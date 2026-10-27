@@ -9,7 +9,8 @@ import { drawDowned, drawFigure, type FigureStyle } from './figures';
 import type { NoiseEvent } from './Noise';
 import type { World } from './World';
 
-export type EnemyState = 'idle' | 'alert' | 'combat' | 'down';
+/** Runners have two more: 'flee' (making for a way out) and 'escaped' (gone). */
+export type EnemyState = 'idle' | 'alert' | 'combat' | 'flee' | 'escaped' | 'down';
 
 /** What an enemy needs from the scene it lives in. */
 export interface EnemyContext {
@@ -19,6 +20,10 @@ export interface EnemyContext {
   shoot(e: Enemy, angle: number, pellets?: number): void;
   /** A sound the enemy makes (footsteps, a shout). Shouts alert other enemies. */
   noise(e: Enemy, radius: number, kind: NoiseEvent['kind']): void;
+  /** Ways out of the level, for runners. */
+  exits: readonly { x: number; y: number }[];
+  /** A runner has bolted. */
+  bolted(e: Enemy): void;
 }
 
 const RADIUS = 11;
@@ -32,11 +37,13 @@ const SPEED_ALERT = 88;
 /** Pushers move fast (and loud) towards a fight. */
 const SPEED_PUSH = 108;
 const TURN = 4.5;
-const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6, hider: 0.3 };
+const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6, hider: 0.3, runner: 0 };
+/** A runner is quicker than a walk, slower than a sprint: you can run him down if you're close. */
+const SPEED_RUN = 160;
 /** Someone already aimed at a doorway reacts quicker. */
 const REACTION_HOLDING = 0.28;
 /** Chance to hold rather than push, when not set by the level. */
-const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3, hider: 1 };
+const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3, hider: 1, runner: 0 };
 /** How far (in tiles) a holder looks for a spot covering its door, and the distances it likes. */
 const HOLD_SEARCH = 5;
 const HOLD_MIN = 2.5 * TILE;
@@ -47,6 +54,8 @@ const HIDER_RANGE = 5 * TILE;
 const HIDER_PELLETS = 6;
 
 const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gun: true };
+/** A runner wears a hood and carries no gun. */
+const RUNNER_STYLE: FigureStyle = { body: 0x7f1d1d, chest: 0xb91c1c, head: 0x7f1d1d };
 /** A grey vest plate over the red marks someone who takes more than one hit. */
 const VEST_CHEST = 0x52525b;
 /** How long a wounded enemy is thrown off its aim. */
@@ -74,7 +83,12 @@ export class Enemy {
   readonly temperament: Temperament;
   /** Damage left before going down. */
   hp: number;
+  /** A runner who was caught rather than shot. */
+  arrested = false;
   private flinch = 0;
+  /** A runner has noticed trouble and will bolt on his next update. */
+  private spooked = false;
+  private exit: { x: number; y: number } | null = null;
 
   private post: { x: number; y: number; facing: number };
   private route: { x: number; y: number }[];
@@ -116,7 +130,12 @@ export class Enemy {
   }
 
   get alive(): boolean {
-    return this.state !== 'down';
+    return this.state !== 'down' && this.state !== 'escaped';
+  }
+
+  /** Unarmed: shooting him is a penalty, like hitting a civilian. */
+  get armed(): boolean {
+    return this.type !== 'runner';
   }
 
   hitTest(ox: number, oy: number, dx: number, dy: number): number {
@@ -124,6 +143,7 @@ export class Enemy {
   }
 
   private get style(): FigureStyle {
+    if (this.type === 'runner') return RUNNER_STYLE;
     return {
       ...STYLE,
       longGun: this.type === 'hider',
@@ -153,9 +173,23 @@ export class Enemy {
     return true;
   }
 
+  /** The operator caught up with a runner: on his knees, hands behind his back. */
+  arrest(): void {
+    if (!this.alive) return;
+    this.state = 'down';
+    this.arrested = true;
+    this.gfx.clear().setScale(0.85).setRotation(0);
+    drawFigure(this.gfx, { ...this.style, restrained: true });
+  }
+
   /** Called for every noise in the level. */
   hear(e: NoiseEvent): void {
     if (!this.alive || this.state === 'combat') return;
+    if (this.type === 'runner') {
+      // Jumpy: anything the operator does within earshot, or any fight, and he's off.
+      if (Math.hypot(e.x - this.x, e.y - this.y) <= e.radius && (e.source === 'player' || e.kind === 'shot' || e.kind === 'shout')) this.spooked = true;
+      return;
+    }
     // Their own side's footsteps aren't interesting; shouts, shots, doors and you are.
     if (e.source === 'world' && e.kind !== 'shout' && e.kind !== 'shot') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
@@ -185,7 +219,7 @@ export class Enemy {
 
   /** @param visible whether the operator can currently see this enemy */
   update(dt: number, ctx: EnemyContext, visible: boolean): void {
-    this.container.setVisible(visible);
+    this.container.setVisible(visible && this.state !== 'escaped');
     if (!this.alive) {
       // Fall and fade, but stay readable as a body.
       this.downTime += dt;
@@ -214,9 +248,21 @@ export class Enemy {
       // Closer, already alert or dug in and aimed means noticing faster.
       const notice = (this.dugIn ? 0.06 + dist / 2400 : (this.state === 'alert' ? 0.12 : 0.35) + dist / 1600) * this.difficulty.notice;
       this.sightTime += dt;
-      if (this.state !== 'combat' && this.sightTime >= notice) this.enterCombat(ctx);
+      if (this.state !== 'combat' && this.sightTime >= notice) {
+        if (this.type === 'runner') this.spooked = true;
+        else this.enterCombat(ctx);
+      }
     } else {
       this.sightTime = Math.max(0, this.sightTime - dt * 0.5);
+    }
+
+    if (this.type === 'runner') {
+      if (this.spooked && this.state !== 'flee') this.bolt(ctx);
+      if (this.state === 'flee') this.updateFlee(dt, ctx);
+      else this.updateIdle(dt, ctx);
+      this.container.setPosition(this.x, this.y);
+      this.container.rotation = this.facing;
+      return;
     }
 
     switch (this.state) {
@@ -233,6 +279,35 @@ export class Enemy {
 
     this.container.setPosition(this.x, this.y);
     this.container.rotation = this.facing;
+  }
+
+  /**
+   * Picks the way out he can reach with the biggest lead on the operator, shouts a warning to
+   * the others and runs.
+   */
+  private bolt(ctx: EnemyContext): void {
+    const p = ctx.player;
+    let best: { x: number; y: number } | null = null, bestLead = -Infinity;
+    for (const exit of ctx.exits) {
+      if (!ctx.world.findPath(this.x, this.y, exit.x, exit.y)) continue;
+      const lead = Math.hypot(exit.x - p.x, exit.y - p.y) - Math.hypot(exit.x - this.x, exit.y - this.y);
+      if (lead > bestLead) {
+        bestLead = lead;
+        best = exit;
+      }
+    }
+    this.spooked = false;
+    if (!best) return;
+    this.exit = best;
+    this.state = 'flee';
+    this.goal = null;
+    ctx.noise(this, 420, 'shout');
+    ctx.bolted(this);
+  }
+
+  private updateFlee(dt: number, ctx: EnemyContext): void {
+    if (!this.exit) return;
+    if (this.walkTo(this.exit, SPEED_RUN, dt, ctx) && Math.hypot(this.exit.x - this.x, this.exit.y - this.y) < 8) this.state = 'escaped';
   }
 
   private enterCombat(ctx: EnemyContext): void {

@@ -72,12 +72,12 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     id: 'officer',
     title: 'Street crime',
     rank: 1,
-    levels: ['harbour-lane', 'tollgate-flats', 'mercer-street', 'kestrel-road', 'westquay-lockups'],
+    levels: ['harbour-lane', 'fenwick-terrace', 'tollgate-flats', 'mercer-street', 'kestrel-road', 'westquay-lockups'],
     promotion: {
-      minStars: 10,
+      minStars: 12,
       unlocks: 'rifle',
       note: [
-        'Five raids, and every one of them pointed the same way: Corvan Logistics.',
+        'Six raids, and every one of them pointed the same way: Corvan Logistics.',
         "You're promoted to Senior Officer. The armoury has signed out an assault rifle in your name.",
         'Supply chain unit. Starts Monday.',
       ],
@@ -87,13 +87,13 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
     id: 'senior',
     title: 'Supply chain',
     rank: 2,
-    levels: ['corvan-depot', 'corvan-head-office', 'salter-street', 'cold-store', 'ferry-road', 'pier-six', 'harbour-freight'],
+    levels: ['corvan-depot', 'corvan-head-office', 'salter-street', 'cold-store', 'ferry-road', 'harbour-freight'],
     promotion: {
-      minStars: 14,
+      minStars: 12,
       unlocks: 'sniper',
       note: [
         'Corvan Logistics was never a parcel firm. It was a pipeline, and you followed it to the end.',
-        "You're promoted to Sergeant. The sniper rifle you carried at the yard is yours now.",
+        "You're promoted to Sergeant. The armoury has a sniper rifle for you: bolt action, with a scope.",
         "The money is next. Somebody has been cleaning Corvan's cash, and they meet at a hotel.",
       ],
     },

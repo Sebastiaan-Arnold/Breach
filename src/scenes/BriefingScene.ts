@@ -154,6 +154,12 @@ export class BriefingScene extends Phaser.Scene {
       marks.lineStyle(2, 0xfacc15, 0.9);
       marks.strokeCircle(ox + c.tx * s, oy + c.ty * s, s * 1.6);
     }
+    // Where a runner would make for.
+    const exits = this.def.mission?.exits ?? [];
+    for (const e of exits) {
+      marks.lineStyle(2, 0xef4444, 0.9);
+      marks.strokeRect(ox + e.tx * s - 7, oy + e.ty * s - 7, 14, 14);
+    }
 
     // Entry points: a route from the van, a numbered marker and a name.
     const cx = ox + (level.width * s) / 2, cy = oy + (level.height * s) / 2;
@@ -187,6 +193,11 @@ export class BriefingScene extends Phaser.Scene {
     legend.fillStyle(0x2563eb, 1);
     legend.fillCircle(MAP.x + 370, ly, 8);
     this.add.text(MAP.x + 384, ly, 'Entry point: click to choose', style(11, DIM)).setOrigin(0, 0.5);
+    if (exits.length) {
+      legend.lineStyle(2, 0xef4444, 1);
+      legend.strokeRect(MAP.x + 600, ly - 6, 12, 12);
+      this.add.text(MAP.x + 618, ly, 'Way out', style(11, DIM)).setOrigin(0, 0.5);
+    }
   }
 
   // ---------------------------------------------------------------- case file, intel, entry

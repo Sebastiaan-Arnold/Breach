@@ -1,7 +1,7 @@
 import type { LevelDef } from './types';
 
 /**
- * Officer campaign, case 4: a family home taken over by the crew. Several civilians, thin intel.
+ * Officer campaign, case 5: a family home taken over by the crew. Several civilians, thin intel.
  * Legend: see src/core/grid.ts.
  */
 const MAP: readonly string[] = [
@@ -58,7 +58,7 @@ export const KESTREL_ROAD: LevelDef = {
     "Command: Officer, you're cleared to enter.",
   ],
   mission: {
-    caseLabel: 'Officer · Case 4',
+    caseLabel: 'Officer · Case 5',
     title: 'Kestrel Road',
     location: '22 Kestrel Road, Ashby Heights',
     summary: [
