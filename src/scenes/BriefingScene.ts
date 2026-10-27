@@ -265,9 +265,10 @@ export class BriefingScene extends Phaser.Scene {
     }
     if (m.issued) this.add.text(gx, y + 2, 'Issued for this mission', style(11, DIM));
     y += 22;
-    // Room for a two-line description of the chosen gun.
+    // Room for the longest description among the guns on offer, measured rather than assumed,
+    // so switching guns never pushes text into the line below.
     this.gunBlurb = this.add.text(x + 110, y, '', style(12, TEXT, { lineSpacing: 2, wordWrap: { width: w - 110 } }));
-    y += 36;
+    y += Math.max(...guns.map((id) => this.gunBlurb!.setText(WEAPONS[id].blurb).height)) + 6;
     const sidearm = guns.some((g) => g !== 'pistol');
     this.add.text(x + 110, y, sidearm ? 'Sidearm: Pistol (2)' : 'More guns are issued with promotion', style(11, DIM));
     if (hasSuppressors(progress)) {

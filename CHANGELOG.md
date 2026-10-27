@@ -3,6 +3,17 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.9
+
+From playtesting v0.4.8.
+
+- Rear Yard is harder: six or seven suspects instead of four or five, and they run for the car
+  faster. With a five-round magazine, expect to reload mid-fight. The extra suspects start
+  further from the car, so the pressure builds rather than arriving all at once.
+- Fixed: a long gun description (the assault rifle's) could overlap the sidearm line in the
+  briefing. The loadout now reserves room for the longest description of the guns on offer,
+  measured on screen, and the overlap check runs with every gun selected.
+
 ## v0.4.8
 
 The Sergeant campaign, "Clean money": one night at the Grand Atlas Hotel, following Meridian

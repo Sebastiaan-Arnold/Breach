@@ -46,12 +46,12 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   shotgun: {
     id: 'shotgun', name: 'Shotgun', short: 'Shotgun', magSize: 6, spareMags: 4, auto: false, fireDelay: 650, reloadTime: 2.4,
     pellets: 8, spread: 8, wobble: 4, recoil: 0.4, turnRate: 430, noise: 1200, range: 460,
-    damage: 1, blurb: 'Stops anyone up close in one shot. The spread risks civilians; slow to reload.', suppressible: false,
+    damage: 1, blurb: 'Stops anyone up close in one shot. Spread risks civilians. Slow reload.', suppressible: false,
   },
   rifle: {
     id: 'rifle', name: 'Assault rifle', short: 'AR', magSize: 30, spareMags: 3, auto: true, fireDelay: 110, reloadTime: 2.1,
     pellets: 1, spread: 0, wobble: 5, recoil: 0.12, turnRate: 300, noise: 1300, range: 1400,
-    damage: 2, blurb: 'One hit stops a vested suspect, and it is accurate at range. Slow to swing round.', suppressible: true,
+    damage: 2, blurb: 'One hit stops a vested suspect. Accurate at range, slow to swing.', suppressible: true,
   },
   sniper: {
     id: 'sniper', name: 'Sniper rifle', short: 'Sniper', magSize: 5, spareMags: 3, auto: false, fireDelay: 1250, reloadTime: 3.2,

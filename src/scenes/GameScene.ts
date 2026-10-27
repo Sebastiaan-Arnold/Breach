@@ -39,7 +39,7 @@ const SCOPE = { halfFov: 4 * DEG, range: 1800, sweepStep: 0.25 * DEG, lookahead:
  * Overwatch: the camera pulls right out and the operator sees across the whole map. Suspects
  * making for the getaway are carrying bags, so they move at a jog.
  */
-const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 62, lookahead: 520 };
+const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 68, lookahead: 520 };
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
