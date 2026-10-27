@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.0.2
+
+Playtest fixes.
+
+- The debrief title steps down in size so a long result ("Range qualification complete") stays
+  inside its panel.
+- Glass only joins a wall along its own run, so a wall meeting a glass front (the Grand Atlas
+  penthouse) no longer makes a T.
+- Neater guns in hand: each gun drawn from its parts (stock, receiver, barrel, scope or sight),
+  carried over the body with slim sleeves and gloved hands.
+- The mission title card clears when the intro ends, so it no longer sits over the Range
+  instructions.
+
 ## v1.0.1
 
 Repository housekeeping; no gameplay changes.

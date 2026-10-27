@@ -58,6 +58,8 @@ export class HudScene extends Phaser.Scene {
   private toasts: Toast[] = [];
   private fps!: Phaser.GameObjects.Text;
   private cardShown = false;
+  /** The title card while it's up; it goes as soon as the intro ends. */
+  private card: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super('hud');
@@ -74,6 +76,7 @@ export class HudScene extends Phaser.Scene {
     this.shownOutcome = null;
     this.settingsOpen = false;
     this.cardShown = false;
+    this.card = [];
     this.toasts = [];
 
     this.overlay = this.add.graphics();
@@ -122,6 +125,7 @@ export class HudScene extends Phaser.Scene {
 
     const cut = s.cutscene;
     if (cut && !this.cardShown) this.showCard(s.card);
+    if (!cut && this.card.length) this.hideCard();
     this.gfx.clear();
     this.overlay.clear();
     if (!cut) this.drawStatus(s);
@@ -178,11 +182,13 @@ export class HudScene extends Phaser.Scene {
     const title = this.add.text(x, y, '', display(34, '#f8fafc'));
     const sub = this.add.text(x, y + 62, card.sub, display(14, ACCENT)).setAlpha(0);
     const all = [rule, title, sub];
+    this.card = all;
     const text = card.title.toUpperCase();
     let shown = 0;
     this.time.addEvent({
       delay: 38, repeat: text.length - 1, startAt: 0,
       callback: () => {
+        if (!title.active) return;
         shown++;
         title.setText(text.slice(0, shown));
         if (shown % 2) sfx.hover();
@@ -190,7 +196,15 @@ export class HudScene extends Phaser.Scene {
     });
     this.tweens.add({ targets: rule, width: 260, duration: 500, ease: 'Cubic.Out', delay: 200 });
     this.tweens.add({ targets: sub, alpha: 1, duration: 400, delay: 200 + text.length * 38 });
-    this.tweens.add({ targets: all, alpha: 0, duration: 700, delay: 4200, onComplete: () => all.forEach((o) => o.destroy()) });
+    this.tweens.add({ targets: all, alpha: 0, duration: 700, delay: 4200, onComplete: () => this.hideCard() });
+  }
+
+  /** The intro is over (or skipped): the title card makes way for the game and its tutorial. */
+  private hideCard(): void {
+    const all = this.card;
+    this.card = [];
+    this.tweens.killTweensOf(all);
+    this.tweens.add({ targets: all, alpha: 0, duration: 250, onComplete: () => all.forEach((o) => o.destroy()) });
   }
 
   /**
@@ -376,6 +390,8 @@ export class HudScene extends Phaser.Scene {
     };
     put(this.add.text(cx, 0, `DEBRIEF  ·  ${this.game_.levelName.toUpperCase()}`, display(13, ACCENT)).setOrigin(0.5, 0), 26);
     const title = this.add.text(cx, 0, o.title.toUpperCase(), display(40, o.success ? TEXT : RED)).setOrigin(0.5, 0);
+    // A long result ("Range qualification complete") steps down until it fits the panel.
+    for (let size = 40; title.width > W - pad * 2 && size > 20; size -= 2) title.setFontSize(size).setLetterSpacing(Math.round(size * 0.12));
     put(title, 62);
     const stars: Phaser.GameObjects.Text[] = [];
     if (o.stars) {

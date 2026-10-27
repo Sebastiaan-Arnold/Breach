@@ -87,7 +87,8 @@ export class Player {
     body.fillRect(6, -2.5, 1.5, 5);
 
     this.gunGfx = scene.add.graphics();
-    this.container = scene.add.container(x, y, [shadow, this.feet, this.gunGfx, body]).setDepth(depth);
+    // The gun and arms sit over the body, so the gun reads clearly from above.
+    this.container = scene.add.container(x, y, [shadow, this.feet, body, this.gunGfx]).setDepth(depth);
     this.drawGun();
   }
 
@@ -235,39 +236,67 @@ export class Player {
     this.gunKick = 1;
   }
 
+  /**
+   * The gun and the arms holding it, seen from above and pointing along +x. Each gun has its own
+   * silhouette (parts drawn as [from, to, width, colour] along the barrel line), a lit top edge,
+   * and hands where you would hold it: both on the grip of a pistol, one on the grip and one on
+   * the handguard or pump of a long gun.
+   */
   private drawGun(): void {
     const g = this.gunGfx;
     const id = this.weapon.def.id;
     const len = GUN_LENGTH[id];
-    const w = id === 'pistol' ? 3.5 : id === 'sniper' ? 4.5 : 5;
+    const METAL = 0x3a414b, DARK = 0x262b32, WOOD = 0x6b4428, EDGE = 0x9aa5b4;
+    const parts: Record<WeaponId, [number, number, number, number][]> = {
+      pistol: [[7, 10, 3.6, DARK], [9, len, 3.2, METAL]],
+      shotgun: [[5, 9, 4, WOOD], [9, 13, 4.4, METAL], [13, len, 2.4, METAL], [14, 20, 4, WOOD]],
+      rifle: [[5, 9, 4, DARK], [9, 15, 4.4, METAL], [15, 22, 3.6, DARK], [22, len, 1.8, METAL]],
+      sniper: [[5, 10, 4.2, DARK], [10, 15, 3.8, METAL], [15, len, 2, METAL]],
+    };
+    const front = { pistol: 10, shotgun: 17, rifle: 18, sniper: 17 }[id];
+    const hands: [number, number][] = id === 'pistol' ? [[10, -1.2], [8.6, 1.5]] : [[front, -0.4], [10, 1.6]];
     g.clear();
-    // Arms from the shoulders to the grip.
-    g.lineStyle(4.5, 0x1e40af, 1);
-    g.lineBetween(0, -8.5, 10, -1.5);
-    g.lineBetween(0, 8.5, 7, 1.8);
-    // The gun, with a lit top edge.
-    g.fillStyle(0x3a4048, 1);
-    g.fillRect(6, -w / 2, len - 6, w);
-    g.fillStyle(0x8b95a3, 1);
-    g.fillRect(6, -w / 2, len - 6, 1);
-    if (id !== 'pistol') {
-      g.fillStyle(0x3a4048, 1);
-      g.fillRect(9, w / 2 - 0.5, 3, 3.5);
+
+    // Arms: sleeves from the shoulders to the hands, with a lighter top so they read as round.
+    const arm = (sx: number, sy: number, hx: number, hy: number) => {
+      g.lineStyle(3.2, 0x1e3a8a, 1);
+      g.lineBetween(sx, sy, hx, hy);
+      g.lineStyle(1.2, 0x3b63d6, 0.8);
+      g.lineBetween(sx, sy - 0.5, hx, hy - 0.5);
+    };
+    arm(2, -7, hands[0][0], hands[0][1]);
+    arm(2, 7, hands[1][0], hands[1][1]);
+
+    // The gun, part by part, each with a lit top edge.
+    for (const [x0, x1, w, c] of parts[id]) {
+      g.fillStyle(c, 1);
+      g.fillRect(x0, -w / 2, x1 - x0, w);
+      g.fillStyle(EDGE, c === WOOD ? 0.35 : 0.7);
+      g.fillRect(x0, -w / 2, x1 - x0, 0.8);
     }
     if (id === 'sniper') {
-      // The scope, sitting on top of the receiver.
-      g.fillStyle(0x1f2329, 1);
-      g.fillRect(11, -w / 2 - 1.5, 10, 3);
-      g.fillStyle(0x93c5fd, 0.8);
-      g.fillRect(20, -w / 2 - 1, 1, 2);
+      // The scope over the receiver, with a glint on the lens.
+      g.fillStyle(0x111418, 1);
+      g.fillRect(10, -1.7, 11, 3.4);
+      g.fillStyle(EDGE, 0.6);
+      g.fillRect(10, -1.7, 11, 0.8);
+      g.fillStyle(0x93c5fd, 0.9);
+      g.fillRect(20.2, -1.1, 0.9, 2.2);
+    }
+    if (id === 'rifle') {
+      g.fillStyle(DARK, 1);
+      g.fillRect(11, -1, 3, 2);
     }
     if (this.weapon.suppressed) {
-      g.fillStyle(0x1f2329, 1);
-      g.fillRect(len, -w / 2 - 0.5, SUPPRESSOR_LENGTH, w + 1);
+      g.fillStyle(0x111418, 1);
+      g.fillRect(len, -1.9, SUPPRESSOR_LENGTH, 3.8);
+      g.fillStyle(EDGE, 0.5);
+      g.fillRect(len, -1.9, SUPPRESSOR_LENGTH, 0.8);
     }
-    // Gloved hands.
-    g.fillStyle(0x27272a, 1);
-    g.fillCircle(10, -1.5, 2.3);
-    g.fillCircle(7, 1.8, 2.3);
+    // Gloved hands on top.
+    g.fillStyle(0x1c1c20, 1);
+    for (const [hx, hy] of hands) g.fillCircle(hx, hy, 1.8);
+    g.fillStyle(0xffffff, 0.12);
+    for (const [hx, hy] of hands) g.fillCircle(hx - 0.4, hy - 0.6, 0.7);
   }
 }
