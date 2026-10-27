@@ -1,6 +1,6 @@
 {
   "name": "breach",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "private": true,
   "description": "Breach: a top-down tactical SWAT game set in Port Ardley",
   "type": "module",

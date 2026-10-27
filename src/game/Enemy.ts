@@ -190,7 +190,7 @@ export class Enemy {
   hear(e: NoiseEvent): void {
     if (!this.alive || this.state === 'combat') return;
     // Their own side's footsteps aren't interesting; shouts, shots, doors and you are.
-    if (e.source === 'world' && e.kind !== 'shout' && e.kind !== 'shot') return;
+    if (e.source === 'world' && e.kind !== 'shout' && e.kind !== 'shot' && e.kind !== 'glass') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
     // Once dug in, a holder stays put whatever it hears; a hider never leaves its cover.
     if (this.hold) return;
@@ -198,7 +198,7 @@ export class Enemy {
       this.state = 'alert';
       return;
     }
-    const fight = e.kind === 'shot' || e.kind === 'shout';
+    const fight = e.kind === 'shot' || e.kind === 'shout' || e.kind === 'glass';
     this.state = 'alert';
     this.goal = null;
     this.lookTimer = 0;

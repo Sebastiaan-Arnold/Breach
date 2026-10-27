@@ -43,6 +43,13 @@ export class Sfx {
     this.tone(heavy ? 120 : 160, 45, 0.14, 'sine', 0.7, o);
   }
 
+  /** A pane shattering: a crash, then pieces landing. */
+  glass(o: SfxOpts = {}): void {
+    this.noise(0.18, 3800, 'highpass', 0.8, o);
+    this.noise(0.4, 6000, 'highpass', 0.35, o, 0.05);
+    for (let i = 0; i < 6; i++) this.tone(2400 + Math.random() * 3000, 2000 + Math.random() * 2000, 0.05, 'sine', 0.12, o, 0.08 + Math.random() * 0.35);
+  }
+
   /** Working a bolt: back, then forward. */
   bolt(o: SfxOpts = {}): void {
     this.noise(0.035, 2600, 'bandpass', 0.35, o);

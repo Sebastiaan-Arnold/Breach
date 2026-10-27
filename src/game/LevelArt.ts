@@ -141,16 +141,6 @@ export function drawLevelArt(
         g.fillRect(px + 6, py, 2, TILE);
         g.fillStyle(COLORS.barrierStripe, 0.75);
         g.fillRect(px + 15, py + (y % 2 ? 0 : 6), 2, TILE - 6);
-      } else if (kind === 'glass') {
-        // A pane in a thin frame, running the way the wall runs.
-        const solid = (k: TileKind) => k === 'glass' || blocksSight(k);
-        const across = solid(kindAt(x - 1, y)) || solid(kindAt(x + 1, y));
-        g.fillStyle(0x334155, 1);
-        if (across) g.fillRect(px, py + TILE / 2 - 3, TILE, 6);
-        else g.fillRect(px + TILE / 2 - 3, py, 6, TILE);
-        g.fillStyle(COLORS.glass, 0.6);
-        if (across) g.fillRect(px, py + TILE / 2 - 1, TILE, 2);
-        else g.fillRect(px + TILE / 2 - 1, py, 2, TILE);
       }
     }
   }

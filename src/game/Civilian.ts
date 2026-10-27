@@ -74,7 +74,7 @@ export class Civilian {
 
   hear(e: NoiseEvent, world: World): void {
     if (this.state !== 'idle' || this.hostage) return;
-    if (e.kind !== 'shot' && e.kind !== 'shout') return;
+    if (e.kind !== 'shot' && e.kind !== 'shout' && e.kind !== 'glass') return;
     if (Math.hypot(e.x - this.x, e.y - this.y) > e.radius) return;
     if (Math.random() < 0.5) {
       this.state = 'cower';

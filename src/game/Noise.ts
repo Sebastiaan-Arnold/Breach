@@ -6,7 +6,7 @@ export interface NoiseEvent {
   /** How far away the sound can be heard, in px. */
   radius: number;
   source: 'player' | 'world';
-  kind: 'step' | 'door' | 'shot' | 'shout' | 'reload' | 'other';
+  kind: 'step' | 'door' | 'shot' | 'shout' | 'glass' | 'reload' | 'other';
 }
 
 interface Ripple {

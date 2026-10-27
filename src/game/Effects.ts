@@ -15,6 +15,8 @@ interface Particle {
   stain?: number;
 }
 interface Stain { x: number; y: number; r: number }
+interface Shard { x: number; y: number; a: number }
+const GLASS = 0xbfe3ff;
 interface Pool { x: number; y: number; age: number; blobs: { dx: number; dy: number; r: number }[] }
 
 /**
@@ -28,6 +30,7 @@ interface Pool { x: number; y: number; age: number; blobs: { dx: number; dy: num
 export class Effects {
   private newHoles: Hole[] = [];
   private newStains: Stain[] = [];
+  private newShards: Shard[] = [];
   private pools: Pool[] = [];
   private casings: Casing[] = [];
   private particles: Particle[] = [];
@@ -57,6 +60,19 @@ export class Effects {
       const a = Math.atan2(-dy, -dx) + Phaser.Math.FloatBetween(-1.2, 1.2);
       const v = Phaser.Math.FloatBetween(20, 60);
       this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: 0.5, color: 0x9ca3af, size: 1.6, streak: false });
+    }
+  }
+
+  /** A pane shattering: a burst of glass along the shot, and shards left on the floor. */
+  glassBreak(x: number, y: number, dx: number, dy: number): void {
+    for (let i = 0; i < 16; i++) {
+      const a = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-1.1, 1.1);
+      const v = Phaser.Math.FloatBetween(40, 200);
+      this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: Phaser.Math.FloatBetween(0.2, 0.5), color: GLASS, size: 1.5, streak: i % 3 === 0 });
+    }
+    for (let i = 0; i < 14; i++) {
+      const d = Phaser.Math.FloatBetween(2, 26), a = Math.atan2(dy, dx) + Phaser.Math.FloatBetween(-1.4, 1.4);
+      this.newShards.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, a: Math.random() * Math.PI });
     }
   }
 
@@ -138,16 +154,18 @@ export class Effects {
     // Bake anything that has come to rest.
     const resting = this.casings.filter((c) => c.vx === 0 && c.vy === 0);
     const settled = this.pools.filter((p) => p.age >= POOL_GROW);
-    if (resting.length || settled.length || this.newHoles.length || this.newStains.length) {
+    if (resting.length || settled.length || this.newHoles.length || this.newStains.length || this.newShards.length) {
       const b = this.baker;
       b.clear();
       for (const p of settled) drawPool(b, p);
       for (const st of this.newStains) drawStain(b, st);
       for (const h of this.newHoles) drawHole(b, h);
+      for (const s of this.newShards) drawShard(b, s);
       for (const c of resting) drawCasing(b, c);
       this.decals.draw(b);
       this.newHoles = [];
       this.newStains = [];
+      this.newShards = [];
       this.pools = this.pools.filter((p) => p.age < POOL_GROW);
       this.casings = this.casings.filter((c) => c.vx !== 0 || c.vy !== 0);
     }
@@ -191,6 +209,11 @@ function drawPool(g: Phaser.GameObjects.Graphics, p: Pool): void {
 function drawStain(g: Phaser.GameObjects.Graphics, s: Stain): void {
   g.fillStyle(BLOOD, 0.9);
   g.fillCircle(s.x, s.y, s.r);
+}
+
+function drawShard(g: Phaser.GameObjects.Graphics, s: Shard): void {
+  g.fillStyle(GLASS, 0.55);
+  g.fillTriangle(s.x, s.y, s.x + Math.cos(s.a) * 3, s.y + Math.sin(s.a) * 3, s.x + Math.cos(s.a + 2) * 2, s.y + Math.sin(s.a + 2) * 2);
 }
 
 function drawHole(g: Phaser.GameObjects.Graphics, h: Hole): void {

@@ -15,6 +15,7 @@ import type { Door } from '../game/Door';
 import { Effects } from '../game/Effects';
 import { Enemy, type EnemyContext } from '../game/Enemy';
 import { Fog } from '../game/Fog';
+import { Glass } from '../game/Glass';
 import { Intro, INTRO_PACE } from '../game/Intro';
 import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem, type NoiseEvent } from '../game/Noise';
@@ -42,6 +43,8 @@ const SCOPE = { halfFov: 4 * DEG, range: 1800, sweepStep: 0.25 * DEG, lookahead:
 const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 68, lookahead: 520 };
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
+/** Breaking glass is loud: suppressed or not, a shattered window carries through the house. */
+const GLASS_NOISE = 700;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
 const ENEMY_SHOT_NOISE = 1000;
 /** Pellet spread either side of a hider's aim, in degrees. */
@@ -116,6 +119,7 @@ export class GameScene extends Phaser.Scene {
 
   private def!: LevelDef;
   private world!: World;
+  private glass!: Glass;
   private targets: Target[] = [];
   private enemies: Enemy[] = [];
   private civilians: Civilian[] = [];
@@ -204,6 +208,7 @@ export class GameScene extends Phaser.Scene {
     drawLevelArt(this, level, this.def.labels, rails, this.def.props ?? [], DEPTH.world, RENDER_SCALE);
     const props = this.def.props ?? [];
     this.world = new World(this, level, DEPTH.doors, props.flatMap(propTiles), props.filter(isTall).flatMap(propTiles));
+    this.glass = new Glass(this, level, DEPTH.doors);
 
     if (this.def.stations) this.spawnTargets(level.markers);
     const situation = this.params.situation ?? (this.def.mission ? rollSituation(this.def.mission) : null);
@@ -381,7 +386,7 @@ export class GameScene extends Phaser.Scene {
   private onNoise(e: NoiseEvent): void {
     // Shots and shouts raise the alarm only if a suspect is in earshot: a suppressed shot in an
     // empty wing goes unheard.
-    if ((e.kind === 'shot' || e.kind === 'shout') && this.enemies.some((en) => en.alive && Math.hypot(en.x - e.x, en.y - e.y) <= e.radius)) {
+    if ((e.kind === 'shot' || e.kind === 'shout' || e.kind === 'glass') && this.enemies.some((en) => en.alive && Math.hypot(en.x - e.x, en.y - e.y) <= e.radius)) {
       this.raiseAlarm();
     }
     for (const en of this.enemies) en.hear(e);
@@ -490,6 +495,7 @@ export class GameScene extends Phaser.Scene {
       const a = base + (w.def.pellets > 1 ? Phaser.Math.FloatBetween(-1, 1) * w.def.spread * DEG : 0);
       const dx = Math.cos(a), dy = Math.sin(a);
       const shot = this.traceShot(a, w.def.range);
+      this.shatterAlong(p.x, p.y, dx, dy, shot.dist);
       if (shot.target) {
         const alive = shot.target.alive;
         const downed = this.onHit(shot.target, w.def.damage);
@@ -511,6 +517,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** Spatter where the shot landed; a pool too if it just took them down. */
+  /** Every pane a shot passes through shatters, loudly. */
+  private shatterAlong(x: number, y: number, dx: number, dy: number, dist: number): void {
+    for (let d = 0; d < dist; d += 6) {
+      const tx = Math.floor((x + dx * d) / TILE), ty = Math.floor((y + dy * d) / TILE);
+      if (!this.glass.shatter(tx, ty)) continue;
+      const cx = (tx + 0.5) * TILE, cy = (ty + 0.5) * TILE;
+      this.effects.glassBreak(cx, cy, dx, dy);
+      sfx.glass(this.soundAt(cx, cy, GLASS_NOISE));
+      this.worldNoise(cx, cy, GLASS_NOISE, 'glass');
+    }
+  }
+
   private hitEffect(t: Hittable, x: number, y: number, dx: number, dy: number, downed: boolean): void {
     if (t.prop) {
       this.effects.cardboardHit(x, y, dx, dy);
@@ -548,6 +566,7 @@ export class GameScene extends Phaser.Scene {
       const toPlayer = p.alive ? rayCircle(mx, my, dx, dy, p.x, p.y, MOVE.radius) : Infinity;
       const dist = Math.min(wall, toPlayer);
       const hx = mx + dx * dist, hy = my + dy * dist;
+      this.shatterAlong(mx, my, dx, dy, dist);
       if (toPlayer < wall) {
         if (!hitPlayer && settings.blood) this.effects.bloodHit(p.x, p.y, dx, dy);
         hitPlayer = true;

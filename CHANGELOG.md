@@ -3,6 +3,14 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.11
+
+- Glass breaks: any shot through a window shatters it, with a crash every suspect in earshot
+  hears (suppressed or not) and shards left on the floor. A broken pane is an opening you can
+  walk through. Enemy shots break glass too.
+- Glass corners close: panes are drawn as joined-up lines with a frame, so corners and
+  junctions with walls and doors no longer leave gaps. Panes are a little thicker and brighter.
+
 ## v0.4.10
 
 The Lieutenant campaign, "The top", and more varied places.

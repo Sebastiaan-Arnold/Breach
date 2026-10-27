@@ -195,7 +195,7 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 | Sergeant | Clean money | Hotel floors | The ring's accountants meeting at a city hotel |
 | Lieutenant | The top | Villas | The people behind it all, with friends in high places |
 
-**Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
+**Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you, and shatter loudly when shot, leaving a gap to walk through; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
 
 The story is told almost entirely through the briefing screen: case files, short radio messages, a photo of a suspect pinned to the map. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
 
