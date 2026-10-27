@@ -3,6 +3,21 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.14
+
+Older levels get the new terrain, so fewer of them read as plain boxes:
+
+- Harbour Freight Office stands on Pier Seven: harbour water on three sides and timber quays.
+- Cold Store sits on the Westquay dock, with water and a quay along the north and east.
+- Westquay Lockups has a canal and towpath along the north edge.
+- Corvan Head Office has glass partitions along the open-plan floor and glass office fronts, so
+  you can see (and be seen) across the corridor.
+- Grand Atlas Conference Suite has a glass-fronted boardroom.
+- Kestrel Road has windows onto the back garden (the hostage room among them) and a pond.
+- Grand Atlas Penthouse has floor-to-ceiling glass onto the terrace and a pool.
+
+Layouts, entries, spawn points and patrols are unchanged.
+
 ## v0.4.13
 
 Ardley Lodge, from playtesting:
