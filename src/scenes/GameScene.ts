@@ -10,6 +10,7 @@ import { campaignOf, DIFFICULTY, RANKS } from '../levels/campaigns';
 import { isTall, propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';
 import { sfx } from '../game/audio';
+import type { Surface } from '../game/Sfx';
 import { Civilian, SECURE_TIME } from '../game/Civilian';
 import type { Door } from '../game/Door';
 import { Effects } from '../game/Effects';
@@ -100,10 +101,14 @@ export interface HudState {
   /** 1 right after taking a hit, fading to 0. */
   hurt: number;
   cutscene: { bars: number; subtitle: string | null } | null;
+  /** The title card over the intro: where this is, and when. */
+  card: { title: string; sub: string };
   /** 0..1 while holding E on a civilian. */
   securing: number | null;
   /** A countdown at the top of the screen: the hostage clock, or a guard setting off an alarm. */
   clock: { label: string; seconds: number } | null;
+  /** The crosshair while the operator is in control: how far the aim is wandering, in degrees. */
+  aim: { spread: number; reloading: boolean } | null;
   outcome: Outcome | null;
 }
 
@@ -138,6 +143,8 @@ export class GameScene extends Phaser.Scene {
 
   private visionPolys: number[][] = [];
   private tracers: Tracer[] = [];
+  /** Hit markers: an X where a shot landed on someone, red when it put them down. */
+  private markers: { x: number; y: number; age: number; down: boolean }[] = [];
   private muzzleFlash = 0;
   private triggerPressed = false;
   private lookX = 0;
@@ -182,6 +189,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies = [];
     this.civilians = [];
     this.tracers = [];
+    this.markers = [];
     this.muzzleFlash = 0;
     this.triggerPressed = false;
     this.lookX = this.lookY = 0;
@@ -248,6 +256,11 @@ export class GameScene extends Phaser.Scene {
     // Unbounded on purpose: the operator stays centred even at the map edge (beyond it is just dark).
     this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom).startFollow(this.player.displayObject, false, 0.1, 0.1);
     this.cameras.main.fadeIn(500, 7, 9, 12);
+    // Wind outdoors, room tone indoors, mixed by how much of the level is open to the sky.
+    const open = level.tiles.filter((k, i) => k === 'floor' && isOutdoor(level.material[i])).length;
+    const floor = level.tiles.filter((k) => k === 'floor').length;
+    sfx.levelAmbience(floor ? open / floor : 0);
+    this.events.once('shutdown', () => sfx.stopLevelAmbience());
 
     // A realism career is on the line from the moment it deploys.
     if (this.realism) {
@@ -291,7 +304,7 @@ export class GameScene extends Phaser.Scene {
     this.separateBodies();
     const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
     if (step) {
-      sfx.footstep(step.loud);
+      sfx.footstep(step.loud, {}, this.surfaceAt(ptx, pty));
       this.noise.emit({ x: p.x, y: p.y, radius: step.loud ? NOISE.sprintStep : NOISE.walkStep, source: 'player', kind: 'step' }, p.x, p.y);
     }
     if (p.sprinting) this.stations?.onSprint(dt, ptx, pty);
@@ -328,6 +341,12 @@ export class GameScene extends Phaser.Scene {
 
     if (!inIntro) this.updateProgress(dt, ptx, pty);
     this.updateHud();
+  }
+
+  /** What the floor at a tile sounds like underfoot. */
+  private surfaceAt(tx: number, ty: number): Surface {
+    const m = this.world.level.material[ty * this.world.width + tx];
+    return m === 'wood' || m === 'deck' || m === 'tile' || m === 'grass' ? m : 'concrete';
   }
 
   /** People don't walk through each other: push the operator out of anyone standing. */
@@ -511,6 +530,7 @@ export class GameScene extends Phaser.Scene {
       if (shot.target) {
         const alive = shot.target.alive;
         const downed = this.onHit(shot.target, w.def.damage);
+        if (alive) this.markers.push({ x: shot.x, y: shot.y, age: 0, down: downed });
         this.hitEffect(shot.target, shot.x, shot.y, dx, dy, alive && downed);
         landed = true;
       } else if (shot.dist < w.def.range) {
@@ -520,6 +540,8 @@ export class GameScene extends Phaser.Scene {
     }
     if (landed) this.stats.hits++;
     p.kick(w.def.recoil);
+    // A small camera kick with every shot, bigger for heavier guns.
+    if (settings.shake) this.cameras.main.shake(70, 0.0008 + w.def.recoil * 0.0022);
     this.muzzleFlash = 0.05;
     this.effects.muzzle(muzzle.x, muzzle.y, w.def.id !== 'pistol');
     this.effects.casing(p.x, p.y, p.facing, w.def.id === 'shotgun');
@@ -593,7 +615,7 @@ export class GameScene extends Phaser.Scene {
       this.hurt = 1;
       if (p.damage()) this.toast('Operator down');
       sfx.hurt();
-      this.cameras.main.shake(140, 0.006);
+      if (settings.shake) this.cameras.main.shake(140, 0.006);
     }
     if (seen) this.effects.muzzle(mx, my, pellets > 1);
     sfx.shot(pellets > 1, this.soundAt(e.x, e.y, 1200));
@@ -648,6 +670,14 @@ export class GameScene extends Phaser.Scene {
     for (const t of this.tracers) {
       g.lineStyle(1.2, t.color, 0.6 * (1 - t.age / 0.06));
       g.lineBetween(t.x0, t.y0, t.x1, t.y1);
+    }
+    this.markers = this.markers.filter((m) => (m.age += dt) < 0.3);
+    for (const m of this.markers) {
+      const a = 1 - m.age / 0.3, r = (m.down ? 7 : 5) + m.age * 10, gap = 2.5;
+      g.lineStyle(m.down ? 2 : 1.5, m.down ? 0xff4d4d : 0xffffff, a);
+      for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        g.lineBetween(m.x + sx * gap, m.y + sy * gap, m.x + sx * r, m.y + sy * r);
+      }
     }
   }
 
@@ -1097,7 +1127,13 @@ export class GameScene extends Phaser.Scene {
       health: p.health,
       hurt: this.hurt,
       cutscene: this.intro.active ? { bars: this.intro.bars, subtitle: this.intro.subtitle } : null,
+      card: this.def.mission
+        ? { title: this.def.mission.title, sub: `${this.def.mission.location}  ·  ${this.def.mission.time}` }
+        : { title: this.def.name, sub: 'Port Ardley Police Academy' },
       securing: this.securing ? this.securing.secureProgress : null,
+      aim: !this.intro.active && !this.outcome && this.player.alive
+        ? { spread: this.player.instability * this.player.weapon.def.wobble, reloading: this.player.weapon.reloading }
+        : null,
       clock: this.clock !== null ? { label: 'HOSTAGE', seconds: this.clock }
         : this.alarmRunner?.atErrand ? { label: 'ALARM', seconds: Math.max(0, ALARM_ARM_TIME - this.arming) } : null,
       outcome: this.outcome,

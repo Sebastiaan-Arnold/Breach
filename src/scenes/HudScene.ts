@@ -57,6 +57,7 @@ export class HudScene extends Phaser.Scene {
   private shownOutcome: Outcome | null = null;
   private toasts: Toast[] = [];
   private fps!: Phaser.GameObjects.Text;
+  private cardShown = false;
 
   constructor() {
     super('hud');
@@ -72,6 +73,7 @@ export class HudScene extends Phaser.Scene {
     this.lastStation = undefined;
     this.shownOutcome = null;
     this.settingsOpen = false;
+    this.cardShown = false;
     this.toasts = [];
 
     this.overlay = this.add.graphics();
@@ -98,7 +100,10 @@ export class HudScene extends Phaser.Scene {
 
     const onToast = (text: string) => this.showToast(text);
     this.game.events.on('toast', onToast);
-    this.events.once('shutdown', () => this.game.events.off('toast', onToast));
+    this.events.once('shutdown', () => {
+      this.game.events.off('toast', onToast);
+      this.input.setDefaultCursor('default');
+    });
   }
 
   update(_time: number, deltaMs: number): void {
@@ -110,9 +115,11 @@ export class HudScene extends Phaser.Scene {
     if (this.fps.visible) this.fps.setText(`${Math.round(this.game.loop.actualFps)} fps  ·  ${this.scale.width}x${this.scale.height}`);
 
     const cut = s.cutscene;
+    if (cut && !this.cardShown) this.showCard(s.card);
     this.gfx.clear();
     this.overlay.clear();
     if (!cut) this.drawStatus(s);
+    this.drawReticle(s);
     for (const t of [this.weaponName, this.reserve]) t.setVisible(!cut);
     this.drawOverlay(s);
     this.subtitle.setText(cut?.subtitle ?? '');
@@ -152,6 +159,57 @@ export class HudScene extends Phaser.Scene {
     if (!this.menu.visible) this.tutorialAge += dt;
     const fade = 1 - Phaser.Math.Clamp((this.tutorialAge - TUTORIAL_HOLD) / TUTORIAL_FADE, 0, 1);
     this.tutorial.setAlpha(station ? fade : 0);
+  }
+
+  /**
+   * The title card over the intro: the case name typed out in the top-left corner, then where
+   * and when, held for a few seconds and faded.
+   */
+  private showCard(card: HudState['card']): void {
+    this.cardShown = true;
+    const x = 56, y = 110;
+    const rule = this.add.rectangle(x, y + 50, 0, 2, UI.accent, 0.9).setOrigin(0, 0.5);
+    const title = this.add.text(x, y, '', display(34, '#f8fafc'));
+    const sub = this.add.text(x, y + 62, card.sub, display(14, ACCENT)).setAlpha(0);
+    const all = [rule, title, sub];
+    const text = card.title.toUpperCase();
+    let shown = 0;
+    this.time.addEvent({
+      delay: 38, repeat: text.length - 1, startAt: 0,
+      callback: () => {
+        shown++;
+        title.setText(text.slice(0, shown));
+        if (shown % 2) sfx.hover();
+      },
+    });
+    this.tweens.add({ targets: rule, width: 260, duration: 500, ease: 'Cubic.Out', delay: 200 });
+    this.tweens.add({ targets: sub, alpha: 1, duration: 400, delay: 200 + text.length * 38 });
+    this.tweens.add({ targets: all, alpha: 0, duration: 700, delay: 4200, onComplete: () => all.forEach((o) => o.destroy()) });
+  }
+
+  /**
+   * The crosshair, in place of the system cursor while the operator is in control: four ticks
+   * that open up as the aim wanders, dimmed during a reload.
+   */
+  private drawReticle(s: HudState): void {
+    const show = !!s.aim && !this.menu.visible && !this.debrief.visible;
+    this.input.setDefaultCursor(show ? 'none' : 'default');
+    if (!show || !s.aim) return;
+    const p = this.input.activePointer;
+    const cam = this.cameras.main;
+    const x = p.x / cam.zoom, y = p.y / cam.zoom;
+    const gap = 5 + s.aim.spread * 2.2, len = 6;
+    const g = this.gfx;
+    const a = s.aim.reloading ? 0.35 : 0.9;
+    for (const [w, c, al] of [[3, 0x000000, 0.45 * a], [1.5, 0xffffff, a]] as const) {
+      g.lineStyle(w, c, al);
+      g.lineBetween(x - gap - len, y, x - gap, y);
+      g.lineBetween(x + gap, y, x + gap + len, y);
+      g.lineBetween(x, y - gap - len, x, y - gap);
+      g.lineBetween(x, y + gap, x, y + gap + len);
+    }
+    g.fillStyle(0xffffff, a);
+    g.fillCircle(x, y, 1.2);
   }
 
   /** Ammo as a row of rounds with spare rounds beside it; armour and health above. */

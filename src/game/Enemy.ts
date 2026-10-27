@@ -115,7 +115,7 @@ export class Enemy {
   private container: Phaser.GameObjects.Container;
   private gfx: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, readonly type: HostileType, slot: HostileSlot, depth: number, private difficulty: Difficulty) {
+  constructor(private scene: Phaser.Scene, readonly type: HostileType, slot: HostileSlot, depth: number, private difficulty: Difficulty) {
     this.x = slot.tx * TILE;
     this.y = slot.ty * TILE;
     this.facing = slot.facing * DEG;
@@ -165,8 +165,16 @@ export class Enemy {
       return false;
     }
     this.state = 'down';
-    this.gfx.clear().setScale(1).setRotation(0);
+    this.gfx.clear().setRotation(0);
     drawDowned(this.gfx, this.style);
+    // The fall: knocked back along the shot and twisting as they go down.
+    const away = Math.atan2(this.y - fromY, this.x - fromX);
+    this.gfx.setScale(1.25);
+    this.scene.tweens.add({ targets: this.gfx, scale: 1, duration: 260, ease: 'Quad.Out' });
+    if (fromX !== this.x || fromY !== this.y) {
+      this.scene.tweens.add({ targets: this, x: this.x + Math.cos(away) * 6, y: this.y + Math.sin(away) * 6, duration: 200, ease: 'Quad.Out' });
+      this.scene.tweens.add({ targets: this.container, rotation: this.container.rotation + Phaser.Math.FloatBetween(-0.6, 0.6), duration: 260, ease: 'Quad.Out' });
+    }
     return true;
   }
 
@@ -224,6 +232,7 @@ export class Enemy {
     this.container.setVisible(visible);
     if (!this.alive) {
       // Fall and fade, but stay readable as a body.
+      this.container.setPosition(this.x, this.y);
       this.downTime += dt;
       this.container.setAlpha(Math.max(0.55, 1 - this.downTime * 0.25));
       return;

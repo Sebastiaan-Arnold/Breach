@@ -49,11 +49,15 @@ export class Player {
   private weapons = new Map<WeaponId, WeaponState>();
   private container: Phaser.GameObjects.Container;
   private gunGfx: Phaser.GameObjects.Graphics;
+  private bodyGfx: Phaser.GameObjects.Graphics;
+  private feet: Phaser.GameObjects.Graphics;
+  /** Walk cycle, in radians: drives the boots, the shoulders and a little gun bob. */
+  private stride = 0;
   private stepTimer = 0;
   private time = 0;
   private hurtTimer = 0;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, depth: number) {
+  constructor(private scene: Phaser.Scene, x: number, y: number, depth: number) {
     this.x = x;
     this.y = y;
     this.weapon = this.equip('pistol');
@@ -62,7 +66,11 @@ export class Player {
     shadow.fillStyle(0x000000, 0.3);
     shadow.fillEllipse(1.5, 2.5, 22, 30);
 
+    // Boots, under everything else; they step in turn as the operator walks.
+    this.feet = scene.add.graphics();
+
     const body = scene.add.graphics();
+    this.bodyGfx = body;
     // Vest and shoulders, in the operator's blue.
     body.fillStyle(0x1d4ed8, 1);
     body.fillEllipse(0, 0, 15, 25);
@@ -79,7 +87,7 @@ export class Player {
     body.fillRect(6, -2.5, 1.5, 5);
 
     this.gunGfx = scene.add.graphics();
-    this.container = scene.add.container(x, y, [shadow, this.gunGfx, body]).setDepth(depth);
+    this.container = scene.add.container(x, y, [shadow, this.feet, this.gunGfx, body]).setDepth(depth);
     this.drawGun();
   }
 
@@ -99,7 +107,11 @@ export class Player {
     if (this.armor > 0) this.armor--;
     else this.health--;
     this.kick(0.6);
-    if (!this.alive) this.container.setAlpha(0.6).setScale(0.9);
+    if (!this.alive) {
+      // Down: a slump to the floor rather than a cut.
+      this.feet.clear();
+      this.scene.tweens.add({ targets: this.container, rotation: this.container.rotation + 1.1, scale: 0.86, alpha: 0.65, duration: 420, ease: 'Quad.In' });
+    }
     return !this.alive;
   }
 
@@ -121,10 +133,18 @@ export class Player {
       w = new WeaponState(WEAPONS[id]);
       this.weapons.set(id, w);
     }
-    if (this.weapon && this.weapon !== w) this.weapon.reloadLeft = 0;
+    const swapped = !!this.weapon && this.weapon !== w;
+    if (swapped) this.weapon.reloadLeft = 0;
     w.suppressed = this.suppressors && w.def.suppressible;
     this.weapon = w;
-    if (this.gunGfx) this.drawGun();
+    if (this.gunGfx) {
+      this.drawGun();
+      // The new gun comes up into the aim.
+      if (swapped) {
+        this.gunGfx.setScale(0.6).setAlpha(0.4);
+        this.scene.tweens.add({ targets: this.gunGfx, scale: 1, alpha: 1, duration: 180, ease: 'Back.Out' });
+      }
+    }
     return w;
   }
 
@@ -168,9 +188,8 @@ export class Player {
     this.instability += (target - this.instability) * Math.min(1, rate * dt);
 
     this.gunKick *= Math.exp(-18 * dt);
-    this.gunGfx.x = -this.gunKick * 4;
-
     this.weapon.update(dt);
+    this.animate(dt, actual);
     this.container.setPosition(this.x, this.y);
     this.container.rotation = this.facing;
 
@@ -184,6 +203,30 @@ export class Player {
       return { loud: this.sprinting };
     }
     return null;
+  }
+
+  /**
+   * The walk cycle and the gun: boots step in turn and the shoulders sway with them, faster at a
+   * sprint; recoil knocks the gun back; a reload dips and tilts it.
+   */
+  private animate(dt: number, speed: number): void {
+    if (!this.alive) return;
+    const pace = Math.min(1, speed / MOVE.walk);
+    this.stride += dt * (this.sprinting ? 15 : 10) * Math.min(1, pace + 0.2);
+    const swing = Math.sin(this.stride) * pace;
+    const f = this.feet;
+    f.clear();
+    if (pace > 0.05) {
+      f.fillStyle(0x0f172a, 0.95);
+      f.fillEllipse(swing * 6, -5, 8, 5);
+      f.fillEllipse(-swing * 6, 5, 8, 5);
+    }
+    this.bodyGfx.rotation = swing * 0.07;
+    const w = this.weapon;
+    const reload = w.reloading ? Math.sin((1 - w.reloadLeft / w.def.reloadTime) * Math.PI) : 0;
+    this.gunGfx.x = -this.gunKick * 4 - reload * 3;
+    this.gunGfx.y = Math.abs(swing) * 0.8 + reload * 2;
+    this.gunGfx.rotation = swing * 0.04 + reload * 0.55;
   }
 
   /** Recoil: unsettles the aim and knocks the gun back a little. */

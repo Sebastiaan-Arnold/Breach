@@ -3,6 +3,20 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.6.0
+
+Presentation, part two: game feel.
+
+- The operator walks: boots step in turn, the shoulders sway, the gun bobs. Reloading dips and
+  tilts the gun; swapping brings the new one up into the aim. Going down is a slump, not a cut.
+- Suspects fall when stopped: knocked back along the shot and twisting as they go down.
+- Hit markers: an X where a shot lands on someone, red when it puts them down.
+- A crosshair replaces the system cursor in play, opening up as the aim wanders.
+- A small camera kick with every shot, bigger for heavier guns (screen shake setting).
+- Footsteps sound like what they land on: floorboards, tiles, concrete, grass or decking.
+- Levels have their own background: wind outdoors, a low room tone indoors.
+- Each mission opens with a title card: the case name typed out, then where and when.
+
 ## v0.5.0
 
 Presentation, part one: menus.

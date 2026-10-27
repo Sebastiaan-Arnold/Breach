@@ -9,6 +9,9 @@ export interface SfxOpts {
   vol?: number;
 }
 
+/** What a footstep lands on. */
+export type Surface = 'wood' | 'deck' | 'tile' | 'concrete' | 'grass';
+
 export class Sfx {
   private ctx?: AudioContext;
   private master?: GainNode;
@@ -16,6 +19,8 @@ export class Sfx {
   private volume = 0.8;
   /** The menu's ambient bed, while it plays. */
   private bed: { stop: () => void } | null = null;
+  /** A level's ambience, while a mission plays. */
+  private levelBed: { stop: () => void } | null = null;
 
   /** Master volume, 0..1 (from the settings). */
   setVolume(v: number): void {
@@ -82,8 +87,83 @@ export class Sfx {
     this.sweep(170, 260, 0.55, vol, o.pan);
   }
 
-  footstep(loud: boolean, o: SfxOpts = {}): void {
-    this.noise(0.05, loud ? 900 : 600, 'lowpass', loud ? 0.35 : 0.12, o);
+  /** A footstep, sounding like what it lands on. */
+  footstep(loud: boolean, o: SfxOpts = {}, surface: Surface = 'concrete'): void {
+    const v = loud ? 1 : 0.4;
+    switch (surface) {
+      case 'wood':
+        this.noise(0.06, loud ? 1100 : 800, 'bandpass', 0.4 * v, o);
+        this.tone(140, 110, 0.05, 'sine', 0.12 * v, o);
+        break;
+      case 'deck':
+        this.noise(0.05, 1300, 'bandpass', 0.35 * v, o);
+        this.tone(190, 150, 0.07, 'triangle', 0.14 * v, o);
+        break;
+      case 'tile':
+        this.noise(0.03, 3200, 'highpass', 0.3 * v, o);
+        this.noise(0.04, 900, 'lowpass', 0.18 * v, o);
+        break;
+      case 'grass':
+        this.noise(0.08, 2600, 'highpass', 0.14 * v, o);
+        break;
+      default:
+        this.noise(0.05, loud ? 900 : 600, 'lowpass', 0.35 * v, o);
+        this.noise(0.02, 2400, 'highpass', 0.08 * v, o);
+    }
+  }
+
+  /**
+   * A level's background: wind outdoors, a low room tone indoors. Mixed by how much of the level
+   * is open to the sky; plays until the mission ends.
+   */
+  levelAmbience(outdoor: number): void {
+    this.stopLevelAmbience();
+    if (!this.ctx || !this.master || !this.noiseBuf) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.linearRampToValueAtTime(1, t + 2);
+    out.connect(this.master);
+    // Wind: low-passed noise whose cut-off drifts.
+    const wind = ctx.createBufferSource();
+    wind.buffer = this.noiseBuf;
+    wind.loop = true;
+    const wf = ctx.createBiquadFilter();
+    wf.type = 'lowpass';
+    wf.frequency.value = 500;
+    const gust = ctx.createOscillator(), gustGain = ctx.createGain();
+    gust.frequency.value = 0.08;
+    gustGain.gain.value = 260;
+    gust.connect(gustGain).connect(wf.frequency);
+    const wg = ctx.createGain();
+    wg.gain.value = 0.09 * outdoor;
+    wind.connect(wf).connect(wg).connect(out);
+    // Room tone: a faint mains hum and its harmonic.
+    const hum = [50, 100].map((f, i) => {
+      const o = ctx.createOscillator();
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.value = (i ? 0.006 : 0.012) * (1 - outdoor * 0.7);
+      o.connect(g).connect(out);
+      return o;
+    });
+    for (const o of [gust, ...hum]) o.start(t);
+    wind.start(t);
+    this.levelBed = {
+      stop: () => {
+        const now = ctx.currentTime;
+        out.gain.cancelScheduledValues(now);
+        out.gain.setValueAtTime(out.gain.value, now);
+        out.gain.linearRampToValueAtTime(0.0001, now + 0.6);
+        for (const o of [gust, ...hum]) o.stop(now + 0.7);
+        wind.stop(now + 0.7);
+      },
+    };
+  }
+
+  stopLevelAmbience(): void {
+    this.levelBed?.stop();
+    this.levelBed = null;
   }
 
   railTick(o: SfxOpts = {}): void {
