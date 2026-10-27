@@ -48,9 +48,9 @@ export const HARBOUR_LANE: LevelDef = {
   labels: [],
   props: [{ kind: 'van', tx: 19.5, ty: 29 }],
   entries: [
-    { id: 'front', name: 'front door', approach: [{ tx: 24.5, ty: 30.5 }, { tx: 15.5, ty: 27.5 }, { tx: 15.5, ty: 25.5 }] },
-    { id: 'side', name: 'side door', approach: [{ tx: 24.5, ty: 30.5 }, { tx: 4.5, ty: 27.5 }, { tx: 4.5, ty: 13.5 }, { tx: 6.8, ty: 13.5 }] },
-    { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 24.5, ty: 30.5 }, { tx: 39.5, ty: 27.5 }, { tx: 39.5, ty: 19.5 }, { tx: 38.2, ty: 19.5 }] },
+    { id: 'front', name: 'front door', approach: [{ tx: 25.5, ty: 30.5 }, { tx: 25.5, ty: 27.5 }, { tx: 15.5, ty: 27.5 }, { tx: 15.5, ty: 25.5 }] },
+    { id: 'side', name: 'side door', approach: [{ tx: 25.5, ty: 30.5 }, { tx: 25.5, ty: 27.5 }, { tx: 4.5, ty: 27.5 }, { tx: 4.5, ty: 13.5 }, { tx: 6.8, ty: 13.5 }] },
+    { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 25.5, ty: 30.5 }, { tx: 39.5, ty: 27.5 }, { tx: 39.5, ty: 19.5 }, { tx: 38.4, ty: 19.5 }] },
   ],
   intro: [
     'Dispatch: Unit 7, you are on scene at 14 Harbour Lane.',

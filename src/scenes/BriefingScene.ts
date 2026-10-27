@@ -6,6 +6,7 @@ import { progress, unlockedWeapons } from '../game/progress';
 import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
+import { propSize } from '../levels/props';
 import type { LevelDef, Reliability } from '../levels/types';
 import { ACCENT, DIM, RED, setupScreenCamera, style, TEXT } from './ui';
 
@@ -118,8 +119,7 @@ export class BriefingScene extends Phaser.Scene {
       else g.fillRect(ox + d.tx * s + s / 2 - 1.5, oy + d.ty * s, 3, s);
     }
     for (const prop of this.def.props ?? []) {
-      const long = prop.kind === 'van' ? 4.4 : 4;
-      const w = prop.vertical ? 2 : long, h = prop.vertical ? long : 2;
+      const { w, h } = propSize(prop);
       g.fillStyle(prop.kind === 'van' ? 0x1e3a8a : 0x334155, 1);
       g.fillRoundedRect(ox + prop.tx * s, oy + prop.ty * s, w * s, h * s, 3);
     }

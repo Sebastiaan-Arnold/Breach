@@ -18,10 +18,13 @@ export class World {
   private doorAt = new Map<number, Door>();
   private staticSegs: Segment[];
   private segs: Segment[] = [];
+  /** Tiles taken by solid props such as a parked van. */
+  private propTiles = new Set<number>();
 
-  constructor(scene: Phaser.Scene, readonly level: ParsedLevel, doorDepth: number) {
+  constructor(scene: Phaser.Scene, readonly level: ParsedLevel, doorDepth: number, propTiles: readonly { tx: number; ty: number }[] = []) {
     this.width = level.width;
     this.height = level.height;
+    for (const t of propTiles) this.propTiles.add(t.ty * level.width + t.tx);
     this.staticSegs = buildWallSegments(level.width, level.height, TILE, (x, y) => blocksSight(this.tileAt(x, y)));
     for (const spec of level.doors) {
       const door = new Door(scene, spec, doorDepth);
@@ -55,9 +58,9 @@ export class World {
     return this.doorAt.get(ty * this.width + tx);
   }
 
-  /** For movement: walls, furniture and closed doors. */
+  /** For movement: walls, furniture, props and closed doors. */
   solid = (tx: number, ty: number): boolean => {
-    if (blocksMovement(this.tileAt(tx, ty))) return true;
+    if (blocksMovement(this.tileAt(tx, ty)) || this.propTiles.has(ty * this.width + tx)) return true;
     return this.doorAtTile(tx, ty)?.blocksMovement ?? false;
   };
 
@@ -86,7 +89,7 @@ export class World {
     const goal: TilePoint = { tx: Math.floor(toX / TILE), ty: Math.floor(toY / TILE) };
     const path = findPath(
       this.width, this.height, start, goal,
-      (x, y) => !blocksMovement(this.tileAt(x, y)) && (closedDoors || !this.doorAtTile(x, y)?.blocksMovement),
+      (x, y) => !blocksMovement(this.tileAt(x, y)) && !this.propTiles.has(y * this.width + x) && (closedDoors || !this.doorAtTile(x, y)?.blocksMovement),
       (x, y) => (this.doorAtTile(x, y)?.blocksMovement ? 2 : 0),
     );
     return path?.map((p) => ({ x: (p.tx + 0.5) * TILE, y: (p.ty + 0.5) * TILE })) ?? null;

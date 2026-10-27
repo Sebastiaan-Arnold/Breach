@@ -2,10 +2,11 @@ import Phaser from 'phaser';
 import { COLORS, MOVE, NOISE, REACH, RENDER_SCALE, TILE, VISION } from '../config';
 import { moveCircle } from '../core/collision';
 import { circleIntersectsRect, DEG, pointInPolygon, rayCircle } from '../core/geometry';
-import { blocksSight, parseLevel } from '../core/grid';
+import { blocksSight, isOutdoor, parseLevel, type ParsedLevel } from '../core/grid';
 import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
 import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/range';
+import { propTiles } from '../levels/props';
 import type { EntryDef, LevelDef } from '../levels/types';
 import { sfx } from '../game/audio';
 import { Civilian, SECURE_TIME } from '../game/Civilian';
@@ -147,7 +148,7 @@ export class GameScene extends Phaser.Scene {
     const rails = level.markers.filter((m) => m.kind === 'mover')
       .map((m) => ({ x0: (m.tx + 0.3) * TILE, x1: (m.tx + 7.7) * TILE, y: (m.ty + 0.5) * TILE }));
     drawLevelArt(this, level, this.def.labels, rails, this.def.props ?? [], DEPTH.world, RENDER_SCALE);
-    this.world = new World(this, level, DEPTH.doors);
+    this.world = new World(this, level, DEPTH.doors, (this.def.props ?? []).flatMap(propTiles));
 
     if (this.def.stations) this.spawnTargets(level.markers);
     const situation = this.params.situation ?? (this.def.mission ? rollSituation(this.def.mission) : null);
@@ -161,7 +162,7 @@ export class GameScene extends Phaser.Scene {
     this.player.facing = this.intro.finalFacing;
     this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
     this.player.equip(this.guns[0]);
-    this.fog = new Fog(this, level.width * TILE, level.height * TILE, DEPTH.glow, DEPTH.fog);
+    this.fog = new Fog(this, level.width * TILE, level.height * TILE, DEPTH.glow, DEPTH.fog, exteriorTiles(level));
     this.noise = new NoiseSystem(this, DEPTH.ripples);
     this.noise.onNoise((e) => this.onNoise(e));
     this.laserGfx = this.add.graphics().setDepth(DEPTH.laser);
@@ -797,4 +798,28 @@ export class GameScene extends Phaser.Scene {
       outcome: this.outcome,
     };
   }
+}
+
+/**
+ * Tiles that are always lit: everything outdoors (ground, and the props and furniture standing
+ * on it) plus the outside face of buildings, i.e. any wall touching the outdoors.
+ */
+function exteriorTiles(level: ParsedLevel): { tx: number; ty: number }[] {
+  const { width, height, tiles, material } = level;
+  const outside = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x < width && y < height && !blocksSight(tiles[y * width + x]) && isOutdoor(material[y * width + x]);
+  const lit: { tx: number; ty: number }[] = [];
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (outside(x, y)) {
+        lit.push({ tx: x, ty: y });
+        continue;
+      }
+      if (!blocksSight(tiles[y * width + x])) continue;
+      let touches = false;
+      for (let dy = -1; dy <= 1 && !touches; dy++) for (let dx = -1; dx <= 1; dx++) if (outside(x + dx, y + dy)) touches = true;
+      if (touches) lit.push({ tx: x, ty: y });
+    }
+  }
+  return lit;
 }

@@ -50,7 +50,7 @@ export const KESTREL_ROAD: LevelDef = {
   entries: [
     { id: 'front', name: 'front door', approach: [{ tx: 28.5, ty: 28.5 }, { tx: 13.5, ty: 27.5 }, { tx: 13.5, ty: 25.4 }] },
     { id: 'side', name: 'side door', approach: [{ tx: 8.5, ty: 28.5 }, { tx: 3.5, ty: 27.5 }, { tx: 3.5, ty: 14.5 }, { tx: 5.3, ty: 14.5 }] },
-    { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 28.5, ty: 28.5 }, { tx: 41.5, ty: 27.5 }, { tx: 41.5, ty: 20.5 }, { tx: 40.3, ty: 20.5 }] },
+    { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 28.5, ty: 28.5 }, { tx: 28.5, ty: 27.4 }, { tx: 41.5, ty: 27.4 }, { tx: 41.5, ty: 20.5 }, { tx: 40.3, ty: 20.5 }] },
   ],
   intro: [
     'Dispatch: Unit 7, you are on Kestrel Road.',

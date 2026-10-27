@@ -3,6 +3,16 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.3.3
+
+- The exterior is always lit: streets, gardens, yards and the outside of buildings are never
+  fogged. People outside still only show up when you can see them.
+- Parked vans, cars and containers are solid for everyone, and the intro walks route around
+  the van instead of over it. A new test checks every intro route stays clear of walls, doors
+  and props.
+- The tagging workflow no longer stops at a tag GitHub refuses; it reports it as a warning and
+  carries on with the rest.
+
 ## v0.3.2
 
 - The tagging workflow now tags every version in a push, not just the newest, so pushing several

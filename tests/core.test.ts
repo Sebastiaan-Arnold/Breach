@@ -10,6 +10,7 @@ import { CAMPAIGNS, type CampaignDef } from '../src/levels/campaigns';
 import { HARBOUR_LANE } from '../src/levels/harbour-lane';
 import { RANGE_MAP } from '../src/levels/range';
 import { LEVELS } from '../src/levels';
+import { propTiles } from '../src/levels/props';
 
 describe('geometry', () => {
   it('wraps angles into [-PI, PI)', () => {
@@ -187,6 +188,29 @@ describe('level data', () => {
     it(`${def.id}: rows are equal width and entries start on walkable floor`, () => {
       expect(def.map.every((r) => r.length === lvl.width)).toBe(true);
       for (const e of def.entries) for (const p of e.approach) expect(walkable(p.tx, p.ty)).toBe(true);
+    });
+
+    it(`${def.id}: intro walks stay clear of walls, doors and props`, () => {
+      const blocked = new Set((def.props ?? []).flatMap(propTiles).map((t) => `${t.tx},${t.ty}`));
+      const doors = new Set(lvl.doors.map((d) => `${d.tx},${d.ty}`));
+      const clear = (x: number, y: number) => {
+        const key = `${Math.floor(x)},${Math.floor(y)}`;
+        return walkable(x, y) && !blocked.has(key) && !doors.has(key);
+      };
+      // The operator is about a third of a tile across: check the route and either side of it.
+      const r = 0.3;
+      for (const e of def.entries) {
+        for (let i = 1; i < e.approach.length; i++) {
+          const a = e.approach[i - 1], b = e.approach[i];
+          const steps = Math.ceil(Math.hypot(b.tx - a.tx, b.ty - a.ty) * 8);
+          for (let k = 0; k <= steps; k++) {
+            const x = a.tx + ((b.tx - a.tx) * k) / steps, y = a.ty + ((b.ty - a.ty) * k) / steps;
+            for (const [ox, oy] of [[0, 0], [r, r], [-r, r], [r, -r], [-r, -r]]) {
+              expect(clear(x + ox, y + oy), `${e.id} at ${x.toFixed(1)},${y.toFixed(1)}`).toBe(true);
+            }
+          }
+        }
+      }
     });
 
     if (def.mission) {

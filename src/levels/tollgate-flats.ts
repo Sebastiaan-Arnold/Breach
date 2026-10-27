@@ -46,7 +46,7 @@ export const TOLLGATE_FLATS: LevelDef = {
     { kind: 'van', tx: 18, ty: 25 },
   ],
   entries: [
-    { id: 'stairwell', name: 'stairwell door', approach: [{ tx: 24.5, ty: 25.5 }, { tx: 8.5, ty: 23.5 }, { tx: 8.5, ty: 20.5 }, { tx: 8.5, ty: 12.5 }, { tx: 10.3, ty: 12.5 }] },
+    { id: 'stairwell', name: 'stairwell door', approach: [{ tx: 24.5, ty: 25.5 }, { tx: 24.5, ty: 23.5 }, { tx: 8.5, ty: 23.5 }, { tx: 8.5, ty: 20.5 }, { tx: 8.5, ty: 12.5 }, { tx: 10.3, ty: 12.5 }] },
     { id: 'garden', name: 'garden door', approach: [{ tx: 24.5, ty: 25.5 }, { tx: 41.5, ty: 24.5 }, { tx: 41.5, ty: 12.5 }, { tx: 40.3, ty: 12.5 }] },
   ],
   intro: [

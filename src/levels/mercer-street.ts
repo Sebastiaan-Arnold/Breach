@@ -52,7 +52,7 @@ export const MERCER_STREET: LevelDef = {
     { kind: 'car', tx: 23, ty: 17, color: 0x365314 },
   ],
   entries: [
-    { id: 'roller', name: 'workshop door', approach: [{ tx: 30.5, ty: 27.5 }, { tx: 17.5, ty: 26.5 }, { tx: 17.5, ty: 25.4 }] },
+    { id: 'roller', name: 'workshop door', approach: [{ tx: 30.5, ty: 27.5 }, { tx: 30.5, ty: 25.6 }, { tx: 17.5, ty: 25.6 }] },
     { id: 'office', name: 'office door', approach: [{ tx: 30.5, ty: 27.5 }, { tx: 45.5, ty: 26.5 }, { tx: 45.5, ty: 8.5 }, { tx: 44.3, ty: 8.5 }] },
     { id: 'yard', name: 'back door', approach: [{ tx: 40.5, ty: 2 }, { tx: 12.5, ty: 2.5 }, { tx: 12.5, ty: 3.4 }] },
   ],

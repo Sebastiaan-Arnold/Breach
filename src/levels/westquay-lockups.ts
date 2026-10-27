@@ -54,7 +54,7 @@ export const WESTQUAY_LOCKUPS: LevelDef = {
   ],
   entries: [
     { id: 'gate', name: 'main gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 25.5, ty: 29.5 }, { tx: 25.5, ty: 27.4 }] },
-    { id: 'side', name: 'side gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 2.5, ty: 29.5 }, { tx: 2.5, ty: 27.4 }] },
+    { id: 'side', name: 'side gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 20.5, ty: 29.4 }, { tx: 2.5, ty: 29.4 }, { tx: 2.5, ty: 27.4 }] },
   ],
   intro: [
     'Dispatch: Unit 7, you are at the Westquay gate.',

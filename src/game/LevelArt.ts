@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, FONT, TILE } from '../config';
 import { blocksSight, type ParsedLevel, type TileKind } from '../core/grid';
 import type { FloorLabel } from '../levels/range';
+import { propSize } from '../levels/props';
 import type { PropDef } from '../levels/types';
 
 const PLANK_H = 8;
@@ -234,7 +235,8 @@ function drawFloor(g: Phaser.GameObjects.Graphics, material: string, x: number, 
 function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   if (p.kind === 'car') return drawCar(g, p);
   if (p.kind === 'container') return drawContainer(g, p);
-  const x = p.tx * TILE, y = p.ty * TILE, w = 4.4 * TILE, h = 2 * TILE;
+  const { w: tw, h: th } = propSize(p);
+  const x = p.tx * TILE, y = p.ty * TILE, w = tw * TILE, h = th * TILE;
   g.fillStyle(0x000000, 0.35);
   g.fillRoundedRect(x + 4, y + 5, w, h, 8);
   g.fillStyle(0x1e293b, 1);
@@ -255,7 +257,8 @@ function drawProp(g: Phaser.GameObjects.Graphics, p: PropDef): void {
 /** A car seen from above, two tiles by four, nose to the east (or south when vertical). */
 function drawCar(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   const x = p.tx * TILE, y = p.ty * TILE;
-  const w = (p.vertical ? 2 : 4) * TILE, h = (p.vertical ? 4 : 2) * TILE;
+  const size = propSize(p);
+  const w = size.w * TILE, h = size.h * TILE;
   const color = p.color ?? 0x64748b;
   const inset = 5;
   g.fillStyle(0x000000, 0.35);
@@ -280,7 +283,8 @@ function drawCar(g: Phaser.GameObjects.Graphics, p: PropDef): void {
 /** A shipping container: corrugated steel, two tiles wide. */
 function drawContainer(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   const x = p.tx * TILE, y = p.ty * TILE;
-  const w = (p.vertical ? 2 : 4) * TILE, h = (p.vertical ? 4 : 2) * TILE;
+  const size = propSize(p);
+  const w = size.w * TILE, h = size.h * TILE;
   const color = p.color ?? 0x7c2d12;
   g.fillStyle(0x000000, 0.35);
   g.fillRect(x + 4, y + 5, w, h);

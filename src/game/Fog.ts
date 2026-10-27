@@ -29,6 +29,9 @@ export interface FogLight {
  * `memory` accumulates every vision polygon ever drawn. Each frame `shade` is rebuilt: black,
  * memory cut out of it and filled back in at the remembered shade, then the current vision
  * (faded towards its range) cut out.
+ *
+ * Outdoors is always lit: streets, gardens and yards (and the outside of buildings) are never
+ * fogged. Who is out there still depends on line of sight, which the scene handles.
  */
 export class Fog {
   private memory: Phaser.GameObjects.RenderTexture;
@@ -37,8 +40,10 @@ export class Fog {
   private brush: Phaser.GameObjects.Graphics;
   private falloff: Phaser.GameObjects.Image;
   private glow: Phaser.GameObjects.Graphics;
+  private lit: Phaser.GameObjects.RenderTexture | null = null;
 
-  constructor(scene: Phaser.Scene, width: number, height: number, glowDepth: number, fogDepth: number) {
+  /** @param litTiles tiles that are always lit (the exterior) */
+  constructor(scene: Phaser.Scene, width: number, height: number, glowDepth: number, fogDepth: number, litTiles: readonly { tx: number; ty: number }[] = []) {
     ensureFalloffTexture(scene);
     const w = Math.ceil(width * RES), h = Math.ceil(height * RES);
     this.memory = scene.make.renderTexture({ x: 0, y: 0, width: w, height: h }, false).setOrigin(0);
@@ -48,6 +53,14 @@ export class Fog {
     this.brush = scene.make.graphics({}, false).setScale(RES);
     this.falloff = scene.make.image({ key: FALLOFF_KEY }, false);
     this.glow = scene.add.graphics().setDepth(glowDepth);
+    if (litTiles.length) {
+      this.lit = scene.make.renderTexture({ x: 0, y: 0, width: w, height: h }, false).setOrigin(0);
+      const g = scene.make.graphics({}, false).setScale(RES);
+      g.fillStyle(0x000000, 1);
+      for (const t of litTiles) g.fillRect(t.tx * TILE, t.ty * TILE, TILE, TILE);
+      this.lit.draw(g);
+      g.destroy();
+    }
   }
 
   /**
@@ -79,6 +92,7 @@ export class Fog {
     s.draw(this.memory);
     this.memory.setAlpha(1);
     s.erase(this.vision);
+    if (this.lit) s.erase(this.lit);
 
     const g = this.glow;
     g.clear();
