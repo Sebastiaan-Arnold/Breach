@@ -43,23 +43,24 @@ export const SALTER_STREET: LevelDef = {
     { id: 'side', name: 'side door', approach: [{ tx: 33.5, ty: 21.5 }, { tx: 33.5, ty: 11.5 }, { tx: 32.6, ty: 11.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on Salter Street.',
-    'Command: Tight rooms and closed doors. Go in by the {entry}.',
-    "Command: Senior Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Salter Street.',
+    'Command: Tight rooms, closed doors. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 3',
     title: 'Salter Street',
     location: 'Lodging house, 9 Salter Street',
-    summary: [
-      "Rook's couriers sleep at a lodging house here. One of them knows where his consignments are kept.",
-      'One narrow corridor, small rooms either side, the back rooms dark. Up close, a shotgun is the right tool.',
-      'Expect men behind closed doors. Lodgers with nothing to do with Corvan live there too.',
-      'Warrant: arrest the couriers and seize their records.',
+    time: '04:30',
+    situation: [
+      "Lodging house used by Rook's couriers between runs.",
+      'One narrow corridor, small rooms both sides. Rear rooms dark.',
+      'Lodgers not involved are on site.',
     ],
+    objective: 'Arrest the couriers. Seize their records.',
+    twist: { label: 'CQB', text: 'Tight rooms. Shotgun recommended' },
     hostiles: { min: 4, max: 6 },
-    loadout: 'Handguns and shotguns',
-    civilians: { min: 1, max: 2, text: 'Lodgers in some of the rooms' },
+    loadout: 'Handguns, shotguns',
+    civilians: { min: 1, max: 2, text: 'Lodgers in some rooms' },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'lookout', tx: 15.5, ty: 14.5, facing: 90 },
@@ -73,6 +74,6 @@ export const SALTER_STREET: LevelDef = {
     ],
     civilianSlots: [{ tx: 21.5, ty: 7.5 }, { tx: 12.5, ty: 15.5 }, { tx: 22.5, ty: 15.5 }],
     unknownZones: [{ x0: 26, y0: 4, x1: 30, y1: 9 }],
-    debriefNote: "A courier's delivery sheets show where Rook's consignments wait before they ship: a Corvan cold store on Westquay Docks.",
+    debriefNote: 'Delivery sheets: consignments held at the Corvan cold store, Westquay Docks.',
   },
 };

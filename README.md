@@ -14,9 +14,10 @@ Corvan Logistics),
 each played from briefing to debrief, with saved progress, stars and
 promotions. Enemies get sharper with every rank.
 
-- **Briefing:** a police tablet with the floor plan (unknown areas greyed out), command's marks,
-  the case file and intel given as ranges with a reliability rating. Pick one of three entries,
-  then deploy. The real situation is rolled from the intel on every deploy.
+- **Briefing:** a police tablet with the floor plan (unknown areas greyed out) and command's
+  marks beside a structured case: situation, objective, intel (given as ranges with a
+  reliability rating), loadout and entry point. Deploy, and the real situation is rolled from
+  the intel.
 - **Intro:** each level opens with a short, skippable cutscene of the operator approaching the
   entry while radio lines play.
 - **Enemies:** Lookouts, Patrollers and (from Senior Officer) Hiders with an Idle / Alert / Combat state machine. They see in a

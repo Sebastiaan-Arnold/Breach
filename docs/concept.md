@@ -196,6 +196,8 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 
 The story is told almost entirely through the briefing screen: case files, short radio messages, a photo of a suspect pinned to the map. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
 
+**Writing style.** Text reads like a real operation, not a novel: terse, procedural, present tense. Names, ages, addresses, times and counts; callsigns on the radio ("Control", "Command", "Unit 7"); "compromised" rather than "they know you're here". The briefing follows a fixed order (situation as short bullets, a one-line objective, intel, loadout, entry point), so every case reads the same way and the twist stands out as one yellow line.
+
 Levels will be built in Tiled, a free map editor. A custom editor can wait.
 
 ## Art, audio and tone

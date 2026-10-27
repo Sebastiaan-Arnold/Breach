@@ -62,23 +62,23 @@ export const FERRY_ROAD: LevelDef = {
     { id: 'back', name: 'warehouse back door', approach: [{ tx: 40.5, ty: 1.6 }, { tx: 25.5, ty: 1.6 }, { tx: 25.5, ty: 2.4 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are at the Ferry Road distribution centre.',
-    "Command: They're patrolling the yard. Go in by the {entry}.",
-    "Command: Senior Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Ferry Road.',
+    'Command: Patrols in the yard. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 5',
     title: 'Ferry Road',
     location: 'Corvan distribution centre, Ferry Road',
-    summary: [
-      "The schedule says Rook's consignment leaves Ferry Road tonight. The yard is full of lorries.",
-      'Men are walking the yard between the trucks. Inside, the loading bays open straight onto the warehouse floor.',
-      'Numbers are a guess, and the yard gives them long sight lines. Use the lorries for cover.',
-      'Warrant: stop the consignment and arrest everyone guarding it.',
+    time: '23:55',
+    situation: [
+      "Rook's consignment leaves Ferry Road tonight. Yard full of lorries.",
+      'Patrols between the trucks. Loading bays open onto the warehouse floor.',
+      'Numbers unconfirmed. Use the lorries for cover.',
     ],
+    objective: 'Stop the consignment. Arrest everyone guarding it.',
     hostiles: { min: 5, max: 6 },
-    loadout: 'Handguns and shotguns',
-    civilians: { min: 0, max: 1, text: 'A lorry driver may be waiting in the yard' },
+    loadout: 'Handguns, shotguns',
+    civilians: { min: 0, max: 1, text: 'A lorry driver, possibly' },
     reliability: 'Unverified',
     hostileSlots: [
       { type: 'patroller', tx: 4.5, ty: 16.5, facing: 0, route: [{ tx: 47.5, ty: 16.5 }, { tx: 47.5, ty: 29.5 }, { tx: 4.5, ty: 29.5 }, { tx: 4.5, ty: 16.5 }] },
@@ -91,6 +91,6 @@ export const FERRY_ROAD: LevelDef = {
     ],
     civilianSlots: [{ tx: 46.5, ty: 27.5 }, { tx: 43.5, ty: 7.5 }],
     unknownZones: [{ x0: 38, y0: 4, x1: 44, y1: 8 }],
-    debriefNote: "Rook wasn't here. A driver says he left for his freight office on Pier Seven an hour ago, with his best men.",
+    debriefNote: 'Rook not on site. Driver states he left for Pier Seven an hour ago with his security.',
   },
 };

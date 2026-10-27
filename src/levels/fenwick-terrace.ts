@@ -54,24 +54,24 @@ export const FENWICK_TERRACE: LevelDef = {
     { id: 'garden', name: "neighbour's garden", approach: [{ tx: 2.5, ty: 2.5 }, { tx: 7.5, ty: 2.5 }, { tx: 7.5, ty: 6.5 }, { tx: 13.6, ty: 6.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on Fenwick Terrace.',
-    'Command: The place is full of guests. Check every target. Go in by the {entry}.',
-    "Command: Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Fenwick Terrace.',
+    "Command: Party's still going. Check your targets. Entry via the {entry}.",
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Officer · Case 2',
     title: 'Fenwick Terrace',
     location: '12 Fenwick Terrace, Ashby estate',
-    summary: [
-      "The Harbour Lane ledger names Kyle Marsh, 19, who deals for the crew from his mother's house.",
-      "Tonight he's throwing a party. The house and back garden are full of guests, and some of the crew are armed.",
-      'When the shooting starts, guests will freeze or scatter. Check every target.',
-      'Warrant: arrest the armed men and get every guest out safely.',
+    time: '23:30',
+    situation: [
+      "Kyle Marsh, 19, deals for the Voss crew from his mother's address.",
+      'House party in progress. House and rear garden occupied.',
+      'Armed crew members among the guests.',
     ],
-    twist: { label: 'Party', text: 'A crowd of guests. Secure them all' },
+    objective: 'Arrest the armed suspects. Secure all guests.',
+    twist: { label: 'Crowd', text: 'Party in progress. Check every target' },
     hostiles: { min: 3, max: 4 },
     loadout: 'Handguns',
-    civilians: { min: 6, max: 8, text: 'Six to eight guests' },
+    civilians: { min: 6, max: 8, text: '6–8 guests' },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'lookout', tx: 27.5, ty: 14.5, facing: 180 },
@@ -87,6 +87,6 @@ export const FENWICK_TERRACE: LevelDef = {
       { tx: 17.5, ty: 6.5 }, { tx: 23.5, ty: 8.5 }, { tx: 25.5, ty: 9.5 },
     ],
     unknownZones: [],
-    debriefNote: "Marsh's phone has the crew's other address: a ground-floor flat in Tollgate House, where they cut and bag.",
+    debriefNote: "Marsh's phone recovered. Second address: Flat 1, Tollgate House, used to cut and bag.",
   },
 };

@@ -54,23 +54,23 @@ export const KESTREL_ROAD: LevelDef = {
     { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 28.5, ty: 28.5 }, { tx: 28.5, ty: 27.4 }, { tx: 41.5, ty: 27.4 }, { tx: 41.5, ty: 20.5 }, { tx: 40.3, ty: 20.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on Kestrel Road.',
-    "Command: They're holding one of the owners. Go in by the {entry}.",
-    "Command: Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Kestrel Road.',
+    'Command: One hostage, rear bedroom. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Officer · Case 5',
     title: 'Kestrel Road',
     location: '22 Kestrel Road, Ashby Heights',
-    summary: [
-      'Two of the Mercer Street crew were seen carrying bags into a detached house on Kestrel Road.',
-      'The owners, a retired couple, are inside with them. One of them is being held in a back bedroom.',
-      'Warrant: arrest the suspects and get the homeowners out safely.',
+    time: '02:20',
+    situation: [
+      'Two of the Mercer Street crew seen entering 22 Kestrel Road with bags.',
+      'Owners, a retired couple, are inside. One held in a rear bedroom.',
     ],
-    twist: { label: 'Hostage', text: '30 s to reach them once seen' },
+    objective: 'Rescue the hostage. Arrest all suspects.',
+    twist: { label: 'Hostage', text: '30 s to reach once compromised' },
     hostiles: { min: 2, max: 4 },
-    loadout: 'Handguns reported',
-    civilians: { min: 1, max: 2, text: 'The other homeowner, maybe a visitor' },
+    loadout: 'Handguns',
+    civilians: { min: 1, max: 2, text: 'Second homeowner, possibly a visitor' },
     reliability: 'Unverified',
     hostileSlots: [
       { type: 'lookout', tx: 12.5, ty: 10.5, facing: 117, always: true },
@@ -82,6 +82,6 @@ export const KESTREL_ROAD: LevelDef = {
     civilianSlots: [{ tx: 16.5, ty: 21.5 }, { tx: 18.5, ty: 10.5 }, { tx: 21.5, ty: 22.5 }, { tx: 36.5, ty: 10.5 }],
     unknownZones: [],
     hostage: { tx: 10.5, ty: 11.5, seconds: 30 },
-    debriefNote: 'The homeowners say the men who moved in wore Corvan Logistics jackets.',
+    debriefNote: 'Homeowners state the men wore Corvan Logistics jackets.',
   },
 };

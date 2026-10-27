@@ -57,23 +57,23 @@ export const HARBOUR_FREIGHT: LevelDef = {
     { id: 'loading', name: 'loading door', approach: [{ tx: 45.5, ty: 30.5 }, { tx: 45.5, ty: 23.5 }, { tx: 43.4, ty: 23.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on Pier Seven.',
-    'Command: Rook is inside. Go in by the {entry}.',
-    "Command: Senior Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Pier Seven.',
+    'Command: Rook is inside. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 6',
     title: 'Harbour Freight Office',
     location: 'Harbour Freight Office, Pier Seven',
-    summary: [
-      "Elias Rook, the Harbourmaster, runs Corvan's freight office on Pier Seven. Tonight he is there with his best men.",
-      "This time the intel is solid: we've had eyes on the building all evening. The numbers are confirmed.",
-      'Expect men waiting in the corridor and the back rooms, and someone patrolling the quay outside.',
-      'Warrant: arrest Elias Rook and everyone protecting him.',
+    time: '01:40',
+    situation: [
+      "Elias Rook, 'the Harbourmaster', inside the Pier Seven freight office.",
+      'Under observation since 18:00. Numbers confirmed.',
+      'Men in the corridor and back rooms. One patrolling the quay.',
     ],
+    objective: 'Arrest Elias Rook and his security.',
     hostiles: { min: 5, max: 6 },
-    loadout: 'Handguns and shotguns',
-    civilians: { min: 1, max: 1, text: "Rook's secretary may be working late" },
+    loadout: 'Handguns, shotguns',
+    civilians: { min: 1, max: 1, text: "Rook's secretary, possibly" },
     reliability: 'Confirmed',
     hostileSlots: [
       { type: 'lookout', tx: 38.5, ty: 10.5, facing: 180 },
@@ -87,6 +87,6 @@ export const HARBOUR_FREIGHT: LevelDef = {
     ],
     civilianSlots: [{ tx: 34.5, ty: 17.5 }, { tx: 10.5, ty: 22.5 }],
     unknownZones: [{ x0: 6, y0: 6, x1: 20, y1: 11 }],
-    debriefNote: "Rook's ledgers show where the money went: through Meridian Partners, accountants who meet this Friday at the Grand Atlas Hotel.",
+    debriefNote: "Rook's ledgers route the money through Meridian Partners. The partners meet Friday at the Grand Atlas Hotel.",
   },
 };

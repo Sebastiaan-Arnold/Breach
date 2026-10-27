@@ -53,23 +53,23 @@ export const HARBOUR_LANE: LevelDef = {
     { id: 'kitchen', name: 'kitchen door', approach: [{ tx: 25.5, ty: 30.5 }, { tx: 39.5, ty: 27.5 }, { tx: 39.5, ty: 19.5 }, { tx: 38.4, ty: 19.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on scene at 14 Harbour Lane.',
-    'Command: Perimeter is set. Approach via the {entry}.',
-    "Command: Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at 14 Harbour Lane.',
+    'Command: Perimeter is set. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Officer · Case 1',
     title: 'Harbour Lane',
     location: '14 Harbour Lane, Ashby estate',
-    summary: [
-      'Street-level dealing on the Ashby estate has been traced to a rented terraced house.',
-      'Tenant: Danny Voss, 31, prior convictions for possession with intent to supply.',
-      'An informant reports associates at the house most nights, and talk of a new supplier.',
-      'Warrant: search the premises and arrest anyone involved.',
+    time: '22:40',
+    situation: [
+      'Street-level dealing on the Ashby estate traced to a rented terrace.',
+      'Tenant: Danny Voss, 31. Priors for possession with intent to supply.',
+      'Informant reports associates on site most nights.',
     ],
+    objective: 'Search the premises. Arrest all suspects.',
     hostiles: { min: 2, max: 3 },
-    loadout: 'Handguns reported',
-    civilians: { min: 1, max: 1, text: "The tenant's partner may be inside" },
+    loadout: 'Handguns',
+    civilians: { min: 1, max: 1, text: "Tenant's partner, possibly" },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'lookout', tx: 19.5, ty: 19.5, facing: 135 },
@@ -84,6 +84,6 @@ export const HARBOUR_LANE: LevelDef = {
     ],
     civilianSlots: [{ tx: 21.5, ty: 10.5 }, { tx: 28.5, ty: 9.5 }, { tx: 26.5, ty: 22.5 }],
     unknownZones: [{ x0: 19, y0: 8, x1: 24, y1: 11 }],
-    debriefNote: "A ledger in the kitchen lists weekly deliveries from someone called 'the Harbourmaster'.",
+    debriefNote: "Kitchen ledger recovered. Weekly deliveries logged from 'the Harbourmaster'. Runner named: Kyle Marsh.",
   },
 };

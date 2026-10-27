@@ -51,12 +51,19 @@ export interface CivilianSlot {
 
 export type Reliability = 'Confirmed' | 'Likely' | 'Unverified';
 
+/**
+ * A case. Briefing text is terse and procedural, the way a real one reads: names, times,
+ * counts. No flourishes.
+ */
 export interface MissionDef {
-  caseLabel: string;
   title: string;
   location: string;
-  /** Case file text on the briefing screen. */
-  summary: string[];
+  /** Local time of the operation, e.g. '23:40'. */
+  time: string;
+  /** Short lines: who, where, what's known. Shown as bullets. */
+  situation: string[];
+  /** What the warrant says to do, in one line. */
+  objective: string;
   hostiles: { min: number; max: number };
   loadout: string;
   civilians: { min: number; max: number; text: string };

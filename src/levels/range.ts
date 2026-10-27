@@ -87,7 +87,7 @@ export const RANGE_STATIONS: readonly StationDef[] = [
   {
     id: 'killhouse',
     name: 'Kill house',
-    brief: ['The lights are off: you only see as far as your weapon light reaches.', 'Ripples show sounds through walls. Something in there moves.', 'Clear every room. The layout is fixed, the targets are not.'],
+    brief: ['The lights are off: you only see as far as your weapon light reaches.', 'Ripples show sounds through walls. One target is on the move.', 'Clear every room. The layout is fixed, the targets are not.'],
     zone: { x0: 1, y0: 5, x1: 28, y1: 31 },
   },
 ];
@@ -124,8 +124,8 @@ export const RANGE: LevelDef = {
   labels: RANGE_LABELS,
   entries: [{ id: 'gate', name: 'the Range', approach: [{ tx: 1.5, ty: 2.5 }, { tx: 5.5, ty: 2.5 }] }],
   intro: [
-    'Range control: Morning, recruit. Welcome to the Range.',
-    'Range control: Work through the stations in order. The range is hot.',
+    'Range control: Recruit, welcome to the Range.',
+    'Range control: Range is hot. Work the stations in order.',
   ],
   stations: RANGE_STATIONS,
 };

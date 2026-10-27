@@ -57,23 +57,23 @@ export const MERCER_STREET: LevelDef = {
     { id: 'yard', name: 'back door', approach: [{ tx: 40.5, ty: 2 }, { tx: 12.5, ty: 2.5 }, { tx: 12.5, ty: 3.4 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are on Mercer Street.',
-    'Command: Two of them are moving around inside. Take the {entry}.',
-    "Command: Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at Mercer Street.',
+    'Command: Two moving inside. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Officer · Case 4',
     title: 'Mercer Street Garage',
     location: 'Mercer Street, Old Docks',
-    summary: [
-      'The texts from Tollgate House named a car repair garage on Mercer Street, open late on Thursdays.',
-      'Expect an open workshop floor: cars for cover, long sight lines and more than one person on the move.',
-      'The owner has no record. The phone suggests he has new friends.',
-      'Warrant: search the garage and office, and arrest anyone involved.',
+    time: '21:50',
+    situation: [
+      'Car repair garage named in the Tollgate texts. Open late Thursdays.',
+      'Open workshop floor. Vehicles for cover, long sight lines.',
+      'Two suspects reported moving inside.',
     ],
+    objective: 'Search the garage and office. Arrest all suspects.',
     hostiles: { min: 3, max: 5 },
-    loadout: 'Handguns reported',
-    civilians: { min: 0, max: 1, text: 'A mechanic may still be working late' },
+    loadout: 'Handguns',
+    civilians: { min: 0, max: 1, text: 'A mechanic, possibly' },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'patroller', tx: 7.5, ty: 6.5, facing: 0, route: [{ tx: 27.5, ty: 6.5 }, { tx: 27.5, ty: 20.5 }, { tx: 7.5, ty: 20.5 }, { tx: 7.5, ty: 6.5 }] },
@@ -85,6 +85,6 @@ export const MERCER_STREET: LevelDef = {
     ],
     civilianSlots: [{ tx: 27.5, ty: 14.5 }, { tx: 38.5, ty: 11.5 }, { tx: 40.5, ty: 17.5 }],
     unknownZones: [{ x0: 38, y0: 14, x1: 42, y1: 23 }],
-    debriefNote: "Crates in the storeroom are stencilled 'Corvan Logistics'. Somebody is moving more than parcels.",
+    debriefNote: "Storeroom crates stencilled 'Corvan Logistics'. Shipping labels in the office.",
   },
 };

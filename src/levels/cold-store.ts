@@ -62,23 +62,23 @@ export const COLD_STORE: LevelDef = {
     { id: 'fire', name: 'fire exit', approach: [{ tx: 2.5, ty: 27.5 }, { tx: 2.5, ty: 12.5 }, { tx: 3.4, ty: 12.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are at the Corvan cold store.',
-    "Command: It's dark in there and they're waiting. Go in by the {entry}.",
-    "Command: Senior Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at the Corvan cold store.',
+    "Command: It's dark and they're set up. Entry via the {entry}.",
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 4',
     title: 'Cold Store',
     location: 'Corvan cold store, Westquay Docks',
-    summary: [
-      "Rook's consignments are stored at a Corvan cold store on the docks before they ship.",
-      'The power to the cold chamber and the freezer is off. The racking stands in columns, with men waiting between them.',
-      'Expect shotguns at the ends of the aisles. Move slowly and check every gap.',
-      'Warrant: search the cold store and the dock office.',
+    time: '02:00',
+    situation: [
+      'Corvan cold store, Westquay Docks. Holding point before shipment.',
+      'Power off in the cold chamber and freezer. Racking in columns.',
+      'Shotguns reported at the aisle ends.',
     ],
+    objective: 'Search the cold store and the dock office.',
     hostiles: { min: 4, max: 5 },
-    loadout: 'Handguns and shotguns',
-    civilians: { min: 0, max: 1, text: 'A worker may be shut in the freezer' },
+    loadout: 'Handguns, shotguns',
+    civilians: { min: 0, max: 1, text: 'A worker, possibly in the freezer' },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'hider', tx: 11.5, ty: 9.5, facing: 90 },
@@ -90,6 +90,6 @@ export const COLD_STORE: LevelDef = {
     ],
     civilianSlots: [{ tx: 39.5, ty: 23.5 }, { tx: 34.5, ty: 8.5 }],
     unknownZones: [{ x0: 32, y0: 15, x1: 40, y1: 23 }],
-    debriefNote: "A shipping schedule in the dock office lists Rook's next consignment: tonight, from the Corvan distribution centre on Ferry Road.",
+    debriefNote: 'Shipping schedule in the dock office: next consignment leaves Ferry Road tonight.',
   },
 };

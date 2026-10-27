@@ -506,7 +506,7 @@ export class GameScene extends Phaser.Scene {
     if (t instanceof Target) this.stations?.onTargetHit(t);
     if (t.kind === 'civilian') {
       sfx.penalty();
-      this.toast('Civilian hit. That costs you a star.');
+      this.toast('Civilian hit. Star lost.');
     } else {
       sfx.hit();
     }
@@ -652,7 +652,7 @@ export class GameScene extends Phaser.Scene {
       c.secure();
       this.securing = null;
       sfx.ok();
-      this.toast(c.hostage ? 'Hostage safe' : 'Civilian secured');
+      this.toast(c.hostage ? 'Hostage secured' : 'Civilian secured');
     }
   }
 
@@ -777,14 +777,14 @@ export class GameScene extends Phaser.Scene {
     const civiliansSafe = this.civilians.every((c) => c.state === 'secured' || c.state === 'down');
     if (suspectsDown && !civiliansSafe && !this.remindedCivilians) {
       this.remindedCivilians = true;
-      this.toast('All suspects down. Secure the civilians.');
+      this.toast('Suspects down. Secure the civilians.');
     }
     const done = this.stations ? this.stations.allDone : suspectsDown && civiliansSafe;
     if ((done || !p.alive || this.timedOut) && this.outcomeTimer < 0) {
       this.outcomeTimer = 0;
       if (done && !this.stations && !this.timedOut) {
         sfx.secured();
-        this.toast('Site secured');
+        this.toast('Area secure');
       }
     }
     if (this.outcomeTimer >= 0) {
@@ -805,7 +805,7 @@ export class GameScene extends Phaser.Scene {
     const m = this.def.mission;
     if (m.hostage && this.hostage?.canBeSecured) {
       this.clock = m.hostage.seconds;
-      this.toast(`They know you're here. ${m.hostage.seconds} seconds to reach the hostage.`);
+      this.toast(`Compromised. ${m.hostage.seconds} s to reach the hostage.`);
     }
     if (m.evidence) {
       const x = m.evidence.tx * TILE, y = m.evidence.ty * TILE;
@@ -815,7 +815,7 @@ export class GameScene extends Phaser.Scene {
       if (nearest) {
         nearest.sendTo(x, y);
         this.destroyer = nearest;
-        this.toast('Someone is going for the evidence.');
+        this.toast('Compromised. Suspect moving on the evidence.');
       }
     }
   }
@@ -842,7 +842,7 @@ export class GameScene extends Phaser.Scene {
     if (!e || !m?.evidence) return;
     if (!e.alive) {
       this.destroyer = null;
-      this.toast('Evidence safe');
+      this.toast('Evidence secured');
       return;
     }
     if (!e.atErrand) return;
@@ -852,7 +852,7 @@ export class GameScene extends Phaser.Scene {
       this.destroyer = null;
       e.release();
       sfx.penalty();
-      this.toast('The evidence is gone. That costs you a star.');
+      this.toast('Evidence destroyed. Star lost.');
     }
   }
 
@@ -873,7 +873,7 @@ export class GameScene extends Phaser.Scene {
     if (earned) this.promotion = earned.id;
     return {
       success: true,
-      title: this.def.mission ? 'Site secured' : 'Range qualification complete',
+      title: this.def.mission ? 'Area secure' : 'Range qualification complete',
       stars,
       lines: [
         ...(this.def.mission?.evidence ? [this.evidenceLost ? 'Evidence destroyed' : 'Evidence seized'] : []),
@@ -914,7 +914,7 @@ export class GameScene extends Phaser.Scene {
       title: 'Operator down',
       stars: null,
       lines: this.def.mission
-        ? ['The intel stays the same.', 'The situation inside will be different next time.']
+        ? ['Intel unchanged.', 'Suspect positions will differ on redeploy.']
         : ['Back to the start of the Range.'],
     };
   }
@@ -927,7 +927,7 @@ export class GameScene extends Phaser.Scene {
       success: false,
       title: 'Out of time',
       stars: null,
-      lines: ["You didn't reach the hostage in time.", 'Next time, go for that room first.'],
+      lines: ['Hostage not reached in time.', 'On redeploy, go for the hostage room first.'],
     };
   }
 

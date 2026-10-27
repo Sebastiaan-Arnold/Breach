@@ -62,23 +62,23 @@ export const CORVAN_DEPOT: LevelDef = {
     { id: 'fire', name: 'fire exit', approach: [{ tx: 42.5, ty: 30.5 }, { tx: 42.5, ty: 6.5 }, { tx: 38.4, ty: 6.5 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are at the Corvan depot on Ashby Road.',
-    'Command: Watch the aisles. Go in by the {entry}.',
-    "Command: Senior Officer, you're cleared to enter.",
+    'Control: Unit 7, on scene at the Corvan depot, Ashby Road.',
+    'Command: Watch the aisles. Entry via the {entry}.',
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Senior Officer · Case 1',
     title: 'Corvan Depot',
     location: 'Corvan Logistics depot, Ashby Road',
-    summary: [
-      "Corvan Logistics' parcel depot handles the deliveries the Harbour Lane ledger recorded.",
-      'Racking aisles make for short sight lines. Intelligence suggests armed men posted among the shelves, waiting rather than walking.',
-      'Some of them carry shotguns. Rushing an aisle is how you meet one.',
-      'Warrant: search the depot and seize the delivery records.',
+    time: '03:10',
+    situation: [
+      'Corvan parcel depot, Ashby Road. Source of the Harbour Lane deliveries.',
+      'Racking aisles, short sight lines. Armed men posted between the shelves.',
+      'Shotguns reported. Check each aisle end before you commit.',
     ],
+    objective: 'Search the depot. Seize the delivery records.',
     hostiles: { min: 3, max: 5 },
-    loadout: 'Handguns and shotguns',
-    civilians: { min: 0, max: 1, text: 'A night-shift picker may be on the floor' },
+    loadout: 'Handguns, shotguns',
+    civilians: { min: 0, max: 1, text: 'Night-shift picker, possibly' },
     reliability: 'Likely',
     hostileSlots: [
       { type: 'hider', tx: 6.5, ty: 10.5, facing: 0 },
@@ -90,6 +90,6 @@ export const CORVAN_DEPOT: LevelDef = {
     ],
     civilianSlots: [{ tx: 27.5, ty: 20.5 }, { tx: 10.5, ty: 20.5 }, { tx: 24.5, ty: 10.5 }],
     unknownZones: [{ x0: 5, y0: 20, x1: 12, y1: 23 }],
-    debriefNote: "The delivery records carry the same sign-off on every 'special' consignment: an operations manager at Corvan's head office.",
+    debriefNote: 'Every flagged consignment signed off by one operations manager at Corvan head office.',
   },
 };

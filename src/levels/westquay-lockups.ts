@@ -57,23 +57,23 @@ export const WESTQUAY_LOCKUPS: LevelDef = {
     { id: 'side', name: 'side gate', approach: [{ tx: 20.5, ty: 30.5 }, { tx: 20.5, ty: 29.6 }, { tx: 4.6, ty: 29.6 }] },
   ],
   intro: [
-    'Dispatch: Unit 7, you are at the Westquay gate.',
-    'Command: The courier is inside. Go in through the {entry}.',
-    "Command: Officer, you're cleared to enter.",
+    'Control: Unit 7, at the Westquay gate.',
+    "Command: Courier's inside. Entry via the {entry}.",
+    'Command: Cleared to enter.',
   ],
   mission: {
-    caseLabel: 'Officer · Case 6',
     title: 'Westquay Lockups',
     location: 'Westquay Industrial Estate',
-    summary: [
-      'Corvan Logistics rents every lockup on the Westquay estate. Tonight a courier is due to collect.',
-      'The yard is open ground with containers and lockup doors on every side. Expect long sight lines.',
-      "We don't know which lockups are in use, or how many people are waiting for the courier.",
-      'Warrant: secure the yard, the lockups and the site office.',
+    time: '23:05',
+    situation: [
+      'Corvan Logistics rents every lockup on the Westquay estate.',
+      'Courier due tonight. Open yard, containers, lockups on all sides.',
+      'Lockups in use and numbers unknown.',
     ],
+    objective: 'Secure the yard, the lockups and the site office.',
     hostiles: { min: 4, max: 5 },
     loadout: 'Handguns, possibly more',
-    civilians: { min: 0, max: 1, text: 'A night watchman works the yard' },
+    civilians: { min: 0, max: 1, text: 'Night watchman, possibly' },
     reliability: 'Unverified',
     hostileSlots: [
       { type: 'patroller', tx: 10.5, ty: 10.5, facing: 0, route: [{ tx: 44.5, ty: 10.5 }, { tx: 44.5, ty: 15.5 }, { tx: 31.5, ty: 16.5 }, { tx: 10.5, ty: 16.5 }, { tx: 10.5, ty: 10.5 }] },
@@ -87,6 +87,6 @@ export const WESTQUAY_LOCKUPS: LevelDef = {
     ],
     civilianSlots: [{ tx: 40.5, ty: 23.5 }, { tx: 47.5, ty: 22.5 }],
     unknownZones: [{ x0: 6, y0: 19, x1: 29, y1: 23 }],
-    debriefNote: "The courier's manifest lists a dozen Corvan Logistics depots across Port Ardley. This was never about one estate.",
+    debriefNote: "Courier's manifest lists twelve Corvan depots across Port Ardley.",
   },
 };

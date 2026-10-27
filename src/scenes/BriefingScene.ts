@@ -75,9 +75,12 @@ export class BriefingScene extends Phaser.Scene {
     frame.lineStyle(1, 0x1e3a5f, 1);
     frame.lineBetween(PANEL.x - 20, 40, PANEL.x - 20, VIEW_H - 40);
 
-    this.add.text(MAP.x, 40, m.caseLabel.toUpperCase(), style(12, ACCENT, { fontStyle: 'bold' }));
+    // Header: which case of which campaign, the address and the time.
+    const c = campaignOf(this.def.id);
+    const caseNo = c ? `${c.title.toUpperCase()}  ·  CASE ${c.levels.indexOf(this.def.id) + 1} OF ${c.levels.length}` : 'CASE';
+    this.add.text(MAP.x, 40, caseNo, style(12, ACCENT, { fontStyle: 'bold' }));
     this.add.text(MAP.x, 58, m.title, style(30, TEXT, { fontStyle: 'bold' }));
-    this.add.text(MAP.x, 96, m.location, style(13, DIM));
+    this.add.text(MAP.x, 96, `${m.location}  ·  ${m.time}  ·  Unit 7`, style(13, DIM));
 
     this.drawMap();
     this.drawPanel();
@@ -159,7 +162,7 @@ export class BriefingScene extends Phaser.Scene {
     }
     // A case's twist gets a label on the plan, in the same yellow as its intel line.
     const tag = (text: string, x: number, y: number) =>
-      this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold' })).setOrigin(0.5, 0);
+      this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold', backgroundColor: '#0b1220', padding: { x: 3, y: 1 } })).setOrigin(0.5, 0);
     if (m.hostage) tag('HOSTAGE', ox + m.hostage.tx * s, oy + m.hostage.ty * s + s * 1.6 + 2);
     if (m.evidence) {
       const ex = ox + m.evidence.tx * s, ey = oy + m.evidence.ty * s;
@@ -216,24 +219,32 @@ export class BriefingScene extends Phaser.Scene {
       y += 20;
     };
 
-    heading('CASE FILE');
-    const summary = this.add.text(x, y, m.summary.join('\n\n'), style(12, TEXT, { lineSpacing: 2, wordWrap: { width: w } }));
-    y += summary.height + 20;
+    heading('SITUATION');
+    for (const line of m.situation) {
+      this.add.text(x, y, '–', style(12, DIM));
+      const t = this.add.text(x + 16, y, line, style(12, TEXT, { lineSpacing: 2, wordWrap: { width: w - 16 } }));
+      y += t.height + 5;
+    }
+    y += 12;
+
+    heading('OBJECTIVE');
+    const objective = this.add.text(x, y, m.objective, style(13, TEXT, { fontStyle: 'bold', wordWrap: { width: w } }));
+    y += objective.height + 16;
 
     heading('INTEL');
     const rows: [string, string, string?][] = [
       ...(m.twist ? [[m.twist.label, m.twist.text, '#facc15'] as [string, string, string]] : []),
-      ['Hostiles', `${m.hostiles.min} to ${m.hostiles.max} suspects${this.armoured ? ' in light vests' : ''}`],
-      ['Loadout', m.loadout],
+      ['Suspects', `${m.hostiles.min}–${m.hostiles.max}${this.armoured ? ', light vests' : ''}`],
+      ['Weapons', m.loadout],
       ['Civilians', m.civilians.text],
-      ['Reliability', m.reliability, RELIABILITY_COLOR[m.reliability]],
+      ['Intel', m.reliability, RELIABILITY_COLOR[m.reliability]],
     ];
     for (const [k, v, color] of rows) {
       this.add.text(x, y, k, style(13, DIM));
       const value = this.add.text(x + 110, y, v, style(13, color ?? TEXT, { wordWrap: { width: w - 110 } }));
-      y += value.height + 6;
+      y += value.height + 5;
     }
-    y += 16;
+    y += 12;
 
     heading('LOADOUT');
     const guns = m.issued ? [m.issued] : unlockedWeapons(progress);
@@ -266,7 +277,7 @@ export class BriefingScene extends Phaser.Scene {
     y += 26;
     this.selectGun(this.primary);
 
-    heading('CHOOSE ENTRY');
+    heading('ENTRY POINT');
     this.def.entries.forEach((entry, i) => {
       const row = this.add.text(x, y, '', style(15, TEXT)).setInteractive({ useHandCursor: true });
       row.on('pointerover', () => this.hover(i));

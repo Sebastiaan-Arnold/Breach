@@ -3,6 +3,20 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.7
+
+A rewrite of the briefing and the game's text, for a more realistic, procedural tone.
+
+- Briefing: a fixed structure of situation (short bullets), objective (one line), intel, loadout
+  and entry point. The header shows the campaign and case number (derived, so it never goes out
+  of date), the address, the time of the operation and the unit.
+- Intel rows read Suspects, Weapons, Civilians and Intel, in short form ("4–6, light vests").
+- Every case file, radio call, debrief note and promotion note is rewritten: names, times and
+  counts, callsigns on the radio, no flourishes. In-game messages follow suit ("Compromised.
+  30 s to reach the hostage.", "Area secure").
+- Tollgate Flats lists the power cut as its twist. Map labels have a dark backing so they read
+  over walls.
+
 ## v0.4.6
 
 The runner is out; three simpler twists are in, all started by the same moment: the alarm (a
