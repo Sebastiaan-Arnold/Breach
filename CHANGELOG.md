@@ -3,6 +3,19 @@
 All notable changes to Breach. Versions follow `0.<milestone>.<patch>` until the full web
 release, which will be `1.0.0`. See [Versioning](README.md#versioning).
 
+## v0.4.8
+
+The Sergeant campaign, "Clean money": one night at the Grand Atlas Hotel, following Meridian
+Partners from the service level to the penthouse.
+
+- Five new cases: Service Level, Floor 4, Conference Suite, Rear Yard and Penthouse.
+- New enemy, the Heavy: a contractor in a plate carrier with a rifle. One more hit to stop than
+  everyone else at that rank, always pushes towards a fight, fires a little faster.
+- Rear Yard is the campaign's specialty case: rooftop overwatch with the sniper rifle issued.
+  The camera pulls right out over the whole yard. When the alarm goes up, every suspect makes
+  for the getaway car; one reaching it fails the mission. The briefing marks the car.
+- Promotion out of the campaign makes you Lieutenant and issues suppressors.
+
 ## v0.4.7
 
 A rewrite of the briefing and the game's text, for a more realistic, procedural tone.

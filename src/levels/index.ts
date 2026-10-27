@@ -1,3 +1,8 @@
+import { ATLAS_CONFERENCE } from './atlas-conference';
+import { ATLAS_FLOOR_4 } from './atlas-floor-4';
+import { ATLAS_PENTHOUSE } from './atlas-penthouse';
+import { ATLAS_SERVICE } from './atlas-service';
+import { ATLAS_YARD } from './atlas-yard';
 import { COLD_STORE } from './cold-store';
 import { CORVAN_DEPOT } from './corvan-depot';
 import { CORVAN_HEAD_OFFICE } from './corvan-head-office';
@@ -18,6 +23,7 @@ export const LEVELS: readonly LevelDef[] = [
   RANGE,
   HARBOUR_LANE, FENWICK_TERRACE, TOLLGATE_FLATS, MERCER_STREET, KESTREL_ROAD, WESTQUAY_LOCKUPS,
   CORVAN_DEPOT, CORVAN_HEAD_OFFICE, SALTER_STREET, COLD_STORE, FERRY_ROAD, HARBOUR_FREIGHT,
+  ATLAS_SERVICE, ATLAS_FLOOR_4, ATLAS_CONFERENCE, ATLAS_YARD, ATLAS_PENTHOUSE,
 ];
 
 export function levelById(id: string): LevelDef {

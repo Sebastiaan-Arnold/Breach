@@ -35,6 +35,11 @@ const CAMERA_LOOKAHEAD = 70;
  * down the aim, and the camera pulls back and pushes out along it.
  */
 const SCOPE = { halfFov: 4 * DEG, range: 1800, sweepStep: 0.25 * DEG, lookahead: 640, zoomOut: 0.4 };
+/**
+ * Overwatch: the camera pulls right out and the operator sees across the whole map. Suspects
+ * making for the getaway are carrying bags, so they move at a jog.
+ */
+const OVERWATCH = { zoom: 0.55, range: 1700, getawaySpeed: 62, lookahead: 520 };
 /** When the bolt is worked after a shot, in ms. */
 const BOLT_SOUND_DELAY = 450;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
@@ -134,6 +139,8 @@ export class GameScene extends Phaser.Scene {
   private hostage: Civilian | null = null;
   private clock: number | null = null;
   private timedOut = false;
+  /** Overwatch: a suspect reached the getaway. */
+  private escaped = false;
   /** The suspect sent to destroy the evidence, and how long they've been at it. */
   private destroyer: Enemy | null = null;
   private destroying = 0;
@@ -170,6 +177,7 @@ export class GameScene extends Phaser.Scene {
     this.hostage = null;
     this.clock = null;
     this.timedOut = false;
+    this.escaped = false;
     this.destroyer = null;
     this.destroying = 0;
     this.evidenceLost = false;
@@ -284,8 +292,10 @@ export class GameScene extends Phaser.Scene {
     this.hurt = Math.max(0, this.hurt - dt * 1.5);
 
     // Camera: pulled back during the intro, then a little ahead of where the operator aims.
-    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom * (1 - SCOPE.zoomOut * this.scopeView));
-    const look = inIntro ? 0 : CAMERA_LOOKAHEAD + SCOPE.lookahead * this.scopeView;
+    const overwatch = this.def.mission?.overwatch ? OVERWATCH.zoom : 1;
+    this.cameras.main.setZoom(RENDER_SCALE * this.intro.zoom * overwatch * (1 - SCOPE.zoomOut * this.scopeView));
+    const ahead = this.def.mission?.overwatch ? OVERWATCH.lookahead : CAMERA_LOOKAHEAD;
+    const look = inIntro ? 0 : ahead + SCOPE.lookahead * this.scopeView;
     this.lookX += (Math.cos(p.facing) * look - this.lookX) * Math.min(1, dt * 4);
     this.lookY += (Math.sin(p.facing) * look - this.lookY) * Math.min(1, dt * 4);
     this.cameras.main.setFollowOffset(-this.lookX, -this.lookY);
@@ -371,7 +381,7 @@ export class GameScene extends Phaser.Scene {
     const p = this.player;
     const segs = this.world.segments();
     const dark = this.world.isDark(ptx, pty);
-    const range = dark ? VISION.rangeDark : VISION.rangeLit;
+    const range = this.def.mission?.overwatch ? OVERWATCH.range : dark ? VISION.rangeDark : VISION.rangeLit;
     const cone = visibilityPolygon(p.x, p.y, p.facing, VISION.halfFov, range, segs, VISION.sweepStep);
     const peri = visibilityPolygon(p.x, p.y, 0, Math.PI, VISION.peripheral, segs, 8 * DEG);
     this.visionPolys = [cone.polygon, peri.polygon];
@@ -772,17 +782,19 @@ export class GameScene extends Phaser.Scene {
     if (this.outcome) return;
     this.updateHostage(dt);
     this.updateEvidence(dt);
+    this.updateGetaway();
     // The area is secure once every suspect is down and every civilian is secured (or hit).
     const suspectsDown = this.enemies.length > 0 && this.enemies.every((e) => !e.alive);
-    const civiliansSafe = this.civilians.every((c) => c.state === 'secured' || c.state === 'down');
+    // On overwatch, ground units see to the civilians.
+    const civiliansSafe = !!this.def.mission?.overwatch || this.civilians.every((c) => c.state === 'secured' || c.state === 'down');
     if (suspectsDown && !civiliansSafe && !this.remindedCivilians) {
       this.remindedCivilians = true;
       this.toast('Suspects down. Secure the civilians.');
     }
     const done = this.stations ? this.stations.allDone : suspectsDown && civiliansSafe;
-    if ((done || !p.alive || this.timedOut) && this.outcomeTimer < 0) {
+    if ((done || !p.alive || this.timedOut || this.escaped) && this.outcomeTimer < 0) {
       this.outcomeTimer = 0;
-      if (done && !this.stations && !this.timedOut) {
+      if (done && !this.stations && !this.timedOut && !this.escaped) {
         sfx.secured();
         this.toast('Area secure');
       }
@@ -790,7 +802,10 @@ export class GameScene extends Phaser.Scene {
     if (this.outcomeTimer >= 0) {
       this.outcomeTimer += dt;
       if (this.outcomeTimer >= OUTCOME_DELAY) {
-        this.outcome = !p.alive ? this.failedOutcome() : this.timedOut ? this.timeOutcome() : this.successOutcome();
+        this.outcome = !p.alive ? this.failedOutcome()
+          : this.timedOut ? this.timeOutcome()
+            : this.escaped ? this.escapedOutcome()
+              : this.successOutcome();
       }
     }
   }
@@ -806,6 +821,11 @@ export class GameScene extends Phaser.Scene {
     if (m.hostage && this.hostage?.canBeSecured) {
       this.clock = m.hostage.seconds;
       this.toast(`Compromised. ${m.hostage.seconds} s to reach the hostage.`);
+    }
+    if (m.overwatch) {
+      const x = m.overwatch.getaway.tx * TILE, y = m.overwatch.getaway.ty * TILE;
+      for (const e of this.enemies) if (e.alive) e.sendTo(x, y, OVERWATCH.getawaySpeed);
+      this.toast("Compromised. They're making for the car.");
     }
     if (m.evidence) {
       const x = m.evidence.tx * TILE, y = m.evidence.ty * TILE;
@@ -832,6 +852,15 @@ export class GameScene extends Phaser.Scene {
       this.timedOut = true;
       this.clock = null;
       this.toast('Out of time');
+    }
+  }
+
+  /** Overwatch: anyone reaching the getaway is gone, and so is the mission. */
+  private updateGetaway(): void {
+    if (!this.def.mission?.overwatch || this.escaped) return;
+    if (this.enemies.some((e) => e.alive && e.atErrand)) {
+      this.escaped = true;
+      this.toast('Suspect at the car');
     }
   }
 
@@ -863,7 +892,7 @@ export class GameScene extends Phaser.Scene {
     if (this.def.mission) {
       const secured = this.civilians.filter((c) => c.state === 'secured').length;
       lines.push(`Suspects down       ${this.enemies.filter((e) => !e.alive).length} of ${this.enemies.length}`);
-      if (this.civilians.length) lines.push(`Civilians secured   ${secured} of ${this.civilians.length}`);
+      if (this.civilians.length && !this.def.mission.overwatch) lines.push(`Civilians secured   ${secured} of ${this.civilians.length}`);
     }
     lines.push(`Shots fired         ${this.stats.shots}`, `Accuracy            ${accuracy}%`);
     if (this.stations) sfx.secured();
@@ -928,6 +957,18 @@ export class GameScene extends Phaser.Scene {
       title: 'Out of time',
       stars: null,
       lines: ['Hostage not reached in time.', 'On redeploy, go for the hostage room first.'],
+    };
+  }
+
+  /** Overwatch: a suspect reached the getaway. The operator is fine, so a realism career goes on. */
+  private escapedOutcome(): Outcome {
+    progress.deployed = null;
+    saveProgress(progress);
+    return {
+      success: false,
+      title: 'Suspect escaped',
+      stars: null,
+      lines: ['A suspect reached the car.', 'On redeploy, take the ones nearest the car first.'],
     };
   }
 

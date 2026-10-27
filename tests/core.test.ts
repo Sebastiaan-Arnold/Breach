@@ -234,14 +234,18 @@ describe('level data', () => {
           ...(m.hostage ? [m.hostage] : []), ...(m.evidence ? [m.evidence] : []),
         ];
         const passable = (x: number, y: number) => lvl.tiles[y * lvl.width + x] === 'floor';
+        const reach = (a: { tx: number; ty: number }, b: { tx: number; ty: number }) =>
+          findPath(lvl.width, lvl.height, { tx: Math.floor(a.tx), ty: Math.floor(a.ty) }, { tx: Math.floor(b.tx), ty: Math.floor(b.ty) }, passable) !== null;
         for (const p of points) expect(walkable(p.tx, p.ty)).toBe(true);
-        for (const e of def.entries) {
-          const end = e.approach.at(-1)!;
-          for (const p of points) {
-            const path = findPath(lvl.width, lvl.height, { tx: Math.floor(end.tx), ty: Math.floor(end.ty) }, { tx: Math.floor(p.tx), ty: Math.floor(p.ty) }, passable);
-            expect(path).not.toBeNull();
-          }
+        // Overwatch: everyone can make for the car, and nobody can get up to the roof.
+        const getaway = m.overwatch?.getaway;
+        if (getaway) {
+          expect(walkable(getaway.tx, getaway.ty)).toBe(true);
+          for (const p of points) expect(reach(p, getaway)).toBe(true);
+          for (const e of def.entries) expect(reach(e.approach.at(-1)!, getaway)).toBe(false);
+          return;
         }
+        for (const e of def.entries) for (const p of points) expect(reach(e.approach.at(-1)!, p)).toBe(true);
       });
     }
   }
@@ -330,7 +334,7 @@ describe('gun roles', () => {
   });
 
   it('guns are issued in order: shotgun, rifle, sniper rifle, then suppressors', () => {
-    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper']);
+    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper', undefined]);
     // The sniper rifle comes with the promotion out of its campaign; suppressors a rank later.
     const sniperRank = CAMPAIGNS.find((c) => c.promotion.unlocks === 'sniper')!.rank + 1;
     expect(SUPPRESSOR_RANK).toBe(sniperRank + 1);

@@ -20,9 +20,10 @@ export interface EntryDef {
 
 /**
  * Lookouts hold a post, patrollers walk a route, hiders wait behind cover with a shotgun and only
- * fire at close range.
+ * fire at close range. Heavies are contractors in plate carriers with rifles: they take an extra
+ * hit and always push towards a fight.
  */
-export type HostileType = 'lookout' | 'patroller' | 'hider';
+export type HostileType = 'lookout' | 'patroller' | 'hider' | 'heavy';
 
 /**
  * How a hostile reacts to a fight it hears: pushers come for you, holders dig in and cover the
@@ -88,6 +89,12 @@ export interface MissionDef {
    * runs to it, and after `seconds` there it's gone, and with it the first star.
    */
   evidence?: TilePos & { seconds: number };
+  /**
+   * Overwatch: the operator holds a roof and doesn't move in. The camera pulls right out and
+   * sight reaches across the map. Once the alarm goes up, every suspect makes for `getaway`;
+   * one reaching it fails the mission. Ground units secure the civilians.
+   */
+  overwatch?: { getaway: TilePos };
 }
 
 /**

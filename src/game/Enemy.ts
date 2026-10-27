@@ -32,11 +32,15 @@ const SPEED_ALERT = 88;
 /** Pushers move fast (and loud) towards a fight. */
 const SPEED_PUSH = 108;
 const TURN = 4.5;
-const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6, hider: 0.3 };
+const REACTION: Record<HostileType, number> = { lookout: 0.45, patroller: 0.6, hider: 0.3, heavy: 0.5 };
 /** Someone already aimed at a doorway reacts quicker. */
 const REACTION_HOLDING = 0.28;
 /** Chance to hold rather than push, when not set by the level. */
-const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3, hider: 1 };
+const HOLD_CHANCE: Record<HostileType, number> = { lookout: 0.7, patroller: 0.3, hider: 1, heavy: 0 };
+/** Plate carriers: one more hit than everyone else at that rank. */
+const HEAVY_EXTRA_HP = 1;
+/** Rifles: heavies fire a little more often. */
+const HEAVY_FIRE_RATE = 0.8;
 /** How far (in tiles) a holder looks for a spot covering its door, and the distances it likes. */
 const HOLD_SEARCH = 5;
 const HOLD_MIN = 2.5 * TILE;
@@ -51,6 +55,8 @@ const STYLE: FigureStyle = { body: 0x991b1b, chest: 0xdc2626, head: 0x2b2b2b, gu
 const VEST_CHEST = 0x52525b;
 /** How long a wounded enemy is thrown off its aim. */
 const FLINCH = 0.4;
+/** Helmet, dark plate carrier, rifle. */
+const HEAVY_STYLE: FigureStyle = { body: 0x450a0a, chest: 0x3f3f46, head: 0x374151, gun: true, longGun: true };
 
 /**
  * A hostile. Readable rather than clever: Idle (post or patrol), Alert (investigates a noise)
@@ -80,6 +86,7 @@ export class Enemy {
    */
   errand: { x: number; y: number } | null = null;
   atErrand = false;
+  private errandSpeed = SPEED_PUSH;
   private flinch = 0;
 
   private post: { x: number; y: number; facing: number };
@@ -113,11 +120,12 @@ export class Enemy {
     this.post = { x: this.x, y: this.y, facing: this.facing };
     this.route = (slot.route ?? []).map((p) => ({ x: p.tx * TILE, y: p.ty * TILE }));
     this.temperament = slot.temperament ?? (Math.random() < HOLD_CHANCE[type] ? 'holder' : 'pusher');
-    this.hp = difficulty.toughness;
+    this.hp = difficulty.toughness + (type === 'heavy' ? HEAVY_EXTRA_HP : 0);
     this.gfx = scene.add.graphics();
     drawFigure(this.gfx, this.style);
-    // Hiders crouch behind their cover.
+    // Hiders crouch behind their cover; heavies are bulkier.
     if (type === 'hider') this.gfx.setScale(0.9);
+    if (type === 'heavy') this.gfx.setScale(1.1);
     this.container = scene.add.container(this.x, this.y, [this.gfx]).setDepth(depth).setVisible(false);
   }
 
@@ -130,6 +138,7 @@ export class Enemy {
   }
 
   private get style(): FigureStyle {
+    if (this.type === 'heavy') return HEAVY_STYLE;
     return {
       ...STYLE,
       longGun: this.type === 'hider',
@@ -160,8 +169,9 @@ export class Enemy {
   }
 
   /** Sends the enemy straight to (x, y), whatever else is going on. */
-  sendTo(x: number, y: number): void {
+  sendTo(x: number, y: number, speed = SPEED_PUSH): void {
     this.errand = { x, y };
+    this.errandSpeed = speed;
     this.atErrand = false;
     this.goal = null;
     this.hold = null;
@@ -222,7 +232,7 @@ export class Enemy {
     }
 
     if (this.errand) {
-      this.atErrand = this.walkTo(this.errand, SPEED_PUSH, dt, ctx);
+      this.atErrand = this.walkTo(this.errand, this.errandSpeed, dt, ctx);
       this.container.setPosition(this.x, this.y);
       this.container.rotation = this.facing;
       return;
@@ -350,7 +360,7 @@ export class Enemy {
     this.fireTimer -= dt;
     if (this.fireTimer <= 0) {
       const [min, max] = this.difficulty.fireInterval;
-      this.fireTimer = Phaser.Math.FloatBetween(min, max) * (hider ? 1.3 : 1);
+      this.fireTimer = Phaser.Math.FloatBetween(min, max) * (hider ? 1.3 : this.type === 'heavy' ? HEAVY_FIRE_RATE : 1);
       const error = (Math.random() + Math.random() - 1) * this.difficulty.spread * DEG;
       ctx.shoot(this, this.facing + error, hider ? HIDER_PELLETS : 1);
     }

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, VIEW_H, VIEW_W } from '../config';
 import { sfx } from '../game/audio';
 import { WEAPONS } from '../game/weapons';
-import { CAMPAIGNS, RANKS } from '../levels/campaigns';
+import { CAMPAIGNS, RANKS, SUPPRESSOR_RANK } from '../levels/campaigns';
 import { ACCENT, DIM, GOLD, setupScreenCamera, style, TEXT, textButton } from './ui';
 
 /** Closes a campaign: the new rank, a short note from the captain and any gun issued with it. */
@@ -33,9 +33,12 @@ export class PromotionScene extends Phaser.Scene {
     })).setOrigin(0.5, 0);
     this.add.text(cx, note.y + note.height + 18, 'Captain Hale', style(13, DIM, { fontStyle: 'italic' })).setOrigin(0.5, 0);
 
-    if (c.promotion.unlocks) {
-      this.add.text(cx, note.y + note.height + 70, `Issued: ${WEAPONS[c.promotion.unlocks].name}`, style(16, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5);
-      this.add.text(cx, note.y + note.height + 96, 'Try it on the Range, or choose it on your next briefing.', style(12, DIM)).setOrigin(0.5);
+    const suppressors = c.rank + 1 === SUPPRESSOR_RANK;
+    const issued = c.promotion.unlocks ? WEAPONS[c.promotion.unlocks].name : suppressors ? 'Suppressors' : null;
+    if (issued) {
+      const hint = suppressors ? 'Fit them from the loadout on any briefing.' : 'Try it on the Range, or choose it on your next briefing.';
+      this.add.text(cx, note.y + note.height + 70, `Issued: ${issued}`, style(16, ACCENT, { fontStyle: 'bold' })).setOrigin(0.5);
+      this.add.text(cx, note.y + note.height + 96, hint, style(12, DIM)).setOrigin(0.5);
     }
 
     const go = () => this.scene.start('menu');

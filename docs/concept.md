@@ -147,7 +147,7 @@ Twists hang off one moment, the **alarm**: the first time a suspect sees the ope
 - **Hostage on the clock** (Kestrel Road, Officer): one of the homeowners is held in a back bedroom. Once the alarm goes up, a 30-second clock runs at the top of the screen; secure the hostage before it hits zero or the mission fails.
 - **Evidence** (Corvan Head Office, Senior Officer): when the alarm goes up, the nearest suspect runs for the shredder. Stop him before he has had eight seconds there, or the files are gone and so is the first star.
 - **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
-- **Rooftop overwatch** (planned, Sergeant): from a roof across from a yard, with the camera pulled right out and sight over the containers. Once you fire, the suspects run for their van: nobody leaves.
+- **Rooftop overwatch** (Grand Atlas: Rear Yard, Sergeant): from the car park roof opposite the hotel, with the sniper rifle issued and the camera pulled right out over the whole yard. The yard has only low cover, so the roof sees everything. Once the alarm goes up, every suspect makes for the getaway car: one reaching it fails the mission. The puzzle is the order: take the ones nearest the car first. Ground units see to the civilians.
 
 **The scope.** Holding Space with the sniper rifle braces the operator: they stop moving, a narrow strip of vision reaches far down the aim, and the camera pulls back and pushes out along it. Enemies can't see that far, so a careful shooter goes unseen until the first shot, which, unsuppressed, brings everyone running.
 

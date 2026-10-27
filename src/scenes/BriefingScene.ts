@@ -164,6 +164,12 @@ export class BriefingScene extends Phaser.Scene {
     const tag = (text: string, x: number, y: number) =>
       this.add.text(x, y, text, style(9, '#facc15', { fontStyle: 'bold', backgroundColor: '#0b1220', padding: { x: 3, y: 1 } })).setOrigin(0.5, 0);
     if (m.hostage) tag('HOSTAGE', ox + m.hostage.tx * s, oy + m.hostage.ty * s + s * 1.6 + 2);
+    if (m.overwatch) {
+      const gx = ox + m.overwatch.getaway.tx * s, gy = oy + m.overwatch.getaway.ty * s;
+      marks.lineStyle(2, 0xfacc15, 0.9);
+      marks.strokeRect(gx - 6, gy - 6, 12, 12);
+      tag('CAR', gx, gy + 9);
+    }
     if (m.evidence) {
       const ex = ox + m.evidence.tx * s, ey = oy + m.evidence.ty * s;
       marks.lineStyle(2, 0xfacc15, 0.9);

@@ -9,9 +9,9 @@ The full design lives in [docs/concept.md](docs/concept.md).
 ## Status: milestone 4
 
 The build has the police academy Range (training), the Officer campaign (six cases from
-14 Harbour Lane to the Westquay Lockups) and the Senior Officer campaign (six cases inside
-Corvan Logistics),
-each played from briefing to debrief, with saved progress, stars and
+14 Harbour Lane to the Westquay Lockups), the Senior Officer campaign (six cases inside
+Corvan Logistics) and the Sergeant campaign (one night at the Grand Atlas Hotel, five cases
+from the service level to the penthouse), each played from briefing to debrief, with saved progress, stars and
 promotions. Enemies get sharper with every rank.
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out) and command's
@@ -46,7 +46,10 @@ promotions. Enemies get sharper with every rank.
 - **Specialty cases:** some cases add a twist, shown as a yellow line in the briefing's intel:
   a house party full of guests (Fenwick Terrace), a hostage with a clock that starts once
   they know you're there (Kestrel Road), files that get shredded if the alarm goes up (Corvan
-  Head Office), and close quarters made for the shotgun (Salter Street).
+  Head Office), close quarters made for the shotgun (Salter Street), and rooftop overwatch with
+  the sniper rifle where nobody may reach the getaway car (Grand Atlas: Rear Yard).
+- **Heavies:** from the Sergeant campaign, contractors in plate carriers with rifles. They take
+  one more hit than everyone else and always push towards a fight.
 - **Suppressors:** fit the pistol, assault rifle and sniper rifle (not the shotgun). A
   suppressed shot is heard about a third as far. Toggle them on the briefing.
 - **The Range:** five stations: movement lane, target lane, door station, shoot or don't, and a dark kill

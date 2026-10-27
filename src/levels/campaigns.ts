@@ -97,6 +97,20 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
       ],
     },
   },
+  {
+    id: 'sergeant',
+    title: 'Clean money',
+    rank: 3,
+    levels: ['atlas-service', 'atlas-floor-4', 'atlas-conference', 'atlas-yard', 'atlas-penthouse'],
+    promotion: {
+      minStars: 10,
+      note: [
+        'Meridian Partners is shut down. Leonard Voight is in custody.',
+        'Promoted to Lieutenant.',
+        "Voight's contacts are under review. Await orders.",
+      ],
+    },
+  },
 ];
 
 export function campaignOf(levelId: string): CampaignDef | undefined {
