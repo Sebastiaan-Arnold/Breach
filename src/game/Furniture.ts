@@ -57,7 +57,11 @@ export function drawFurniture(g: Phaser.GameObjects.Graphics, p: PropDef): void 
   const x = p.tx * TILE, y = p.ty * TILE, pw = w * TILE, ph = h * TILE;
   // Pieces that sit per tile (stacks, drums, bins) cast their own shadows.
   if (p.kind === 'crates' || p.kind === 'pallet' || p.kind === 'drums' || p.kind === 'bins') return perTile(g, p, w, h);
-  if (p.kind === 'plant') return plant(g, x, y, p);
+  // A bed of plants (a hedge, a planter) is a plant per tile.
+  if (p.kind === 'plant') {
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) plant(g, x + i * TILE, y + j * TILE, p, i * 7 + j);
+    return;
+  }
   g.fillStyle(0x000000, 0.3);
   g.fillRoundedRect(x + 4, y + 5, pw - 4, ph - 4, 4);
   // A table has no back; it lies along its long side.
@@ -219,7 +223,7 @@ export function drawFurniture(g: Phaser.GameObjects.Graphics, p: PropDef): void 
 }
 
 /** A potted plant: a pot and a spray of leaves. */
-function plant(g: Phaser.GameObjects.Graphics, x: number, y: number, p: PropDef): void {
+function plant(g: Phaser.GameObjects.Graphics, x: number, y: number, p: PropDef, n = 0): void {
   const cx = x + TILE / 2, cy = y + TILE / 2;
   g.fillStyle(0x000000, 0.3);
   g.fillCircle(cx + 3, cy + 4, 10);
@@ -228,7 +232,7 @@ function plant(g: Phaser.GameObjects.Graphics, x: number, y: number, p: PropDef)
   g.fillStyle(0x2f2418, 1);
   g.fillCircle(cx, cy, 7);
   for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2 + hash(p.tx, p.ty, 3) * 2;
+    const a = (i / 7) * Math.PI * 2 + hash(p.tx, p.ty, 3 + n) * 2;
     g.fillStyle(i % 2 ? 0x2f6b2f : 0x3f8a3f, 1);
     g.fillCircle(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7, 5);
   }

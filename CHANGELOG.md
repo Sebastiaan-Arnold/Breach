@@ -3,6 +3,21 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.3.0
+
+Level overhaul, part 3: a detail pass on Clean Money and The top. Their layouts stay as they
+are; their rooms are furnished.
+
+- Grand Atlas: laundry and dry store on the service level, the hotel kitchen's lines and the
+  security office; every room on floor 4 with a bath, bed, wardrobe, desk and armchair;
+  ballroom tables, the boardroom table and a fitted kitchen on the conference floor; crates,
+  pallets and bins in the yard; the penthouse lounge, bedroom, kitchen, study and terrace.
+- The top: Hillcrest's kitchen, lounge, bedrooms and pool loungers; the Halcyon's salon, and
+  beds in its forward cabins; Ardley Lodge's library, study, drawing room and flower beds;
+  the Gull Point cottage and boathouse; Westcliff House's glass room, living room, a kitchen
+  and a bedroom.
+- Planters can span several tiles, for hedges and flower beds.
+
 ## v1.2.0
 
 Level overhaul, part 2: the Supply chain campaign rebuilt as Corvan's sites across the
