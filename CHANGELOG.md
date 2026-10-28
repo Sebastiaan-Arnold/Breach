@@ -3,6 +3,23 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.2.0
+
+Level overhaul, part 2: the Supply chain campaign rebuilt as Corvan's sites across the
+docklands, a step up from the estate. Glass comes in at the head office, water at the docks.
+
+- Corvan Depot: racking aisles, a sorting line, three loading docks onto the yard and a staff
+  annex with the transport office.
+- Corvan Head Office: offices round a glass courtyard; glass-fronted meeting rooms, the
+  manager's office and his PA, kitchen, reception and an unmapped server room.
+- Salter Street: a lodging house of bedsits off one narrow hall, with a dark rear outrigger.
+- Cold Store: a marshalling hall between three dark racked chambers and the blast freezer,
+  plant room and dock office; a door onto the quay.
+- Ferry Road: a fenced lorry yard with a gatehouse, drivers' cabin, fuel island and trailer
+  park, and a cross-dock warehouse whose bays open onto it.
+- Harbour Freight Office: Rook's office at the end of Pier Seven, water on both sides.
+- Spawns checked so no guard has a clear view of an entry as the intro ends.
+
 ## v1.1.1
 
 Playtest fixes for Street crime.
