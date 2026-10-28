@@ -3,6 +3,15 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.1.1
+
+Playtest fixes for Street crime.
+
+- About 40% less clutter on the floors.
+- Clutter lies under vehicles and containers instead of on top of them (the Westquay lorry).
+- Westquay Lockups: the north lock-ups are a tile shallower, so the way round to the corner
+  lock-ups is two tiles wide instead of one.
+
 ## v1.1.0
 
 Level overhaul, part 1: furnished rooms and the Officer campaign rebuilt.

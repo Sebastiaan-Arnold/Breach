@@ -194,8 +194,9 @@ export function drawLevelArt(
     else g.fillRect(px + TILE / 2 - 4, py, 8, TILE);
   }
 
-  for (const p of props) if (!isFurniture(p) && !isFloorDressing(p)) drawProp(g, p);
+  // Clutter lies on the floor, so vehicles and containers parked over it hide it.
   for (const p of props) if (p.kind === 'clutter') drawClutter(g, p);
+  for (const p of props) if (!isFurniture(p) && !isFloorDressing(p)) drawProp(g, p);
 
   for (const r of rails) {
     g.fillStyle(0x000000, 0.35);

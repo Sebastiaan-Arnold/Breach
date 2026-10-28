@@ -316,7 +316,7 @@ export function drawRug(g: Phaser.GameObjects.Graphics, p: PropDef): void {
 export function drawClutter(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   const { w, h } = propSize(p);
   const x = p.tx * TILE, y = p.ty * TILE, pw = w * TILE, ph = h * TILE;
-  const n = Math.max(2, Math.round(w * h * 0.6));
+  const n = Math.max(2, Math.round(w * h * 0.35));
   for (let i = 0; i < n; i++) {
     const r = (k: number) => hash(Math.round(p.tx * 7) + i, Math.round(p.ty * 7), k);
     const ix = x + 4 + r(1) * (pw - 12), iy = y + 4 + r(2) * (ph - 12), pick = r(3);
