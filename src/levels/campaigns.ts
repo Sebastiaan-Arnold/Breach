@@ -1,7 +1,7 @@
 import type { WeaponId } from '../game/weapons';
 
 /** Ranks in order; a campaign is played at one rank and promotes to the next. */
-export const RANKS = ['Recruit', 'Officer', 'Senior Officer', 'Sergeant', 'Lieutenant', 'Captain'] as const;
+export const RANKS = ['Recruit', 'Officer', 'Senior Officer', 'Sergeant', 'Lieutenant', 'Captain', 'Superintendent'] as const;
 
 /**
  * How sharp enemies are. Every rank's campaign is harder than the last: faster reactions,
@@ -27,6 +27,7 @@ export const DIFFICULTY: readonly Difficulty[] = [
   { reaction: 0.85, notice: 0.8, spread: 3.2, fireInterval: [0.6, 0.95], toughness: 2 },
   { reaction: 0.72, notice: 0.65, spread: 2.6, fireInterval: [0.5, 0.85], toughness: 2 },
   { reaction: 0.6, notice: 0.55, spread: 2.2, fireInterval: [0.45, 0.75], toughness: 2 },
+  { reaction: 0.52, notice: 0.48, spread: 2, fireInterval: [0.42, 0.7], toughness: 2 },
 ];
 
 /**
@@ -131,6 +132,22 @@ export const CAMPAIGNS: readonly CampaignDef[] = [
         'Deputy Commissioner Calloway in custody. Councillors Pryce and Kessler charged.',
         'The network from Harbour Lane to Westcliff House is closed.',
         'Promoted to Captain, effective immediately.',
+      ],
+      from: 'Commissioner Adeyemi',
+    },
+  },
+  {
+    id: 'captain',
+    title: 'Inside job',
+    blurb: 'Calloway was not the only one. Someone at headquarters is cleaning up.',
+    rank: 5,
+    levels: ['marsh-lane', 'records-archive', 'the-anchor', 'police-hq'],
+    promotion: {
+      minStars: 8,
+      note: [
+        'Superintendent Hale in custody. His team charged.',
+        'Every case from Harbour Lane to Westcliff House stands.',
+        'Promoted to Superintendent. You take his post.',
       ],
       from: 'Commissioner Adeyemi',
     },

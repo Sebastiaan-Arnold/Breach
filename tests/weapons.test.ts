@@ -24,7 +24,7 @@ describe('gun roles', () => {
   });
 
   it('guns are issued in order: shotgun, rifle, sniper rifle, then suppressors', () => {
-    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper', undefined, undefined]);
+    expect(CAMPAIGNS.map((c) => c.promotion.unlocks)).toEqual(['shotgun', 'rifle', 'sniper', undefined, undefined, undefined]);
     // The sniper rifle comes with the promotion out of its campaign; suppressors a rank later.
     const sniperRank = CAMPAIGNS.find((c) => c.promotion.unlocks === 'sniper')!.rank + 1;
     expect(SUPPRESSOR_RANK).toBe(sniperRank + 1);

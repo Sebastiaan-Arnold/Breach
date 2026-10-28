@@ -11,7 +11,7 @@ import {
   type Focusable,
 } from './ui';
 
-const LEFT = { x: 56, w: 360, top: 132, h: 76 };
+const LEFT = { x: 56, w: 360, top: 132, h: 70 };
 const RIGHT = { x: 448, w: 776, top: 132 };
 const ROW = 54;
 
@@ -112,7 +112,7 @@ export class MenuScene extends Phaser.Scene {
   /** A campaign on the left: title, rank, and stars earned against what's on offer. */
   private campaignCard(c: CampaignDef, i: number): Phaser.GameObjects.Container {
     const open = progress.rank >= c.rank;
-    const y = LEFT.top + i * (LEFT.h + 10);
+    const y = LEFT.top + i * (LEFT.h + 8);
     const box = this.add.container(LEFT.x, y);
     const bg = this.add.graphics();
     const stars = campaignStars(progress, c), max = c.levels.length * 3;

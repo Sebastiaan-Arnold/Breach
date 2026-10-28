@@ -2,7 +2,7 @@
 
 ## Pitch
 
-Breach is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from recruit to captain in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes, which suits a browser tab now and a phone later.
+Breach is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from recruit to superintendent in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes, which suits a browser tab now and a phone later.
 
 The closest references are Door Kickers (top-down, line of sight, room clearing) and Ready or Not (tension, uncertainty, procedure). Breach sits between them: simpler to control than Door Kickers, far more readable than Ready or Not.
 
@@ -149,6 +149,7 @@ Twists hang off one moment, the **alarm**: the first time a suspect sees the ope
 - **Close quarters** (Salter Street, Senior Officer): a lodging house of narrow corridors, closed doors and beds to hide behind. Made for the shotgun.
 - **Silent** (Ardley Lodge, Lieutenant): the house has alarm panels, marked on the plan. Guards who hear or see trouble react as usual (pushers come for you, holders dig in), and the guard nearest a panel who has seen you or heard a fight (a shot, a shout, glass; not just a footstep) walks briskly to it. Setting it off takes three seconds, counted down at the top of the screen. If he reaches it and sets it off, the mission fails; drop him on the way and the next alerted guard takes up the run. A shot is only heard by guards in earshot, so suppressors (issued at Lieutenant) keep the house quiet.
 - **Rooftop overwatch** (Grand Atlas: Rear Yard, Sergeant): from the car park roof opposite the hotel, with the sniper rifle issued and the camera pulled right out over the whole yard. The yard has only low cover, so the roof sees everything. Once the alarm goes up, every suspect makes for the getaway car: one reaching it fails the mission. The puzzle is the order: take the ones nearest the car first. Ground units see to the civilians.
+- **The Captain campaign** brings the twists back together: a hostage at the Marsh Lane safe house, evidence at the records archive, a crowd at the Anchor, and evidence again in the finale at headquarters, the largest level in the game, with four ways in.
 
 **The scope.** Holding Space with the sniper rifle braces the operator: they stop moving, a narrow strip of vision reaches far down the aim, and the camera pulls back and pushes out along it. Enemies can't see that far, so a careful shooter goes unseen until the first shot, which, unsuppressed, brings everyone running.
 
@@ -167,7 +168,7 @@ Each mission ends with a debrief and up to three stars: one for completing it, o
 
 ## Training, levels and story
 
-The game opens at the police academy range, then follows the operator through four more campaigns, one per rank from Officer to Lieutenant. Every level is a single ground floor for now; multiple floors can come later.
+The game opens at the police academy range, then follows the operator through five more campaigns, one per rank from Officer to Captain. Every level is a single ground floor for now; multiple floors can come later.
 
 **Training: the Range**
 
@@ -185,7 +186,7 @@ Levels are built on a tile grid of 32 px tiles, which makes line of sight, enemy
 
 **Story and campaigns**
 
-The structure borrows from L.A. Noire, where the protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of five or six cases. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men and finally the people running it.
+The structure borrows from L.A. Noire, where the protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of four to six cases. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men, the people running it and finally the leak inside headquarters that tipped them off all along.
 
 | Rank | Campaign | Locations | Story thread |
 | --- | --- | --- | --- |
@@ -194,6 +195,9 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 | Senior Officer | Supply chain | Offices, warehouses | A logistics firm that's moving more than parcels |
 | Sergeant | Clean money | Hotel floors | The ring's accountants meeting at a city hotel |
 | Lieutenant | The top | Villas | The people behind it all, with friends in high places |
+| Captain | Inside job | A safe house, the records archive, a police club, headquarters | The leak at headquarters, ending in one large level: the whole station |
+
+**Each campaign is one place, thought through.** Street crime is one estate of houses, flats, a garage and lock-ups, with no glass or water. Supply chain follows Corvan's sites across the docklands, where glass comes in at the head office and water at the quay. Clean money is one night in one hotel. Complexity grows with rank, and rooms are furnished for what they are (beds, kitchens, desks, shelving, a little clutter) without crowding them.
 
 **Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you, and shatter loudly when shot, leaving a gap to walk through; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
 
@@ -252,7 +256,7 @@ Cut on purpose for now: gadgets, multiple floors, squad members and multiplayer.
 - **Tall objects block sight and bullets:** racking, lorries, containers and vans. Low furniture and cars are cover you can see and shoot over.
 - **No flashlight toggle:** the weapon light is always on; dark rooms simply limit how far you see.
 - **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
-- **Five or six cases per campaign:** 22 cases plus the Range in the full web release.
+- **Four to six cases per campaign:** 26 cases plus the Range.
 - **Enemies can't see the laser.**
 - **Suppressors are the last unlock** (at Lieutenant) and cut how far shots are heard.
 - **Vision cone of about 60 degrees.**

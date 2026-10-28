@@ -3,6 +3,24 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.4.0
+
+The Captain campaign, Inside job: four cases on the leak inside headquarters, ending in the
+largest level in the game.
+
+- Marsh Lane: armed men have taken a police safe house, a farmhouse out on the marsh. The
+  witness is held in the back bedroom; once you're seen, a clock runs.
+- Records Archive: the Calloway files are being shredded in the dark archive on Harbour Road.
+- The Anchor: Hale's fixer in the back office of the police social club, on a busy night.
+- Police Headquarters: the finale. Superintendent Hale's team holds the station round its vehicle
+  yard: lobby, interview rooms, custody suite and cells, CID, the briefing room, the control
+  room, armoury and canteen. Four ways in; Hale is burning records in his office.
+- A new final rank, Superintendent, and a sharper difficulty step for the Captain campaign.
+- Snooker tables for the club.
+- Briefing plans: entry labels sit on a dark backing and stay inside the plan.
+- The campaign screen fits six campaigns; the promotion badge scales so the taller insignia
+  fit.
+
 ## v1.3.0
 
 Level overhaul, part 3: a detail pass on Clean Money and The top. Their layouts stay as they

@@ -113,7 +113,7 @@ export type VehicleKind = 'van' | 'car' | 'container' | 'rack' | 'truck';
 export type FurnitureKind =
   | 'bed' | 'sofa' | 'armchair' | 'table' | 'lowtable' | 'desk' | 'kitchen' | 'bath' | 'wc'
   | 'wardrobe' | 'shelf' | 'tv' | 'plant' | 'bench' | 'crates' | 'pallet' | 'drums' | 'cabinet'
-  | 'bins' | 'counter';
+  | 'bins' | 'counter' | 'pool';
 
 /** Floor dressing: drawn on open floor, blocks nothing. */
 export type FloorKind = 'rug' | 'clutter';

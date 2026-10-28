@@ -10,8 +10,9 @@ The full design lives in [docs/concept.md](docs/concept.md).
 
 ## The game
 
-Five campaigns, one per rank, each a thread of the same story: a street-level dealing crew, the
-logistics firm behind it, the accountants cleaning its money, and the people at the top.
+Six campaigns, one per rank, each a thread of the same story: a street-level dealing crew, the
+logistics firm behind it, the accountants cleaning its money, the people at the top, and the leak
+inside headquarters.
 
 | Rank | Campaign | Cases |
 | --- | --- | --- |
@@ -20,6 +21,7 @@ logistics firm behind it, the accountants cleaning its money, and the people at 
 | Senior Officer | Supply chain | Six cases inside Corvan Logistics, from the depot to Pier Seven |
 | Sergeant | Clean money | One night at the Grand Atlas Hotel, from the service level to the penthouse |
 | Lieutenant | The top | A glass villa, a moored yacht, a country house, a lighthouse and a clifftop house |
+| Captain | Inside job | A safe house, the records archive, the police club, and the finale at headquarters |
 
 - **Briefing:** a police tablet with the floor plan (unknown areas greyed out) and command's
   marks beside a structured case: situation, objective, intel (given as ranges with a
@@ -38,8 +40,9 @@ logistics firm behind it, the accountants cleaning its money, and the people at 
   with a scope, issued as you're promoted; suppressors come last.
 - **Specialty cases:** a house party, a hostage on the clock, files that get shredded, close
   quarters, rooftop overwatch and a silent infiltration with alarm panels.
-- **Places:** houses, warehouses, offices and docks, then hotel floors, a yacht, a lighthouse;
-  water you can see across, glass that shatters, timber decks.
+- **Places:** furnished houses, flats and lock-ups, then warehouses, offices and docks, hotel
+  floors, a yacht, a lighthouse and police headquarters; water you can see across, glass that
+  shatters, timber decks.
 - **Careers:** a normal career, or a realism career with one life, each with its own progress.
 
 ## Controls
@@ -111,6 +114,8 @@ its people and its cases are fictional.
 | 0.4.x | All five campaigns |
 | 0.5–0.7 | Presentation: menus, game feel, briefing and promotion |
 | 1.0.0 | Full web release |
+| 1.1–1.3 | Level overhaul: furnished rooms, Street crime and Supply chain rebuilt |
+| 1.4.0 | The Captain campaign, Inside job |
 
 Every commit is titled `vX.Y.Z: short summary`, bumps `version` in `package.json` in the same
 commit and gets an entry in [CHANGELOG.md](CHANGELOG.md). The version is shown on the title

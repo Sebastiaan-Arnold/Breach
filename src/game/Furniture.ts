@@ -211,6 +211,15 @@ export function drawFurniture(g: Phaser.GameObjects.Graphics, p: PropDef): void 
       f.rect(W / 2 - 3, D - 5, 6, 1.5, 0xd1d5db);
       break;
     }
+    case 'pool': {
+      // A snooker table: wooden rim, green baize, six pockets, a few balls.
+      f.rect(1, 1, W - 2, D - 2, WOOD_DARK, 1, 3);
+      f.rect(4, 4, W - 8, D - 8, p.color ?? 0x166534, 1, 1);
+      for (const px of [4, W / 2, W - 4]) for (const py of [4, D - 4]) f.ellipse(px, py, 4, 4, 0x0b0f0b);
+      const balls = [0xdc2626, 0xdc2626, 0xf8fafc, 0x111827, 0xeab308, 0x2563eb];
+      balls.forEach((c, i) => f.ellipse(8 + seed(100 + i) * (W - 16), 8 + seed(110 + i) * (D - 16), 3, 3, c));
+      break;
+    }
     case 'counter': {
       const c = p.color ?? 0x5b3f28;
       f.rect(0, 1, W, D - 2, c, 1, 2);

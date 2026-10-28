@@ -41,7 +41,8 @@ export class PromotionScene extends Phaser.Scene {
 
     this.tweens.add({ targets: kicker, alpha: 1, duration: 400, delay: 300 });
     this.tweens.add({
-      targets: badge, scale: 1.8, alpha: 1, duration: 420, delay: 600, ease: 'Back.Out',
+      // The higher ranks' chevrons stack taller: they're scaled to fit between kicker and title.
+      targets: badge, scale: Math.min(1.8, 70 / (rank * 9)), alpha: 1, duration: 420, delay: 600, ease: 'Back.Out',
       onStart: () => sfx.secured(),
     });
     this.tweens.add({ targets: flash, scale: 3, alpha: 0, duration: 600, delay: 640, ease: 'Quad.Out' });

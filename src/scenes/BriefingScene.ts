@@ -261,11 +261,16 @@ export class BriefingScene extends Phaser.Scene {
       // Label on the outside of the building, away from the centre of the map.
       const away = Math.atan2(end.y - cy, end.x - cx);
       const lx = end.x + Math.cos(away) * 22, ly = end.y + Math.sin(away) * 22;
-      const mapLabel = this.add.text(lx, ly, cap(entry.name), style(11, TEXT, { fontStyle: 'bold' }))
+      // A dark backing keeps the label readable where it crosses walls on the plan.
+      const mapLabel = this.add.text(lx, ly, cap(entry.name), style(11, TEXT, { fontStyle: 'bold', backgroundColor: '#0b1220', padding: { x: 3, y: 1 } }))
         .setOrigin(Math.cos(away) < -0.3 ? 1 : Math.cos(away) > 0.3 ? 0 : 0.5, Math.sin(away) > 0.3 ? 0 : Math.sin(away) < -0.3 ? 1 : 0.5);
       // An entry at the edge of the map has no room beside it: the label goes underneath.
       const b = mapLabel.getBounds();
-      if (b.x < MAP.x - 12 || b.right > MAP.x + MAP.w + 12) mapLabel.setPosition(end.x, end.y + 16).setOrigin(0.5, 0);
+      if (b.x < MAP.x || b.right > MAP.x + MAP.w) mapLabel.setPosition(end.x, end.y + 16).setOrigin(0.5, 0);
+      // Under the marker, still keep it inside the plan.
+      const u = mapLabel.getBounds();
+      if (u.x < MAP.x) mapLabel.setX(mapLabel.x + MAP.x - u.x);
+      if (u.right > MAP.x + MAP.w) mapLabel.setX(mapLabel.x - (u.right - MAP.x - MAP.w));
       const zone = this.add.zone(end.x, end.y, 34, 34).setInteractive({ useHandCursor: true });
       zone.on('pointerover', () => this.hover(i));
       zone.on('pointerout', () => this.hover(-1));

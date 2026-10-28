@@ -2,7 +2,7 @@ import type { FloorKind, FurnitureKind, PropDef } from './types';
 
 const FURNITURE = new Set<string>([
   'bed', 'sofa', 'armchair', 'table', 'lowtable', 'desk', 'kitchen', 'bath', 'wc', 'wardrobe', 'shelf',
-  'tv', 'plant', 'bench', 'crates', 'pallet', 'drums', 'cabinet', 'bins', 'counter',
+  'tv', 'plant', 'bench', 'crates', 'pallet', 'drums', 'cabinet', 'bins', 'counter', 'pool',
 ] satisfies FurnitureKind[]);
 const FLOOR = new Set<string>(['rug', 'clutter'] satisfies FloorKind[]);
 

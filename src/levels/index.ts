@@ -14,9 +14,13 @@ import { HARBOUR_FREIGHT } from './supply-chain/harbour-freight';
 import { HARBOUR_LANE } from './street-crime/harbour-lane';
 import { HILLCREST_VILLA } from './the-top/hillcrest-villa';
 import { KESTREL_ROAD } from './street-crime/kestrel-road';
+import { MARSH_LANE } from './inside-job/marsh-lane';
 import { MERCER_STREET } from './street-crime/mercer-street';
+import { POLICE_HQ } from './inside-job/police-hq';
 import { RANGE } from './academy/range';
+import { RECORDS_ARCHIVE } from './inside-job/records-archive';
 import { SALTER_STREET } from './supply-chain/salter-street';
+import { THE_ANCHOR } from './inside-job/the-anchor';
 import { THE_HALCYON } from './the-top/the-halcyon';
 import { TOLLGATE_FLATS } from './street-crime/tollgate-flats';
 import type { LevelDef } from './types';
@@ -30,6 +34,7 @@ export const LEVELS: readonly LevelDef[] = [
   CORVAN_DEPOT, CORVAN_HEAD_OFFICE, SALTER_STREET, COLD_STORE, FERRY_ROAD, HARBOUR_FREIGHT,
   ATLAS_SERVICE, ATLAS_FLOOR_4, ATLAS_CONFERENCE, ATLAS_YARD, ATLAS_PENTHOUSE,
   HILLCREST_VILLA, THE_HALCYON, ARDLEY_LODGE, GULL_POINT, WESTCLIFF_HOUSE,
+  MARSH_LANE, RECORDS_ARCHIVE, THE_ANCHOR, POLICE_HQ,
 ];
 
 export function levelById(id: string): LevelDef {
