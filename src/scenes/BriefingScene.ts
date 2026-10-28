@@ -1,13 +1,13 @@
 import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '../config';
-import { isOutdoor, parseLevel } from '../core/grid';
+import { blocksSight, isOutdoor, parseLevel } from '../core/grid';
 import { sfx } from '../game/audio';
 import { hasSuppressors, progress, unlockedWeapons } from '../game/progress';
 import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
 import { campaignOf, DIFFICULTY } from '../levels/campaigns';
-import { propSize } from '../levels/props';
+import { isFloorDressing, isFurniture, propSize } from '../levels/props';
 import type { LevelDef, Reliability } from '../levels/types';
 import { ACCENT, Button, DIM, display, fadeIn, goTo, RED, setupScreenCamera, stagger, style, TEXT, UI } from './ui';
 
@@ -155,6 +155,9 @@ export class BriefingScene extends Phaser.Scene {
     const oy = MAP.y + Math.floor((MAP.h - level.height * s) / 2);
     const g = this.add.graphics();
     const edge = (x: number, y: number) => x === 0 || y === 0 || x === level.width - 1 || y === level.height - 1;
+    const solid = (x: number, y: number) => x < 0 || y < 0 || x >= level.width || y >= level.height || blocksSight(level.tiles[y * level.width + x]);
+    // Inside a solid block (a neighbouring house, a locked flat): no wall face to draw.
+    const mass = (x: number, y: number) => [-1, 0, 1].every((dy) => [-1, 0, 1].every((dx) => solid(x + dx, y + dy)));
 
     for (let y = 0; y < level.height; y++) {
       for (let x = 0; x < level.width; x++) {
@@ -162,7 +165,7 @@ export class BriefingScene extends Phaser.Scene {
         const kind = level.tiles[i];
         const px = ox + x * s, py = oy + y * s;
         // The property boundary is drawn quietly so the building reads first.
-        if (edge(x, y) && kind === 'wall') g.fillStyle(0x1e3a5f, 1);
+        if ((edge(x, y) || mass(x, y)) && kind === 'wall') g.fillStyle(0x1e3a5f, 1);
         else if (kind === 'wall' || kind === 'plywood') g.fillStyle(0x7aa2d6, 1);
         else if (kind === 'interior') g.fillStyle(0x5b7fae, 1);
         else if (kind === 'furniture') g.fillStyle(0x22324d, 1);
@@ -183,7 +186,9 @@ export class BriefingScene extends Phaser.Scene {
       if (d.orientation === 'h') g.fillRect(ox + d.tx * s, oy + d.ty * s + s / 2 - 1.5, s, 3);
       else g.fillRect(ox + d.tx * s + s / 2 - 1.5, oy + d.ty * s, 3, s);
     }
+    // Vehicles and site kit; furniture already shows as furniture tiles.
     for (const prop of this.def.props ?? []) {
+      if (isFurniture(prop) || isFloorDressing(prop)) continue;
       const { w, h } = propSize(prop);
       g.fillStyle(prop.kind === 'van' ? 0x1e3a8a : 0x334155, 1);
       g.fillRoundedRect(ox + prop.tx * s, oy + prop.ty * s, w * s, h * s, 3);

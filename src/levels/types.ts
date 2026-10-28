@@ -103,20 +103,43 @@ export interface MissionDef {
   alarmPanels?: TilePos[];
 }
 
+/** Vehicles and site kit: solid, drawn over the floor. */
+export type VehicleKind = 'van' | 'car' | 'container' | 'rack' | 'truck';
+
 /**
- * Set dressing drawn into the level art. Props don't block anything themselves; cars and
- * containers sit on furniture tiles ('T') in the map, which do.
+ * Furniture: what a block of furniture tiles ('T') in the map actually is. The map keeps the
+ * collision (blocks movement, not sight or bullets); the prop only says how it's drawn.
+ */
+export type FurnitureKind =
+  | 'bed' | 'sofa' | 'armchair' | 'table' | 'lowtable' | 'desk' | 'kitchen' | 'bath' | 'wc'
+  | 'wardrobe' | 'shelf' | 'tv' | 'plant' | 'bench' | 'crates' | 'pallet' | 'drums' | 'cabinet'
+  | 'bins' | 'counter';
+
+/** Floor dressing: drawn on open floor, blocks nothing. */
+export type FloorKind = 'rug' | 'clutter';
+
+/** What lies about in a `clutter` patch. */
+export type ClutterStyle = 'party' | 'drugs' | 'trash' | 'office' | 'tools' | 'laundry';
+
+/**
+ * Set dressing drawn into the level art. Vehicles, containers and racking are solid in their own
+ * right (cars and containers also sit on furniture tiles in the map); furniture sits on furniture
+ * tiles; rugs and clutter lie on open floor.
  */
 export interface PropDef {
-  kind: 'van' | 'car' | 'container' | 'rack' | 'truck';
+  kind: VehicleKind | FurnitureKind | FloorKind;
   tx: number;
   ty: number;
   /** Vehicles and containers lie east-west unless vertical. */
   vertical?: boolean;
-  /** Size in tiles for racking (and to override the default size of anything else). */
+  /** Size in tiles (furniture and floor dressing default to one tile). */
   w?: number;
   h?: number;
   color?: number;
+  /** Furniture: the side it stands against (a bed's head, a sofa's back, a worktop's back). */
+  side?: 'n' | 'e' | 's' | 'w';
+  /** Clutter: what's lying about. */
+  style?: ClutterStyle;
 }
 
 export interface LevelDef {

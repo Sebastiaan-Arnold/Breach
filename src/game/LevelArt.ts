@@ -2,8 +2,10 @@ import Phaser from 'phaser';
 import { COLORS, FONT, TILE } from '../config';
 import { blocksSight, isOutdoor, type ParsedLevel, type TileKind } from '../core/grid';
 import type { FloorLabel } from '../levels/academy/range';
-import { propSize } from '../levels/props';
+import { isFloorDressing, isFurniture, propSize, propTiles } from '../levels/props';
 import type { PropDef } from '../levels/types';
+import { drawClutter, drawFurniture, drawRug } from './Furniture';
+import { hash, tone } from './paint';
 
 const PLANK_H = 8;
 const PLANK_LEN = 96;
@@ -73,6 +75,11 @@ export function drawLevelArt(
     }
   }
 
+  // Rugs lie on the floor, under the furniture and its shadows.
+  for (const p of props) if (p.kind === 'rug') drawRug(g, p);
+  // Furniture tiles that a furniture prop draws itself.
+  const dressed = new Set(props.filter(isFurniture).flatMap(propTiles).map((t) => t.ty * width + t.tx));
+
   // Soft contact shadows where floor meets walls and low furniture.
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -99,7 +106,7 @@ export function drawLevelArt(
     for (let x = 0; x < width; x++) {
       const kind = kindAt(x, y);
       const px = x * TILE, py = y * TILE;
-      if (kind === 'furniture') {
+      if (kind === 'furniture' && !dressed.has(y * width + x)) {
         g.fillStyle(0x000000, 0.3);
         g.fillRect(px + 3, py + 4, TILE, TILE);
       } else if (kind === 'barrier') {
@@ -115,7 +122,7 @@ export function drawLevelArt(
     for (let x = 0; x < width; x++) {
       const kind = kindAt(x, y);
       const px = x * TILE, py = y * TILE;
-      if (kind === 'furniture') {
+      if (kind === 'furniture' && !dressed.has(y * width + x)) {
         g.fillStyle(tone(COLORS.furniture, 0.95 + hash(x, y, 3) * 0.1), 1);
         g.fillRect(px, py, TILE, TILE);
         g.fillStyle(0xffffff, 0.04);
@@ -144,6 +151,8 @@ export function drawLevelArt(
       }
     }
   }
+
+  for (const p of props) if (isFurniture(p)) drawFurniture(g, p);
 
   // Walls: textured concrete and plywood with a lit top edge.
   for (let y = 0; y < height; y++) {
@@ -185,7 +194,8 @@ export function drawLevelArt(
     else g.fillRect(px + TILE / 2 - 4, py, 8, TILE);
   }
 
-  for (const p of props) drawProp(g, p);
+  for (const p of props) if (!isFurniture(p) && !isFloorDressing(p)) drawProp(g, p);
+  for (const p of props) if (p.kind === 'clutter') drawClutter(g, p);
 
   for (const r of rails) {
     g.fillStyle(0x000000, 0.35);
@@ -371,19 +381,4 @@ function drawTruck(g: Phaser.GameObjects.Graphics, p: PropDef): void {
   g.fillStyle(0x000000, 0.12);
   if (p.vertical) for (let i = 8; i < ph - 2.2 * TILE; i += 12) g.fillRect(x + 2, y + i, pw - 4, 2);
   else for (let i = 8; i < pw - 2.2 * TILE; i += 12) g.fillRect(x + i, y + 2, 2, ph - 4);
-}
-
-/** Deterministic pseudo-random number in [0, 1) for a grid position. */
-function hash(x: number, y: number, n = 0): number {
-  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(n, 1274126177)) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  h ^= h >>> 16;
-  return (h >>> 0) / 4294967296;
-}
-
-function tone(color: number, f: number): number {
-  const r = Math.min(255, Math.round(((color >> 16) & 0xff) * f));
-  const gg = Math.min(255, Math.round(((color >> 8) & 0xff) * f));
-  const b = Math.min(255, Math.round((color & 0xff) * f));
-  return (r << 16) | (gg << 8) | b;
 }

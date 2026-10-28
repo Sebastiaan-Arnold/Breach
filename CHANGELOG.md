@@ -3,6 +3,28 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.1.0
+
+Level overhaul, part 1: furnished rooms and the Officer campaign rebuilt.
+
+- Furniture: beds, sofas, kitchens, bathrooms, desks, shelving, workbenches, crates, pallets,
+  drums, bins and more, each drawn for what it is and turned to the wall it stands against.
+  Rugs and clutter (party litter, a bagging table, laundry, paperwork, tools) give rooms some
+  life. Furniture still blocks movement, not sight or bullets.
+- Street crime is rebuilt as one estate, kept simple: houses, flats, a garage and lock-ups, no
+  glass or water.
+  - 14 Harbour Lane: a mid-terrace with a rear extension, a yard and a shed, between two
+    neighbours.
+  - Fenwick Terrace: an end-of-terrace on a corner, open-plan at the back, a long garden.
+  - Tollgate Flats: the ground floor of a dark low-rise block; two flats either side of a
+    corridor, the second one unmapped.
+  - Mercer Street Garage: a workshop with cars on the bays, a parts store, reception and office.
+  - Kestrel Road: a bungalow off a central corridor with an attached garage.
+  - Westquay Lockups: a court of lock-ups round a yard, a courier's lorry in the middle.
+- Spawns checked so no guard has a clear view of an entry as the intro ends.
+- Briefing plans draw solid blocks (neighbouring houses, locked flats) quietly, so the target
+  building reads first.
+
 ## v1.0.3
 
 Playtest fixes.

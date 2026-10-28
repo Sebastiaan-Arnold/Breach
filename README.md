@@ -81,7 +81,7 @@ src/
   levels/    campaigns and level data (maps, entries, intel, spawn slots), one folder per
              campaign
   game/      game objects and systems: world, player, enemies, civilians, doors, glass, fog,
-             noise, effects, intro, weapons, audio, settings, progress
+             noise, effects, intro, weapons, audio, settings, progress, level art and furniture
   scenes/    Phaser scenes: title, campaign menu, briefing, game, HUD, promotion; the UI kit
 tests/       vitest unit tests, one file per area
 public/      icon and share image
