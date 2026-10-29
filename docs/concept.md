@@ -76,7 +76,7 @@ Combat is real time, fast and lethal on both sides: one or two hits down an enem
 - **Move** at walking pace by default, with a sprint that's faster but loud.
 - **Aim:** the operator always aims down the sights, and a laser runs from the weapon to the first wall or person it hits, so players see exactly where a shot will land. Moving makes the laser wobble; standing still steadies it, so stopping before a doorway becomes a natural habit.
 - **Shoot** wherever the laser points.
-- **Doors** are the heart of the game. The first version has a single action: open or close. Later versions add a small door menu: open slowly, kick open (fast, loud, stuns anyone right behind it) or peek (crack it open to see a slice of the room).
+- **Doors** are the heart of the game, and they have a single action: open or close. One readable action keeps the tension in the room behind it rather than in a menu; the loud, fast way in is the breach charge, issued at the end of the career.
 - **Secure civilians:** hold a button next to a civilian to get them on the ground and out of the line of fire. It adds to the score.
 - **Reload** manually, with a limited number of magazines.
 
@@ -119,7 +119,7 @@ Each level defines a pool of possible enemy spawns per room. On deploy, the game
 
 ## Loadout and progression
 
-Players start with a small kit and unlock new guns on promotion. There are no gadgets for now, so each new weapon has to change how the game plays.
+Players start with a small kit and unlock new guns on promotion. Each new weapon has to change how the game plays, and there is exactly one gadget, held back to the very end: the breach charge.
 
 **Starter kit**
 
@@ -136,7 +136,7 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 | Assault rifle | Accurate at range, loud and slower to swing round corners | Senior Officer |
 | Sniper rifle | One hit stops anyone at any range; scope; bolt action, very slow to swing | Sergeant |
 | Suppressor | Shots are heard about a third as far. Fits everything but the shotgun | Lieutenant |
-| Breach charge | One per mission. Set on an inside wall with a room behind it; after a short fuse it blows a hole one or two tiles wide, stuns anyone with a line to the blast and hits anyone right next to it, the operator too. The loudest thing in the game: the alarm goes up | Captain |
+| Breach charge | One per mission. Set on any wall with open floor behind it, inside or the outside wall of the building, which makes a way in of your own; after a short fuse it blows a hole one or two tiles wide, stuns anyone with a line to the blast and hits anyone right next to it, the operator too. The loudest thing in the game: the alarm goes up | Captain |
 
 Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the shotgun or pistol is often the better pick for tight houses even once the rifle is unlocked. Suppressors come last on purpose: by then players can replay earlier cases quietly for the stars they missed.
 
@@ -169,7 +169,7 @@ Each mission ends with a debrief and up to three stars: one for completing it, o
 
 ## Training, levels and story
 
-The game opens at the police academy range, then follows the operator through five more campaigns, one per rank from Officer to Captain. Every level is a single ground floor for now; multiple floors can come later.
+The game opens at the police academy range, then follows the operator through five more campaigns, one per rank from Officer to Captain. Every level is a single ground floor, so the whole building fits on one plan.
 
 **Training: the Range**
 
@@ -200,13 +200,13 @@ The structure borrows from L.A. Noire, where the protagonist works his way up th
 
 **Each campaign is one place, thought through.** Street crime is one estate of houses, flats, a garage and lock-ups, with no glass or water. Supply chain follows Corvan's sites across the docklands, where glass comes in at the head office and water at the quay. Clean money is one night in one hotel. Complexity grows with rank, and rooms are furnished for what they are (beds, kitchens, desks, shelving, a little clutter) without crowding them.
 
-**Variety of place.** Later campaigns move away from boxy warehouses. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you, and shatter loudly when shot, leaving a gap to walk through; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
+**Variety of place.** Complexity grows with rank. Tiles beyond walls and floors give each place its own shape: water (pools, a marina, the sea) blocks movement but not sight or bullets; glass walls let you see a room before you enter it, and let it see you, and shatter loudly when shot, leaving a gap to walk through; timber decks, rails and low stone walls mark the outdoors. Buildings take real shapes: an L-shaped villa round a pool, a yacht hull with rails all round, a house round a cloistered courtyard, a round lighthouse on a rocky point.
 
 The story is told almost entirely through the briefing screen: case files, short radio messages and command's marks on the plan. A promotion screen with a short text from the captain closes each campaign. That's cheap to produce, needs no cutscenes and makes the briefing feel even more important.
 
 **Writing style.** Text reads like a real operation, not a novel: terse, procedural, present tense. Names, ages, addresses, times and counts; callsigns on the radio ("Control", "Command", "Unit 7"); "compromised" rather than "they know you're here". The briefing follows a fixed order (situation as short bullets, a one-line objective, intel, loadout, entry point), so every case reads the same way and the twist stands out as one yellow line.
 
-Levels are ASCII grids in the source, one character per tile (legend in `src/core/grid.ts`). A map editor can come later if levels outgrow that.
+Levels are ASCII grids in the source, one character per tile (legend in `src/core/grid.ts`), with furniture and vehicles listed beside the map. Text keeps every level reviewable in a diff.
 
 ## Art, audio and tone
 
@@ -238,10 +238,14 @@ The biggest risk with a game like this is building too much before finding out w
 1. **Prototype: the Range.** Movement, vision cone, laser aim, doors and cardboard targets. The training level doubles as the test bed, so nothing gets thrown away. The question to answer: does walking through a door into darkness feel tense?
 2. **Vertical slice: first Officer mission.** Briefing screen, one house, two enemy types, civilians, the debrief with stars. Published on GitHub Pages for a small group of playtesters.
 3. **MVP: Academy plus the Officer campaign.** First case file story, sound ripples, local saves, promotion to Senior Officer.
-4. **Full web release: all campaigns.** All guns, polish, audio, a proper title screen. Released as 1.0.0, with five campaigns.
-5. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
+4. **Content: all campaigns.** Every rank's campaign, enemy type, gun and specialty twist, with difficulty rising by rank.
+5. **Presentation and the web release.** Menus, game feel, the briefing and promotion screens, then release as 1.0.0 with five campaigns.
+6. **Places.** A pass over every campaign so each one is a place, thought through: Street crime one estate, Supply chain Corvan's dockland sites, Clean money one hotel, The top the homes of the powerful. Rooms are furnished for what they are. Released as 1.1 to 1.3.
+7. **Epilogue: the Captain campaign.** The thread ends inside headquarters, in the largest level in the game, with a final rank above it. Released as 1.4.
+8. **Final unlock: the breach charge.** One per mission, for a way in of your own. Released as 1.5, completing the game.
+9. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 
-Cut on purpose for now: gadgets, multiple floors, squad members and multiplayer. All good candidates for later updates.
+Left out on purpose: multiple floors, squad members and multiplayer. One operator on one floor is the game.
 
 **Realism mode.** A separate career with one life, chosen from the start menu next to the normal career; each has its own progress. Going down ends a realism career and it resets to Recruit. There is no restarting a mission, and quitting one (or closing the game mid-mission) counts as going down. A new realism career can skip the academy and start as an Officer.
 
@@ -261,6 +265,6 @@ Cut on purpose for now: gadgets, multiple floors, squad members and multiplayer.
 - **Enemies can't see the laser.**
 - **Suppressors** (at Lieutenant) cut how far shots are heard; the **breach charge** (at Captain) is the last unlock: one wall per mission, never the outer boundary.
 - **Vision cone of about 60 degrees.**
-- **Doors open and close only** in the first version; kick and peek come later.
+- **Doors open and close only:** one action, no door menu.
 - **Port Ardley**, a fictional harbour city.
 - **Web first**, iOS only after a successful web release.

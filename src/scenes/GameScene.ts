@@ -834,8 +834,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * The wall in front of the operator, within reach, if a charge can go on it: an inside wall
-   * (not the edge of the level, not a door or glass) with open floor on the far side. The hole
+   * The wall in front of the operator, within reach, if a charge can go on it: any wall with open
+   * floor on the far side, inside or the outside of a building (a way in of your own), but not
+   * the edge of the level, a door or glass. The hole
    * is two tiles wide where the wall runs on, otherwise one.
    */
   private breachSpot(): Omit<Charge, 'fuse' | 'beep' | 'gfx'> | null {

@@ -6,7 +6,9 @@ sees, and clear every room without getting hit or harming civilians.
 
 **Play it in the browser:** https://sebastiaan-arnold.github.io/Breach/ (mouse and keyboard).
 
-The full design lives in [docs/concept.md](docs/concept.md).
+The game is complete as of v1.5: six campaigns, 26 cases and the Range. The full design and
+the roadmap it was built to live in [docs/concept.md](docs/concept.md); every version is in
+the [changelog](CHANGELOG.md).
 
 ## The game
 
@@ -38,9 +40,11 @@ inside headquarters.
   with every rank, and from Senior Officer they wear vests.
 - **Guns with jobs:** a pistol, then a shotgun, an assault rifle and a bolt-action sniper rifle
   with a scope, issued as you're promoted; then suppressors, and last a breach charge: one per
-  mission, to blow a hole in a wall and stun whoever is behind it. Very loud.
+  mission, to blow a hole in any wall, outside walls included, and stun whoever is behind it.
+  Very loud.
 - **Specialty cases:** a house party, a hostage on the clock, files that get shredded, close
-  quarters, rooftop overwatch and a silent infiltration with alarm panels.
+  quarters, rooftop overwatch, a silent infiltration with alarm panels and a busy police club.
+  Every twist hangs off one moment, the alarm.
 - **Places:** furnished houses, flats and lock-ups, then warehouses, offices and docks, hotel
   floors, a yacht, a lighthouse and police headquarters; water you can see across, glass that
   shatters, timber decks.
@@ -111,13 +115,14 @@ its people and its cases are fictional.
 | Version | Milestone |
 | --- | --- |
 | 0.1.x | Prototype: the Range |
-| 0.2.x | Vertical slice: first Officer mission |
-| 0.3.x | MVP: Academy plus the Officer campaign |
-| 0.4.x | All five campaigns |
+| 0.2.x | Vertical slice: the first Officer mission |
+| 0.3.x | MVP: the Academy and the Officer campaign |
+| 0.4.x | Content: every campaign, enemy type, gun and twist |
 | 0.5–0.7 | Presentation: menus, game feel, briefing and promotion |
-| 1.0.0 | Full web release |
-| 1.1–1.3 | Level overhaul: furnished rooms, Street crime and Supply chain rebuilt |
-| 1.4.0 | The Captain campaign, Inside job |
+| 1.0.x | Web release |
+| 1.1–1.3 | Places: furnished rooms, each campaign one place |
+| 1.4.x | Epilogue: the Captain campaign, Inside job |
+| 1.5.x | Final unlock: the breach charge |
 
 Every commit is titled `vX.Y.Z: short summary`, bumps `version` in `package.json` in the same
 commit and gets an entry in [CHANGELOG.md](CHANGELOG.md). The version is shown on the title

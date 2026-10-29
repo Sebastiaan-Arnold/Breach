@@ -1,61 +1,81 @@
 # Changelog
 
-All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
-`0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
+Every version of Breach, newest first. Development followed the roadmap in
+[docs/concept.md](docs/concept.md#roadmap-and-mvp-scope): prove the core feel on a training
+range, build one mission end to end, then a campaign, then the whole game, then polish it for
+release, and finally give every campaign its own sense of place. Versions before the web
+release follow `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
+
+| Milestone | Versions | Scope |
+| --- | --- | --- |
+| Prototype | 0.1 | The Range: vision, aim, doors, sound |
+| Vertical slice | 0.2 | One mission, briefing to debrief |
+| MVP | 0.3 | Saves, ranks, the Officer campaign |
+| Content | 0.4 | Every campaign, enemy type, gun and twist |
+| Presentation | 0.5 – 0.7 | Menus, game feel, briefing and promotion |
+| Web release | 1.0 | Release and polish |
+| Places | 1.1 – 1.3 | Furnished rooms; each campaign one place |
+| Epilogue | 1.4 | The Captain campaign |
+| Final unlock | 1.5 | The breach charge |
+
+## v1.5.1
+
+Documentation for the final release.
+
+- The README, changelog and design document describe the finished game. The breach charge's
+  description spells out that it works on any wall with open floor behind it, the outside
+  walls of a building included, for a way in of your own.
 
 ## v1.5.0
 
-The breach charge, the last unlock.
+The final unlock: the breach charge.
 
-- Issued with promotion to Captain: one per mission (not on the rooftop overwatch). Face an
-  inside wall with a room behind it and press G; after a 2.5 s fuse it blows a hole one or two
-  tiles wide. Anyone with a line to the blast within five tiles is stunned for a few seconds;
-  anyone right next to it takes a hit, the operator included. The loudest thing in the game:
-  the alarm goes up and the house comes to look.
-- Shown on the HUD beside armour and health, on the briefing's loadout, in the controls and on
-  the promotion screen.
-- Bookcases, cabinets and benches that stood against a wall at one end are no longer turned
-  onto that end (Police Headquarters, the archive, the depot, Pier Seven, Marsh Lane).
-- Corvan Depot: the staff annex's south wall is back; the mess room no longer opens onto the
-  car park.
+- Issued with promotion to Captain, one per mission (not on the rooftop overwatch). Face a wall
+  with open floor behind it and press G: after a 2.5 s fuse it blows a hole one or two tiles
+  wide. Anyone with a line to the blast within five tiles is stunned for a few seconds; anyone
+  right next to it takes a hit, the operator included. It's the loudest thing in the game, so
+  the alarm goes up and the building comes to look.
+- The charge sits on the HUD beside armour and health, in the briefing's loadout, in the
+  controls and on the promotion screen.
+- Furniture pass: long pieces (bookcases, cabinets, benches) always back onto a wall along
+  their length. Corvan Depot's staff annex is walled off from the car park.
 
 ## v1.4.0
 
-The Captain campaign, Inside job: four cases on the leak inside headquarters, ending in the
-largest level in the game.
+The epilogue: the Captain campaign, Inside job. Four cases on the leak inside headquarters,
+ending in the largest level in the game.
 
 - Marsh Lane: armed men have taken a police safe house, a farmhouse out on the marsh. The
   witness is held in the back bedroom; once you're seen, a clock runs.
 - Records Archive: the Calloway files are being shredded in the dark archive on Harbour Road.
 - The Anchor: Hale's fixer in the back office of the police social club, on a busy night.
-- Police Headquarters: the finale. Superintendent Hale's team holds the station round its vehicle
-  yard: lobby, interview rooms, custody suite and cells, CID, the briefing room, the control
-  room, armoury and canteen. Four ways in; Hale is burning records in his office.
-- A new final rank, Superintendent, and a sharper difficulty step for the Captain campaign.
+- Police Headquarters: the finale. Superintendent Hale's team holds the station round its
+  vehicle yard: lobby, interview rooms, custody suite and cells, CID, the briefing room, the
+  control room, armoury and canteen. Four ways in; Hale is burning records in his office.
+- The final rank, Superintendent, and the Captain difficulty profile.
 - Snooker tables for the club.
-- Briefing plans: entry labels sit on a dark backing and stay inside the plan.
-- The campaign screen fits six campaigns; the promotion badge scales so the taller insignia
-  fit.
+- Briefing plans: entry labels sit on a dark backing and always inside the plan.
+- The campaign screen lays out six campaigns; the promotion badge scales to the taller
+  insignia of the senior ranks.
 
 ## v1.3.0
 
-Level overhaul, part 3: a detail pass on Clean Money and The top. Their layouts stay as they
-are; their rooms are furnished.
+Places, part three: Clean money and The top furnished. Both were built as one place each from
+the start, so their layouts stay and their rooms are dressed.
 
 - Grand Atlas: laundry and dry store on the service level, the hotel kitchen's lines and the
   security office; every room on floor 4 with a bath, bed, wardrobe, desk and armchair;
   ballroom tables, the boardroom table and a fitted kitchen on the conference floor; crates,
   pallets and bins in the yard; the penthouse lounge, bedroom, kitchen, study and terrace.
-- The top: Hillcrest's kitchen, lounge, bedrooms and pool loungers; the Halcyon's salon, and
-  beds in its forward cabins; Ardley Lodge's library, study, drawing room and flower beds;
-  the Gull Point cottage and boathouse; Westcliff House's glass room, living room, a kitchen
-  and a bedroom.
-- Planters can span several tiles, for hedges and flower beds.
+- The top: Hillcrest's kitchen, lounge, bedrooms and pool loungers; the Halcyon's salon and
+  forward cabins; Ardley Lodge's library, study, drawing room and flower beds; the Gull Point
+  cottage and boathouse; Westcliff House's glass room, living room, kitchen and bedroom.
+- Planters span several tiles, for hedges and flower beds.
 
 ## v1.2.0
 
-Level overhaul, part 2: the Supply chain campaign rebuilt as Corvan's sites across the
-docklands, a step up from the estate. Glass comes in at the head office, water at the docks.
+Places, part two: Supply chain as Corvan's sites across the docklands, a step up from the
+estate. Glass appears at the head office, water at the docks.
 
 - Corvan Depot: racking aisles, a sorting line, three loading docks onto the yard and a staff
   annex with the transport office.
@@ -63,67 +83,63 @@ docklands, a step up from the estate. Glass comes in at the head office, water a
   manager's office and his PA, kitchen, reception and an unmapped server room.
 - Salter Street: a lodging house of bedsits off one narrow hall, with a dark rear outrigger.
 - Cold Store: a marshalling hall between three dark racked chambers and the blast freezer,
-  plant room and dock office; a door onto the quay.
+  plant room and dock office, with a door onto the quay.
 - Ferry Road: a fenced lorry yard with a gatehouse, drivers' cabin, fuel island and trailer
   park, and a cross-dock warehouse whose bays open onto it.
 - Harbour Freight Office: Rook's office at the end of Pier Seven, water on both sides.
-- Spawns checked so no guard has a clear view of an entry as the intro ends.
+- Every entry is checked so no guard has a clear view of it as the intro ends.
 
 ## v1.1.1
 
-Playtest fixes for Street crime.
+Street crime tuning.
 
-- About 40% less clutter on the floors.
-- Clutter lies under vehicles and containers instead of on top of them (the Westquay lorry).
-- Westquay Lockups: the north lock-ups are a tile shallower, so the way round to the corner
-  lock-ups is two tiles wide instead of one.
+- Lighter clutter: about one item for every three tiles of floor.
+- Clutter lies under vehicles and containers.
+- Westquay Lockups: two-tile passages round to the corner lock-ups.
 
 ## v1.1.0
 
-Level overhaul, part 1: furnished rooms and the Officer campaign rebuilt.
+Places, part one: furnished rooms, and Street crime as one estate.
 
 - Furniture: beds, sofas, kitchens, bathrooms, desks, shelving, workbenches, crates, pallets,
   drums, bins and more, each drawn for what it is and turned to the wall it stands against.
-  Rugs and clutter (party litter, a bagging table, laundry, paperwork, tools) give rooms some
-  life. Furniture still blocks movement, not sight or bullets.
-- Street crime is rebuilt as one estate, kept simple: houses, flats, a garage and lock-ups, no
-  glass or water.
+  Rugs and a little clutter (party litter, a bagging table, laundry, paperwork, tools) give
+  rooms a life. Furniture blocks movement, not sight or bullets.
+- Street crime is the Ashby estate, kept simple: houses, flats, a garage and lock-ups, brick
+  and timber only.
   - 14 Harbour Lane: a mid-terrace with a rear extension, a yard and a shed, between two
     neighbours.
   - Fenwick Terrace: an end-of-terrace on a corner, open-plan at the back, a long garden.
   - Tollgate Flats: the ground floor of a dark low-rise block; two flats either side of a
     corridor, the second one unmapped.
-  - Mercer Street Garage: a workshop with cars on the bays, a parts store, reception and office.
+  - Mercer Street Garage: a workshop with cars on the bays, a parts store, reception and
+    office.
   - Kestrel Road: a bungalow off a central corridor with an attached garage.
   - Westquay Lockups: a court of lock-ups round a yard, a courier's lorry in the middle.
-- Spawns checked so no guard has a clear view of an entry as the intro ends.
+- Every entry is checked so no guard has a clear view of it as the intro ends.
 - Briefing plans draw solid blocks (neighbouring houses, locked flats) quietly, so the target
   building reads first.
 
 ## v1.0.3
 
-Playtest fixes.
+Release polish.
 
-- Glass connects again. A wall that meets a glass front side-on now runs on to the frame instead
-  of stopping half a tile short, and a glass run that turns a building corner closes into the
-  wall. Glass runs are drawn evenly, without a brighter block at every tile.
-- Volume goes down with the mouse: click ‹ or › beside the value; a click on the rest of the row
-  steps up and wraps from 100% back to 0%.
-- The campaign screen header keeps the rank insignia clear of the stars and cases line at every
-  rank (at Captain the chevrons ran into it).
+- Glass frames meet walls cleanly: a wall that meets a glass front runs on to the frame, a
+  glass run turning a building corner closes into the wall, and runs are drawn as one even
+  line.
+- Volume steps both ways with the mouse: ‹ and › beside the value, and a click on the row
+  cycles round.
+- The campaign screen header spaces the rank insignia for every rank.
 
 ## v1.0.2
 
-Playtest fixes.
+Release polish.
 
-- The debrief title steps down in size so a long result ("Range qualification complete") stays
-  inside its panel.
-- Glass only joins a wall along its own run, so a wall meeting a glass front (the Grand Atlas
-  penthouse) no longer makes a T.
-- Neater guns in hand: each gun drawn from its parts (stock, receiver, barrel, scope or sight),
-  carried over the body with slim sleeves and gloved hands.
-- The mission title card clears when the intro ends, so it no longer sits over the Range
-  instructions.
+- The debrief title sizes itself to its panel.
+- Glass panes join walls only along their own run.
+- Guns in hand drawn part by part (stock, receiver, barrel, scope or sight), carried over the
+  body with slim sleeves and gloved hands.
+- The mission title card clears when the intro ends.
 
 ## v1.0.1
 
@@ -131,12 +147,11 @@ Repository housekeeping; no gameplay changes.
 
 - MIT licence, and licence, homepage, repository and Node version in `package.json`.
 - Level files grouped into one folder per campaign; tests split into one file per area.
-- The design document brought in line with the released game.
-- Removed an unused UI helper.
+- The design document matches the released game.
 
 ## v1.0.0
 
-The full web release: five campaigns, from the Range to the people at the top, played in the
+The web release: five campaigns, from the Range to the people at the top, played in the
 browser.
 
 - A proper page: title, description, an icon and a share image for links.
@@ -144,20 +159,20 @@ browser.
   that the game is played with a mouse and keyboard.
 - Tabbing away mid-mission pauses it.
 - HUD details in the display face.
-- README rewritten for players and contributors, with credits.
+- README for players and contributors, with credits.
 
 ## v0.7.0
 
 Presentation, part three: briefing and promotion.
 
 - Briefing: the display face for the case title and section headings (each with a rule), gun
-  choices as chips, and proper Deploy and Back buttons. The plan scans in under a moving line,
+  choices as chips, and Deploy and Back buttons. The plan scans in under a moving line,
   command's marks fade in after it, and the chosen entry point pulses. Up and down pick an
   entry, left and right a gun, Enter deploys, Escape goes back.
-- Promotion is a ceremony: the insignia stamped in with a flash, the new rank, the note line by
-  line with its signature, and a card for whatever is issued with it.
-- Every briefing was rechecked for overlapping text with every gun selected, after the
-  entrance animations.
+- Promotion is a ceremony: the insignia stamped in with a flash, the new rank, the note line
+  by line with its signature, and a card for whatever is issued with it.
+- Every briefing is checked for overlapping text with every gun selected, after the entrance
+  animations.
 
 ## v0.6.0
 
@@ -177,374 +192,313 @@ Presentation, part two: game feel.
 
 Presentation, part one: menus.
 
-- New title screen: a live backdrop (a level's plan drifting under a sweeping, wall-occluded
-  light), a reworked logo, and career cards with rank insignia and progress.
-- New campaign screen: campaign cards with star progress, and the selected campaign's story,
+- Title screen: a live backdrop (a level's plan drifting under a sweeping, wall-occluded
+  light), the logo, and career cards with rank insignia and progress.
+- Campaign screen: campaign cards with star progress, and the selected campaign's story,
   promotion progress and cases with location and time.
 - Every menu works from the keyboard (arrows, Enter, Escape) as well as the mouse, with hover
   and focus states and their own sounds. Screens fade between each other.
 - Settings panel (title screen and pause menu): volume, blood, screen shake and fullscreen.
-- Reworked pause menu and debrief: stars stamp in one by one, then the numbers and case note.
+- Pause menu and debrief: stars stamp in one by one, then the numbers and case note.
 - A low ambient bed plays under the menus.
 - Fonts: Barlow Condensed and JetBrains Mono, bundled with the game (SIL Open Font License).
 
 ## v0.4.14
 
-Older levels get the new terrain, so fewer of them read as plain boxes:
+Content: the new terrain reaches the earlier campaigns.
 
-- Harbour Freight Office stands on Pier Seven: harbour water on three sides and timber quays.
-- Cold Store sits on the Westquay dock, with water and a quay along the north and east.
-- Westquay Lockups has a canal and towpath along the north edge.
-- Corvan Head Office has glass partitions along the open-plan floor and glass office fronts, so
-  you can see (and be seen) across the corridor.
-- Grand Atlas Conference Suite has a glass-fronted boardroom.
-- Kestrel Road has windows onto the back garden (the hostage room among them) and a pond.
-- Grand Atlas Penthouse has floor-to-ceiling glass onto the terrace and a pool.
-
-Layouts, entries, spawn points and patrols are unchanged.
+- Harbour Freight Office stands on Pier Seven, Cold Store on the Westquay dock, and Westquay
+  Lockups by a canal: harbour water and timber quays.
+- Corvan Head Office and the Grand Atlas boardroom get glass partitions, so you see (and are
+  seen) across the floor.
+- Kestrel Road gets windows onto the back garden; the penthouse a glass front onto its
+  terrace and a pool.
 
 ## v0.4.13
 
-Ardley Lodge, from playtesting:
+Content: Ardley Lodge tuning.
 
-- Kitchen Garden entry: the grounds patrol no longer walks past the kitchen door, and the
-  kitchen guard no longer stands facing it. Spawning there (or at the other entries) no longer
-  gets you seen straight away.
-- Only real trouble sends a guard to the alarm: seeing you, or hearing a shot, a shout or
-  breaking glass. Footsteps and doors only make a guard curious. He walks briskly rather than
-  sprints, and needs 3 s at the panel instead of 1.5 s, with an ALARM countdown at the top of
-  the screen.
-- Suppressors are stronger: a suppressed shot is heard about half as far as before.
+- The grounds patrol and the kitchen guard face away from the Kitchen Garden entry.
+- Only real trouble (seeing you, or hearing a shot, a shout or breaking glass) sends a guard to
+  a panel. He walks briskly and needs 3 s there, with an ALARM countdown on screen.
+- Suppressed shots carry about half as far.
 
 ## v0.4.12
 
-- Ardley Lodge reworked, from playtesting: being seen or heard no longer fails the mission on
-  the spot. The house has two alarm panels, marked ALARM on the plan. Alerted guards push or
-  dig in as usual, and the alerted guard nearest a panel runs for it ("A guard is running for
-  the alarm"). Drop him before he has set it off and the mission goes on; the next alerted
-  guard takes up the run. Reaching a panel and staying 1.5 s raises the alarm and fails it.
+Content: the Silent twist, final design.
+
+- Ardley Lodge has two alarm panels, marked ALARM on the plan. Alerted guards push or dig in as
+  usual, and the alerted guard nearest a panel runs for it. Drop him before he sets it off and
+  the mission goes on; the next alerted guard takes up the run.
 
 ## v0.4.11
 
-- Glass breaks: any shot through a window shatters it, with a crash every suspect in earshot
-  hears (suppressed or not) and shards left on the floor. A broken pane is an opening you can
-  walk through. Enemy shots break glass too.
-- Glass corners close: panes are drawn as joined-up lines with a frame, so corners and
-  junctions with walls and doors no longer leave gaps. Panes are a little thicker and brighter.
+Content: glass you can shoot through.
+
+- A shot through a window shatters it, with a crash every suspect in earshot hears and shards
+  left on the floor. A broken pane is an opening you can walk through. Enemy shots break glass
+  too.
+- Panes are drawn on their own layer as framed, joined-up lines, so corners and junctions
+  with walls and doors close.
 
 ## v0.4.10
 
-The Lieutenant campaign, "The top", and more varied places.
+Content: the Lieutenant campaign, The top.
 
-- Five new cases following Voight's contacts: Hillcrest Villa (an L-shaped glass villa round a
+- Five cases following Voight's contacts: Hillcrest Villa (an L-shaped glass villa round a
   pool), The Halcyon (a yacht at its berth), Ardley Lodge (a country house round a cloistered
   courtyard), Gull Point (a round lighthouse on a rocky point) and Westcliff House (a clifftop
   villa with a glass room over the sea). Finishing it promotes you to Captain.
-- New terrain: water (blocks movement, not sight or bullets), glass walls and windows (the
-  same), and outdoor timber decking. Low walls and rails outdoors are drawn as stone and join
-  up into one line.
-- New twist, Silent (Ardley Lodge): the mission fails the moment the alarm goes up.
-- The alarm now needs a suspect in earshot: a suppressed shot in an empty wing goes unheard.
-- A mission that is already lost (out of time, escaped, compromised) stays lost even if the
-  operator is hit in the moments after, so it never ends a realism career.
+- New terrain: water and glass (block movement, not sight or bullets) and outdoor timber
+  decking. Low walls and rails outdoors are stone and join up into one line.
+- The Silent twist at Ardley Lodge, first pass: the alarm ends the case.
+- The alarm needs a suspect in earshot: a suppressed shot in an empty wing goes unheard.
+- A mission that is already lost stays lost, even if the operator is hit in the moments after.
 
 ## v0.4.9
 
-From playtesting v0.4.8.
+Content: Sergeant campaign tuning.
 
-- Rear Yard is harder: six or seven suspects instead of four or five, and they run for the car
-  faster. With a five-round magazine, expect to reload mid-fight. The extra suspects start
-  further from the car, so the pressure builds rather than arriving all at once.
-- Fixed: a long gun description (the assault rifle's) could overlap the sidearm line in the
-  briefing. The loadout now reserves room for the longest description of the guns on offer,
-  measured on screen, and the overlap check runs with every gun selected.
+- Rear Yard: six or seven suspects who run for the car faster, the extra ones starting further
+  out, so the pressure builds.
+- The loadout reserves room for the longest gun description on offer, measured on screen.
 
 ## v0.4.8
 
-The Sergeant campaign, "Clean money": one night at the Grand Atlas Hotel, following Meridian
-Partners from the service level to the penthouse.
+Content: the Sergeant campaign, Clean money. One night at the Grand Atlas Hotel, following
+Meridian Partners from the service level to the penthouse.
 
-- Five new cases: Service Level, Floor 4, Conference Suite, Rear Yard and Penthouse.
-- New enemy, the Heavy: a contractor in a plate carrier with a rifle. One more hit to stop than
-  everyone else at that rank, always pushes towards a fight, fires a little faster.
-- Rear Yard is the campaign's specialty case: rooftop overwatch with the sniper rifle issued.
-  The camera pulls right out over the whole yard. When the alarm goes up, every suspect makes
-  for the getaway car; one reaching it fails the mission. The briefing marks the car.
+- Five cases: Service Level, Floor 4, Conference Suite, Rear Yard and Penthouse.
+- The Heavy: a contractor in a plate carrier with a rifle. One more hit to stop, always pushes
+  towards a fight, fires a little faster.
+- Rear Yard is the rooftop overwatch: sniper rifle issued, the camera pulled right out over the
+  yard. When the alarm goes up, every suspect makes for the getaway car; one reaching it fails
+  the mission.
 - Promotion out of the campaign makes you Lieutenant and issues suppressors.
 
 ## v0.4.7
 
-A rewrite of the briefing and the game's text, for a more realistic, procedural tone.
+Content: the briefing structure and the writing style.
 
-- Briefing: a fixed structure of situation (short bullets), objective (one line), intel, loadout
-  and entry point. The header shows the campaign and case number (derived, so it never goes out
-  of date), the address, the time of the operation and the unit.
+- Briefing: situation (short bullets), objective (one line), intel, loadout and entry point.
+  The header shows the campaign and case number, the address, the time of the operation and
+  the unit.
 - Intel rows read Suspects, Weapons, Civilians and Intel, in short form ("4–6, light vests").
-- Every case file, radio call, debrief note and promotion note is rewritten: names, times and
-  counts, callsigns on the radio, no flourishes. In-game messages follow suit ("Compromised.
-  30 s to reach the hostage.", "Area secure").
-- Tollgate Flats lists the power cut as its twist. Map labels have a dark backing so they read
-  over walls.
+- Case files, radio calls, debrief notes and promotion notes in a terse, procedural style:
+  names, times and counts, callsigns on the radio. In-game messages follow suit.
+- Map labels have a dark backing so they read over walls.
 
 ## v0.4.6
 
-The runner is out; three simpler twists are in, all started by the same moment: the alarm (a
+Content: the specialty cases, final design. Every twist hangs off one moment, the alarm (a
 suspect sees you, or a shot or shout).
 
-- Fenwick Terrace is now a house party: armed men among six to eight guests who freeze or
-  scatter. Check every target and secure everyone.
+- Fenwick Terrace is a house party: armed men among six to eight guests who freeze or scatter.
 - Kestrel Road: one of the homeowners is held in a back bedroom. Once the alarm goes up, a
-  30-second clock runs at the top of the screen. Secure the hostage in time or the mission
-  fails (a realism career goes on).
-- Corvan Head Office: when the alarm goes up, the nearest suspect runs for the shredder in the
-  manager's office. Stop him within eight seconds of him getting there, or the files are gone
-  and so is the first star.
-- Briefing: a case's twist is one yellow line at the top of the intel, with a yellow label on
-  the plan (HOSTAGE, EVIDENCE). At most three civilians are marked, so the party doesn't bury
-  the plan. Entry labels at the edge of the map sit under their marker instead of running off
-  the tablet. Every briefing was checked for overlapping text.
+  30-second clock runs.
+- Corvan Head Office: when the alarm goes up, the nearest suspect runs for the shredder. Stop
+  him within eight seconds or the files, and the first star, are gone.
+- Briefing: a twist is one yellow line at the top of the intel, with a yellow label on the
+  plan. At most three civilians are marked. Entry labels at the edge of the map sit under their
+  marker.
 
 ## v0.4.5
 
-From playtesting v0.4.4: the overwatch case is out, and Street Crime gets a specialty case.
+Content: specialty cases, second pass.
 
-- New Officer case 2, Fenwick Terrace: the crew's runner, Kyle Marsh, bolts for the end of the
-  street or the back alley the moment he sees you or hears trouble. He's unarmed: catch him by
-  running him down. Shooting him costs a star, and if he gets away the mission fails (even a
-  realism career goes on). The briefing marks the ways out. Promotion out of Street Crime now
-  takes 12 stars.
-- Pier Six is removed. Overwatch returns as a rooftop mission in the Sergeant campaign.
-  Supply Chain is back to six cases (12 stars for promotion).
+- Fenwick Terrace joins Street crime as case 2, prototyping a pursuit twist: the crew's runner
+  bolts for a way out the moment he sees you.
+- Overwatch moves to its place in the Sergeant campaign, where the sniper rifle is issued;
+  Supply chain settles at six cases.
 - The sniper scope pulls the camera further out and shows a wider strip.
 
 ## v0.4.4
 
-A new gun line-up, two specialty cases and suppressors.
+Content: the gun line-up and the first specialty cases.
 
-- Guns: the SMG is retired. Promotions now issue the shotgun (Officer), the assault rifle (Senior
-  Officer) and a new sniper rifle (Sergeant). Suppressors are the last issue, at Lieutenant.
-- Sniper rifle: bolt action, five rounds, one hit stops anyone. Hold Space to look down the scope:
-  the operator braces, vision reaches far down the aim and the camera pushes out along it.
-- Suppressors fit the pistol, assault rifle and sniper rifle. A suppressed shot is heard about a
-  third as far. Toggle them on the briefing once issued.
-- Supply Chain has seven cases. New: Salter Street, a close-quarters lodging house made for the
-  shotgun, and Pier Six, an overwatch mission that issues the sniper rifle for the job. Promotion
-  out of Supply Chain now takes 14 stars.
+- Promotions issue the shotgun (Officer), the assault rifle (Senior Officer) and the sniper
+  rifle (Sergeant); suppressors follow at Lieutenant.
+- Sniper rifle: bolt action, five rounds, one hit stops anyone. Hold Space to look down the
+  scope: the operator braces, vision reaches far down the aim and the camera pushes out.
+- Suppressors fit the pistol, assault rifle and sniper rifle; a suppressed shot is heard about
+  a third as far. Toggled on the briefing.
+- Salter Street, a close-quarters lodging house made for the shotgun, and an overwatch
+  prototype that issues the sniper rifle for the job.
 - The briefing remembers your last gun and fits the loadout on one line.
-- Fixed: the middle of stacked containers outdoors showed as an unlit black square.
 
 ## v0.4.3
 
-Every gun now has a job.
+Content: every gun has a job.
 
-- From the Senior Officer campaign on, suspects wear light vests (a grey chest plate) and take two
-  hits to stop. Officer-campaign suspects still go down to one. The briefing says when suspects
-  are vested.
-- Damage per gun: the pistol and SMG do one hit per shot, so the SMG's fire rate gives the
-  fastest double tap. The shotgun does one hit per pellet and stops anyone up close in one shot.
-  Rifle rounds count double.
-- A hit that doesn't stop a suspect makes them flinch: their aim is thrown off for a moment and
-  they turn towards the shooter.
-- The briefing describes the chosen gun under the loadout.
+- From the Senior Officer campaign on, suspects wear light vests and take two hits; the
+  briefing says so. Officer-campaign suspects go down to one.
+- Damage per gun: one hit per pistol shot, one per shotgun pellet, two per rifle round.
+- A hit that doesn't stop a suspect makes them flinch off their aim and turn to the shooter.
+- The briefing describes the chosen gun.
 
 ## v0.4.2
 
-Fixes and changes from a playthrough of both campaigns.
+Content: careers and cover.
 
-- Start menu: choose a normal or a realism career, then see its campaigns. Each career has its
-  own progress, so switching between them never deletes anything. Existing saves move into the
-  normal (or realism) career automatically.
+- Start menu: a normal or a realism career, each with its own progress; existing saves move
+  across automatically.
 - A new realism career can skip the academy and start as an Officer.
-- Tall objects block sight and bullets, not just movement: warehouse racking, lorries,
-  containers and vans. Low furniture and cars are still cover you can see and shoot over.
-- Intros are safe: enemies can't spot the operator during the cutscene, and the Ferry Road and
-  Westquay gate entries now end beside the gate behind the fence instead of in the open yard.
+- Tall objects block sight and bullets: racking, lorries, containers and vans. Low furniture
+  and cars are cover you can see and shoot over.
+- Intros are a cutscene: nobody can spot the operator until they end, and gate entries end
+  behind the fence.
 
 ## v0.4.1
 
-- Realism mode: an optional career with one life. Going down ends the career and progress resets
-  to Recruit, with a "Career over" debrief showing the rank and stars it reached.
-- Switching realism on from the menu starts a new career (it asks for a second click); switching
-  it off keeps your progress.
-- In a realism mission the pause menu has no restart, and quitting asks for confirmation because
-  it ends the career. Closing the game mid-mission counts as going down: the next time the game
-  loads, the career ends and the menu says so.
+Content: realism mode.
+
+- An optional career with one life. Going down ends it and resets progress to Recruit, with a
+  "Career over" debrief showing the rank and stars it reached.
+- No restarting a realism mission; quitting, or closing the game mid-mission, counts as going
+  down.
 
 ## v0.4.0
 
-Milestone 4: the Senior Officer campaign.
+Content begins: the Senior Officer campaign.
 
-- Difficulty rises with rank. Each campaign has a difficulty profile: from Senior Officer on,
-  enemies react faster, notice you sooner, aim tighter and fire more often. Officer stays as it
-  was; Sergeant and Lieutenant profiles are ready for their campaigns.
-- New enemy: the Hider. It waits behind cover with a shotgun, tracks you silently at range and
-  only opens fire once you're within about five tiles. It never leaves its spot.
-- The Supply Chain campaign, five cases following Corvan Logistics:
-  1. Corvan Depot: racking aisles with Hiders waiting among the shelves.
-  2. Corvan Head Office: an open-plan office with staff working late among the hostiles.
-  3. Cold Store: a dark refrigerated warehouse with shotguns between the racks.
-  4. Ferry Road: a truck yard with patrols between the lorries, on unverified intel.
-  5. Harbour Freight Office: the Harbourmaster's own office, on confirmed intel.
-- Promotion to Sergeant (all five cases and 10 of 15 stars) issues the shotgun.
-- New set dressing: warehouse racking and lorries. Props can have custom sizes.
+- Difficulty rises with rank: from Senior Officer on, enemies react faster, notice you sooner,
+  aim tighter and fire more often.
+- The Hider: waits behind cover with a shotgun, tracks you silently and only fires up close.
+- Supply chain, five cases following Corvan Logistics: Corvan Depot, Corvan Head Office, Cold
+  Store, Ferry Road and Harbour Freight Office.
+- Warehouse racking and lorries; props with custom sizes.
 - The menu lists campaigns on the left and the chosen campaign's cases on the right, so it
   scales to every rank.
 
 ## v0.3.3
 
-- The exterior is always lit: streets, gardens, yards and the outside of buildings are never
-  fogged. People outside still only show up when you can see them.
-- Parked vans, cars and containers are solid for everyone, and the intro walks route around
-  the van instead of over it. A new test checks every intro route stays clear of walls, doors
-  and props.
-- The tagging workflow no longer stops at a tag GitHub refuses; it reports it as a warning and
-  carries on with the rest.
+MVP: lighting and solid vehicles.
+
+- The exterior is always lit; people outside still only show when you can see them.
+- Vans, cars and containers are solid for everyone, and intro walks route around them. A test
+  checks every intro route stays clear of walls, doors and props.
+- The tagging workflow reports a refused tag as a warning and carries on.
 
 ## v0.3.2
 
-- The tagging workflow now tags every version in a push, not just the newest, so pushing several
-  versions at once still tags each of them.
+MVP: release tooling.
+
+- The tagging workflow tags every version in a push on the commit that introduced it.
 
 ## v0.3.1
 
-The full Officer campaign: five cases, each introducing one new idea, with a story thread that
-runs from street-level dealing to the supplier behind it.
+MVP: the Officer campaign, with a story thread from street-level dealing to the supplier
+behind it.
 
-- Case 2, Tollgate Flats: a ground-floor flat with the power cut. The whole flat is dark, so
-  you only see as far as your weapon light reaches. Enter by the lit stairwell or the garden.
-- Case 3, Mercer Street Garage: an open workshop with cars for cover, long sight lines and two
-  patrols, plus an office, a dark storeroom and toilets the plans don't show.
-- Case 4, Kestrel Road: a family home the crew has taken over. Two or three homeowners inside,
-  close to the suspects, and unverified intel: the count and the marks may be off.
-- Case 5, Westquay Lockups: the finale in a fenced lockup yard. Open ground with containers,
-  rows of lockup doors and a site office; four or five hostiles on unverified intel.
-- Promotion to Senior Officer now needs all five cases and at least 10 of 15 stars.
-- New floor materials and set dressing: indoor concrete (lit and dark), cars and containers.
-- An entry's intro can start from its own drop-off point, so far-side entries don't need a long
-  walk round.
+- Tollgate Flats (a dark flat with the power cut), Mercer Street Garage (an open workshop with
+  two patrols), Kestrel Road (a home taken over, on unverified intel) and Westquay Lockups (the
+  open-yard finale).
+- Promotion to Senior Officer needs every case and enough stars.
+- Indoor concrete floors, cars and containers; each entry can have its own drop-off.
 
 ## v0.3.0
 
-Milestone 3 begins: the campaign framework.
+MVP: the campaign framework.
 
-- Progress is saved in the browser: rank, best stars per level and completed levels.
-- Ranks and promotion: passing the Range promotes a Recruit to Officer and opens the Officer
-  campaign; finishing every case with enough stars promotes to Senior Officer and issues the SMG.
-  Each promotion shows a note from the captain.
-- The menu shows your rank and each campaign with its cases, best stars, locks and stars needed
-  for promotion. Progress can be reset from the menu.
-- Loadout: the briefing lets you choose a primary gun from those issued; the pistol is always
-  carried as a sidearm. In missions, 1 selects the primary and 2 the pistol. On the Range, 1-4
-  cycle through every gun you've been issued.
+- Progress saved in the browser: rank, best stars and completed levels.
+- Ranks and promotion, each with a note from the captain. Passing the Range makes you an
+  Officer.
+- The menu shows your rank and each campaign with its cases, stars, locks and promotion
+  target.
+- Loadout: choose a primary gun on the briefing; the pistol is always carried. In missions, 1
+  selects the primary and 2 the pistol.
 
 ## v0.2.3
 
-- Versions are tagged automatically: a workflow creates the `vX.Y.Z` tag on GitHub for the
-  version in `package.json` whenever it lands on `main`.
+Vertical slice: release tooling.
+
+- A workflow tags each version (`vX.Y.Z`, from `package.json`) on GitHub when it lands on
+  `main`.
 
 ## v0.2.2
 
-- Enemies no longer all walk towards gunfire. Each has a temperament: pushers (most
-  patrollers) come for you fast and loud; holders (most lookouts) dig in a few tiles back from
-  the door you'd come through, aim at it and wait. Holders notice and react faster while dug in,
-  and go back to their spot instead of chasing when they lose sight of you. Levels can fix a
-  hostile's temperament; otherwise it's rolled on every deploy.
+Vertical slice: enemy temperament.
+
+- Pushers come for you fast and loud; holders dig in a few tiles back from the door you'd come
+  through and wait, reacting faster while aimed. Set per slot or rolled on every deploy.
 
 ## v0.2.1
 
-Tuning from the first Harbour Lane playtest.
+Vertical slice: tuning.
 
-- Guns are unsuppressed: a shot is heard through the whole building, by enemies and civilians
-  alike. Weapons now carry a suppressor flag (shots heard at 30% of the distance, with a muffled
-  sound), ready for a later unlock.
-- Faster intro: a brisker walk to the entry and tighter radio lines; the longest intro went from
-  about 9.5 to 5.5 seconds.
-- Clearer entry choice on the briefing: bigger numbered markers with names on the map, the chosen
-  route drawn bright, a "Choose entry" list on the right and a Deploy button that names the
-  entry.
-- Fixed overlapping text in the briefing's intel rows and around the "no plans" area; the
-  property boundary is drawn quieter than the building's walls.
+- Gunfire is heard through the whole building; weapons carry a suppressor flag for the later
+  unlock.
+- A brisker intro walk and tighter radio lines (about 5.5 s for the longest).
+- Entry choice: numbered markers with names on the plan, the chosen route drawn bright, an
+  entry list and a Deploy button that names the entry.
+- The property boundary is drawn quieter than the building's walls.
 
 ## v0.2.0
 
-Milestone 2, vertical slice: the first Officer case, played from briefing to debrief.
+Vertical slice: the first Officer case, played from briefing to debrief.
 
-- New main menu with level select and settings.
-- Briefing screen styled as a police tablet: floor plan with areas the plans don't cover,
-  command's marks for last known suspect positions and reported civilians, the case file and
-  intel (hostiles as a range, loadout, civilians, reliability). Choose one of three entries.
-- The situation inside is rolled from the intel on every deploy: the hostile count stays in
-  the briefed range (unverified intel can be off by one), positions vary, the layout doesn't.
-- First mission, 14 Harbour Lane: a terraced house with a street, garden and three entries.
-- Every level opens with a skippable intro: letterbox bars, the camera pulled back, the operator
-  walking to the entry while radio lines play.
-- Enemies: Lookouts and Patrollers with an Idle / Alert / Combat state machine, a vision cone
-  with line of sight, hearing, pathfinding through the house (opening doors) and return fire.
-  Lookouts shout to alert the others; patrollers' footsteps can be heard through walls.
-- Civilians freeze or flee when shooting starts and can be secured by holding E. A mission is
-  complete once every suspect is down and every civilian is secured.
-- Operator damage: armour absorbs the first hit, two more take you down. Retry goes back to the
-  briefing with a fresh roll. The HUD shows armour and health, and flashes red on a hit.
-- Debrief shows stars, suspects down, civilians secured, accuracy and a case note.
-- Floor materials (wood, tile, pavement, grass), plaster interior walls and a police van.
-- The flashlight toggle is gone: the weapon light is always on, and dark rooms limit how far
-  you see.
+- Main menu, and a briefing styled as a police tablet: the floor plan with areas the plans
+  don't cover, command's marks, the case file and intel. Choose one of three entries.
+- The situation is rolled from the intel on every deploy: the count stays in the briefed range,
+  positions vary, the layout doesn't.
+- 14 Harbour Lane: a terraced house with a street, garden and three entries.
+- Every level opens with a skippable intro: letterbox bars, the camera pulled back, the
+  operator walking to the entry while radio lines play.
+- Lookouts and Patrollers: sight, hearing, pathfinding through the house (opening doors) and
+  return fire. Lookouts shout; patrollers' footsteps carry through walls.
+- Civilians freeze or flee and are secured by holding E. A mission is complete when every
+  suspect is down and every civilian secured.
+- Armour and health, operator down, and retry from the briefing with a fresh roll.
+- Debrief with stars, suspects down, civilians secured, accuracy and a case note.
+- Floor materials, plaster interior walls and a police van. The weapon light is always on;
+  dark rooms limit how far you see.
 
 ## v0.1.4
 
-- Minimal HUD: the magazine as a row of rounds with the spare count beside it, a flashlight
-  indicator only in dark rooms, and short unobtrusive messages. The station checklist is gone;
-  every mission's objective is simply to secure the area.
-- Tutorial text appears only in the tutorial: each Range station shows its card on entry and
-  fades it out once it has had time to be read.
-- Esc pauses the game and opens a menu with settings (blood effects, sound), restart and the
-  controls. Settings are remembered between sessions.
-- Blood effects for people: a short spray that stains the floor on a hit and a pool that
-  spreads under someone who is down. On by default, toggleable in the menu, and never on the
-  Range's cardboard props. They first appear with the enemies in the next milestone.
-- Range targets now turn to face the operator when first seen.
+Prototype: HUD and settings.
+
+- Minimal HUD: the magazine as a row of rounds and short, quiet messages. Every mission's
+  objective is simply to secure the area.
+- Tutorial text only on the Range, each station's card fading once read.
+- Esc pauses with settings (blood, sound), restart and the controls; settings persist.
+- Blood effects for people, on by default, never on the Range's cardboard props.
+- Range targets turn to face the operator when first seen.
 
 ## v0.1.3
 
-Look and feel pass on the Range.
+Prototype: look and feel.
 
-- Renders at the size the game is shown on screen (up to 2x) instead of stretching 1280x720,
-  so it stays sharp on large and high-density displays.
-- Softer fog edges, and vision now fades out towards the edge of its range; the flashlight
-  reads as a beam in dark rooms.
-- Movement accelerates and decelerates instead of starting and stopping instantly, and aiming
-  eases towards the cursor.
-- Much less laser sway: half the wobble on every gun, a slower drift, and none at all when
-  standing still. Recoil now also knocks the gun back visually.
-- More detailed art: wooden plank floors, textured concrete and plywood walls with soft
-  contact shadows, door sills and panelled doors, shaded furniture, and figures for the
-  operator and the cardboard targets.
-- Bullet holes stay in the walls, impacts throw sparks and cardboard chips, spent casings eject
-  and skid to a stop, and muzzle flashes briefly light the room.
+- Renders at the displayed size (up to 2x), sharp on large and high-density screens.
+- Soft fog edges, and vision that fades towards the edge of its range.
+- Eased movement and aim; the laser drifts slowly and steadies when standing still. Recoil
+  knocks the gun back visually.
+- Detailed floors, walls, shadows, doors, furniture, operator and targets.
+- Bullet holes that stay, sparks, cardboard chips, ejected casings and muzzle light.
 - F3 shows a frame-rate readout.
 
 ## v0.1.2
 
-- Rewrote the design concept (`docs/concept.md`) as a neutral design document and brought it in
-  line with current decisions.
-- Added this changelog and a versioning convention.
-- The build version is now shown on the title card.
+Prototype: documentation.
+
+- The design document (`docs/concept.md`), this changelog and the versioning convention.
+- The build version on the title card.
 
 ## v0.1.1
 
-- Narrowed the vision cone from 100° to 60°.
-- Reduced recoil per shot by roughly 60% on every gun.
-- Doors now have a single open/close action (E or right click). The door menu with open slowly,
-  kick and peek is parked for a later version; the door station asks you to clear three booths.
+Prototype: handling.
+
+- A 60° vision cone and lighter recoil on every gun.
+- Doors have a single open/close action (E or right click), and the door station asks you to
+  clear three booths.
 
 ## v0.1.0
 
-Milestone 1: the Range prototype.
+Prototype: the Range.
 
-- Phaser 3 + TypeScript + Vite project, deployed to GitHub Pages.
+- Phaser 3 + TypeScript + Vite, deployed to GitHub Pages.
 - Raycast vision cone with fog of war: visible, remembered and unknown.
-- Laser aim with wobble that steadies when standing still; four guns with distinct handling.
+- Laser aim with wobble that steadies when standing still.
 - Doors whose leaves block line of sight, cardboard targets and sound ripples through walls.
-- Five training stations (movement lane, target lane, door station, shoot or don't, dark kill
-  house with randomised targets) and a debrief with stars.
+- Five training stations (movement lane, target lane, door station, shoot or don't, a dark kill
+  house) and a debrief with stars.
 - Unit tests for geometry, visibility, level parsing and collision.
