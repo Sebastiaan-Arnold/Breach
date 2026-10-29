@@ -67,6 +67,19 @@ export class Sfx {
     for (let i = 0; i < 6; i++) this.tone(2400 + Math.random() * 3000, 2000 + Math.random() * 2000, 0.05, 'sine', 0.12, o, 0.08 + Math.random() * 0.35);
   }
 
+  /** A breach charge: a deep thump, the crack, then debris coming down. */
+  blast(o: SfxOpts = {}): void {
+    this.tone(110, 32, 0.7, 'sine', 0.9, o);
+    this.noise(0.55, 650, 'lowpass', 1, o);
+    this.noise(0.22, 3200, 'highpass', 0.6, o);
+    for (let i = 0; i < 9; i++) this.noise(0.04, 1200 + Math.random() * 2400, 'bandpass', 0.18, o, 0.15 + Math.random() * 0.7);
+  }
+
+  /** The charge's fuse, counting down. */
+  chargeBeep(o: SfxOpts = {}): void {
+    this.tone(2300, 2300, 0.05, 'square', 0.08, o);
+  }
+
   /** Working a bolt: back, then forward. */
   bolt(o: SfxOpts = {}): void {
     this.noise(0.035, 2600, 'bandpass', 0.35, o);

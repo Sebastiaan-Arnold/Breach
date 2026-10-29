@@ -37,7 +37,8 @@ inside headquarters.
   push towards a fight, others dig in and cover the door you'll come through. They get sharper
   with every rank, and from Senior Officer they wear vests.
 - **Guns with jobs:** a pistol, then a shotgun, an assault rifle and a bolt-action sniper rifle
-  with a scope, issued as you're promoted; suppressors come last.
+  with a scope, issued as you're promoted; then suppressors, and last a breach charge: one per
+  mission, to blow a hole in a wall and stun whoever is behind it. Very loud.
 - **Specialty cases:** a house party, a hostage on the clock, files that get shredded, close
   quarters, rooftop overwatch and a silent infiltration with alarm panels.
 - **Places:** furnished houses, flats and lock-ups, then warehouses, offices and docks, hotel
@@ -57,6 +58,7 @@ inside headquarters.
 | Reload | R |
 | Primary gun / pistol | 1 / 2 (on the Range: 1–4 for every issued gun) |
 | Sniper scope | Hold Space |
+| Breach charge (from Captain) | G, facing a wall |
 | Skip the intro | Space |
 | Pause, settings and controls | Esc |
 | Frame-rate readout | F3 |

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { VIEW_H, VIEW_W } from '../config';
 import { blocksSight, isOutdoor, parseLevel } from '../core/grid';
 import { sfx } from '../game/audio';
-import { hasSuppressors, progress, unlockedWeapons } from '../game/progress';
+import { hasBreachCharge, hasSuppressors, progress, unlockedWeapons } from '../game/progress';
 import { WEAPONS, type WeaponId } from '../game/weapons';
 import { rollSituation, type Situation } from '../game/situation';
 import { levelById } from '../levels';
@@ -362,6 +362,10 @@ export class BriefingScene extends Phaser.Scene {
         label();
       });
       label();
+    }
+    if (hasBreachCharge(progress) && !m.overwatch) {
+      this.add.text(x + 110, y + 16, 'Breach charge  ×1  (G, facing a wall)', style(11, DIM));
+      y += 16;
     }
     y += 26;
     this.selectGun(this.primary);

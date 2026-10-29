@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { TILE } from '../config';
 import type { Segment } from '../core/geometry';
-import { blocksMovement, blocksSight, isOutdoor, type ParsedLevel, type TileKind } from '../core/grid';
+import { blocksMovement, blocksSight, isOutdoor, type FloorMaterial, type ParsedLevel, type TileKind } from '../core/grid';
 import { findPath, type TilePoint } from '../core/pathfinding';
 import { buildWallSegments, castRay } from '../core/visibility';
 import { Door } from './Door';
@@ -107,6 +107,21 @@ export class World {
       (x, y) => (this.doorAtTile(x, y)?.blocksMovement ? 2 : 0),
     );
     return path?.map((p) => ({ x: (p.tx + 0.5) * TILE, y: (p.ty + 0.5) * TILE })) ?? null;
+  }
+
+  /**
+   * A breach charge has taken these wall tiles out: they become floor (of the room beside them),
+   * and sight lines, bullets and paths go through.
+   */
+  breach(tiles: readonly { tx: number; ty: number }[], material: FloorMaterial, dark: boolean): void {
+    for (const t of tiles) {
+      const i = t.ty * this.width + t.tx;
+      this.level.tiles[i] = 'floor';
+      this.level.material[i] = material;
+      this.level.dark[i] = dark;
+    }
+    this.staticSegs = buildWallSegments(this.width, this.height, TILE, (x, y) => this.blocksSightAt(x, y));
+    this.refreshSegments();
   }
 
   private refreshSegments(): void {

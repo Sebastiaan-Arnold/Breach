@@ -136,6 +136,7 @@ Players start with a small kit and unlock new guns on promotion. There are no ga
 | Assault rifle | Accurate at range, loud and slower to swing round corners | Senior Officer |
 | Sniper rifle | One hit stops anyone at any range; scope; bolt action, very slow to swing | Sergeant |
 | Suppressor | Shots are heard about a third as far. Fits everything but the shotgun | Lieutenant |
+| Breach charge | One per mission. Set on an inside wall with a room behind it; after a short fuse it blows a hole one or two tiles wide, stuns anyone with a line to the blast and hits anyone right next to it, the operator too. The loudest thing in the game: the alarm goes up | Captain |
 
 Before each mission players pick one primary gun and always carry the pistol. Handling matters as much as damage: heavier guns make the laser wobble more and turn more slowly, so the shotgun or pistol is often the better pick for tight houses even once the rifle is unlocked. Suppressors come last on purpose: by then players can replay earlier cases quietly for the stars they missed.
 
@@ -258,7 +259,7 @@ Cut on purpose for now: gadgets, multiple floors, squad members and multiplayer.
 - **Every level opens with a short intro:** the operator approaching the chosen entry while radio lines play. It can be skipped.
 - **Four to six cases per campaign:** 26 cases plus the Range.
 - **Enemies can't see the laser.**
-- **Suppressors are the last unlock** (at Lieutenant) and cut how far shots are heard.
+- **Suppressors** (at Lieutenant) cut how far shots are heard; the **breach charge** (at Captain) is the last unlock: one wall per mission, never the outer boundary.
 - **Vision cone of about 60 degrees.**
 - **Doors open and close only** in the first version; kick and peek come later.
 - **Port Ardley**, a fictional harbour city.

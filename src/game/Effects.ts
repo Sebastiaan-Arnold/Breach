@@ -13,6 +13,8 @@ interface Particle {
   x: number; y: number; vx: number; vy: number; age: number; life: number; color: number; size: number; streak: boolean;
   /** If set, the particle leaves a stain of this radius where it lands. */
   stain?: number;
+  /** Dust: a soft puff that grows as it fades. */
+  puff?: boolean;
 }
 interface Stain { x: number; y: number; r: number }
 interface Shard { x: number; y: number; a: number }
@@ -39,6 +41,7 @@ export class Effects {
   private gfx: Phaser.GameObjects.Graphics;
   private light: Phaser.GameObjects.Image;
   private flash = 0;
+  private flashLen = 0.06;
 
   constructor(scene: Phaser.Scene, worldW: number, worldH: number, scale: number, decalDepth: number, lightDepth: number) {
     ensureGlowTexture(scene);
@@ -117,14 +120,45 @@ export class Effects {
   }
 
   muzzle(x: number, y: number, heavy: boolean): void {
-    this.flash = 0.06;
+    this.flash = this.flashLen = 0.06;
     this.light.setPosition(x, y).setScale(heavy ? 1.6 : 1.2).setVisible(true);
+  }
+
+  /**
+   * A breach charge going off at (x, y): a hard flash, debris both ways, a cloud of dust, and
+   * the hole baked into the decals: bare floor and rubble where the wall stood.
+   */
+  breach(x: number, y: number, tiles: readonly { tx: number; ty: number }[], floor: number, wall: number): void {
+    this.flash = this.flashLen = 0.35;
+    this.light.setPosition(x, y).setScale(6).setVisible(true);
+    for (let i = 0; i < 46; i++) {
+      const a = Math.random() * Math.PI * 2, v = Phaser.Math.FloatBetween(80, 340);
+      this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: Phaser.Math.FloatBetween(0.3, 0.8), color: i % 3 ? wall : 0xd6d3d1, size: Phaser.Math.FloatBetween(1.6, 3.6), streak: i % 5 === 0 });
+    }
+    for (let i = 0; i < 26; i++) {
+      const a = Math.random() * Math.PI * 2, v = Phaser.Math.FloatBetween(10, 70);
+      this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, age: 0, life: Phaser.Math.FloatBetween(1.4, 2.6), color: 0x9ca3af, size: Phaser.Math.FloatBetween(8, 16), streak: false, puff: true });
+    }
+    const b = this.baker;
+    b.clear();
+    for (const t of tiles) {
+      b.fillStyle(floor, 1);
+      b.fillRect(t.tx * TILE, t.ty * TILE, TILE, TILE);
+    }
+    b.fillStyle(0x000000, 0.3);
+    b.fillCircle(x, y, 26);
+    for (let i = 0; i < 34; i++) {
+      const r = Math.random() * 30, a = Math.random() * Math.PI * 2, sz = Phaser.Math.FloatBetween(2, 6);
+      b.fillStyle(i % 4 ? wall : 0x6b7280, 0.95);
+      b.fillRect(x + Math.cos(a) * r - sz / 2, y + Math.sin(a) * r - sz / 2, sz, sz * Phaser.Math.FloatBetween(0.6, 1.2));
+    }
+    this.decals.draw(b);
   }
 
   update(dt: number, solid: (tx: number, ty: number) => boolean): void {
     if (this.flash > 0) {
       this.flash -= dt;
-      this.light.setAlpha(Math.max(0, this.flash / 0.06) * 0.55);
+      this.light.setAlpha(Math.max(0, this.flash / this.flashLen) * 0.55);
       if (this.flash <= 0) this.light.setVisible(false);
     }
 
@@ -186,7 +220,10 @@ export class Effects {
     for (const c of this.casings) drawCasing(g, c);
     for (const p of this.particles) {
       const a = 1 - p.age / p.life;
-      if (p.streak) {
+      if (p.puff) {
+        g.fillStyle(p.color, a * 0.22);
+        g.fillCircle(p.x, p.y, p.size * (1 + p.age));
+      } else if (p.streak) {
         g.lineStyle(p.size, p.color, a);
         g.lineBetween(p.x, p.y, p.x - p.vx * 0.02, p.y - p.vy * 0.02);
       } else {

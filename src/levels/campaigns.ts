@@ -36,6 +36,12 @@ export const DIFFICULTY: readonly Difficulty[] = [
  */
 export const SUPPRESSOR_RANK = 4;
 
+/**
+ * The breach charge is the very last issue, with promotion to Captain: one per mission, to blow a
+ * hole in a wall and stun whoever is behind it.
+ */
+export const BREACH_RANK = 5;
+
 export interface CampaignDef {
   id: string;
   title: string;

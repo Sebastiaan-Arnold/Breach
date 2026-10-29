@@ -53,7 +53,7 @@ export const MARSH_LANE: LevelDef = {
     { kind: 'drums', tx: 43, ty: 2, w: 1, h: 2 },
     { kind: 'pallet', tx: 34, ty: 3, w: 2, h: 1 },
     { kind: 'plant', tx: 3, ty: 4, w: 3, h: 1 },
-    { kind: 'bench', tx: 41, ty: 6, w: 3, h: 1, side: 'e' },
+    { kind: 'bench', tx: 41, ty: 6, w: 3, h: 1 },
     { kind: 'kitchen', tx: 11, ty: 9, w: 4, h: 1 },
     { kind: 'wardrobe', tx: 22, ty: 9 },
     { kind: 'bed', tx: 27, ty: 9, w: 3, h: 2, side: 'e', color: 0x51607a },

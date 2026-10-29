@@ -1,4 +1,4 @@
-import { CAMPAIGNS, SUPPRESSOR_RANK, type CampaignDef } from '../levels/campaigns';
+import { BREACH_RANK, CAMPAIGNS, SUPPRESSOR_RANK, type CampaignDef } from '../levels/campaigns';
 import type { WeaponId } from './weapons';
 
 /**
@@ -68,6 +68,11 @@ export function unlockedWeapons(p: Progress, campaigns: readonly CampaignDef[] =
 /** Suppressors are issued with promotion to Lieutenant. */
 export function hasSuppressors(p: Progress): boolean {
   return p.rank >= SUPPRESSOR_RANK;
+}
+
+/** The breach charge is issued with promotion to Captain. */
+export function hasBreachCharge(p: Progress): boolean {
+  return p.rank >= BREACH_RANK;
 }
 
 /**

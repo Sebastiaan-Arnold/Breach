@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CAMPAIGNS, DIFFICULTY, SUPPRESSOR_RANK } from '../src/levels/campaigns';
+import { BREACH_RANK, CAMPAIGNS, DIFFICULTY, SUPPRESSOR_RANK } from '../src/levels/campaigns';
+import { hasBreachCharge, newProgress } from '../src/game/progress';
 import { WEAPONS } from '../src/game/weapons';
 
 describe('gun roles', () => {
@@ -28,6 +29,10 @@ describe('gun roles', () => {
     // The sniper rifle comes with the promotion out of its campaign; suppressors a rank later.
     const sniperRank = CAMPAIGNS.find((c) => c.promotion.unlocks === 'sniper')!.rank + 1;
     expect(SUPPRESSOR_RANK).toBe(sniperRank + 1);
+    // The breach charge comes last, a rank after the suppressors.
+    expect(BREACH_RANK).toBe(SUPPRESSOR_RANK + 1);
+    expect(hasBreachCharge({ ...newProgress(), rank: SUPPRESSOR_RANK })).toBe(false);
+    expect(hasBreachCharge({ ...newProgress(), rank: BREACH_RANK })).toBe(true);
   });
 
   it('every gun says what it is for', () => {

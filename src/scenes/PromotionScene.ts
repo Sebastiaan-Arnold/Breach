@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS } from '../config';
 import { sfx } from '../game/audio';
 import { WEAPONS } from '../game/weapons';
-import { CAMPAIGNS, RANKS, SUPPRESSOR_RANK } from '../levels/campaigns';
+import { BREACH_RANK, CAMPAIGNS, RANKS, SUPPRESSOR_RANK } from '../levels/campaigns';
 import { attractBackdrop } from './backdrop';
 import { insignia } from './TitleScene';
 import { ACCENT, Button, DIM, display, fadeIn, FAINT, GOLD, goTo, KeyNav, panel, setupScreenCamera, stagger, style, TEXT, UI } from './ui';
@@ -56,16 +56,18 @@ export class PromotionScene extends Phaser.Scene {
     stagger(this, [...lines, signature], 1400, 260, 6);
 
     // What comes with it.
-    const suppressors = rank === SUPPRESSOR_RANK;
+    const suppressors = rank === SUPPRESSOR_RANK, charge = rank === BREACH_RANK;
     const gun = c.promotion.unlocks ? WEAPONS[c.promotion.unlocks] : null;
     const issued: Phaser.GameObjects.GameObject[] = [];
-    if (gun || suppressors) {
+    if (gun || suppressors || charge) {
       const y = sigY + 48;
       const box = this.add.container(0, 0);
       box.add(panel(this, cx - 260, y, 520, 84, UI.gold));
       box.add(this.add.text(cx - 232, y + 16, 'ISSUED', display(12, GOLD)));
-      box.add(this.add.text(cx - 232, y + 34, (gun ? gun.name : 'Suppressors').toUpperCase(), display(24, TEXT)));
-      box.add(this.add.text(cx + 232, y + 42, gun ? gun.blurb : 'Fit them from the loadout on any briefing.', style(11, FAINT, { wordWrap: { width: 250 }, align: 'right' })).setOrigin(1, 0.5));
+      const name = gun ? gun.name : suppressors ? 'Suppressors' : 'Breach charge';
+      const blurb = gun ? gun.blurb : suppressors ? 'Fit them from the loadout on any briefing.' : 'One per mission. G on a wall, then stand back. Loud.';
+      box.add(this.add.text(cx - 232, y + 34, name.toUpperCase(), display(24, TEXT)));
+      box.add(this.add.text(cx + 232, y + 42, blurb, style(11, FAINT, { wordWrap: { width: 250 }, align: 'right' })).setOrigin(1, 0.5));
       issued.push(box);
       stagger(this, issued, 1400 + (lines.length + 1) * 260 + 200, 0, 14);
     }

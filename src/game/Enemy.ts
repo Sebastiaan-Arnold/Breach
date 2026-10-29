@@ -106,6 +106,8 @@ export class Enemy {
   private sightTime = 0;
   private lostTime = 0;
   private reactTimer = 0;
+  /** Seconds left knocked senseless by a blast. */
+  private stunned = 0;
   private fireTimer = 0;
   private lookTimer = 0;
   private stepTimer = 0;
@@ -178,6 +180,13 @@ export class Enemy {
     return true;
   }
 
+  /** Knocked senseless by a blast for `seconds`. */
+  stun(seconds: number): void {
+    if (!this.alive) return;
+    this.stunned = Math.max(this.stunned, seconds);
+    this.sightTime = 0;
+  }
+
   /** Sends the enemy straight to (x, y), whatever else is going on. */
   sendTo(x: number, y: number, speed = SPEED_PUSH): void {
     this.errand = { x, y };
@@ -238,6 +247,14 @@ export class Enemy {
       return;
     }
     this.time += dt;
+    // Stunned by a blast: reeling, not seeing, moving or shooting, then up and alert.
+    if (this.stunned > 0) {
+      this.stunned -= dt;
+      this.gfx.rotation = this.stunned > 0 ? Math.sin(this.time * 9) * 0.35 * Math.min(1, this.stunned) : 0;
+      this.container.setPosition(this.x, this.y);
+      if (this.stunned <= 0 && this.state === 'idle') this.state = 'alert';
+      return;
+    }
     if (this.flinch > 0) {
       this.flinch -= dt;
       this.gfx.rotation = this.flinch > 0 ? Math.sin(this.flinch * 60) * 0.25 : 0;

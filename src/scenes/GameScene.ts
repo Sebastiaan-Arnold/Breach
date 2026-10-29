@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, MOVE, NOISE, REACH, RENDER_SCALE, TILE, VISION } from '../config';
 import { moveCircle } from '../core/collision';
 import { circleIntersectsRect, DEG, pointInPolygon, rayCircle } from '../core/geometry';
-import { blocksSight, isOutdoor, parseLevel, type ParsedLevel } from '../core/grid';
+import { blocksSight, isOutdoor, parseLevel, type FloorMaterial, type ParsedLevel } from '../core/grid';
 import { visibilityPolygon, type RayHit } from '../core/visibility';
 import { levelById } from '../levels';
 import { KILLHOUSE_ROLL, stationAt, type StationDef } from '../levels/academy/range';
@@ -22,7 +22,7 @@ import { drawLevelArt } from '../game/LevelArt';
 import { NoiseSystem, type NoiseEvent } from '../game/Noise';
 import { Player } from '../game/Player';
 import { RangeStations } from '../game/RangeStations';
-import { endCareer, endedCareer, progress, recordSuccess, saveProgress, unlockedWeapons } from '../game/progress';
+import { endCareer, endedCareer, hasBreachCharge, progress, recordSuccess, saveProgress, unlockedWeapons } from '../game/progress';
 import { settings } from '../game/settings';
 import { rollSituation, type Situation } from '../game/situation';
 import { Target, type TargetKind } from '../game/Target';
@@ -52,6 +52,15 @@ const ALARM_RUN_SPEED = 80;
 const GLASS_NOISE = 700;
 /** Enemies' handguns are unsuppressed too: the whole house hears them. */
 const ENEMY_SHOT_NOISE = 1000;
+/**
+ * The breach charge: a short fuse, the loudest thing in the game, a stun for anyone with a line
+ * to the blast, and a hit for anyone right next to it, the operator included.
+ */
+const CHARGE = { fuse: 2.5, noise: 1800, stunRadius: 5 * TILE, stun: 3.5, hurtRadius: 1.6 * TILE };
+/** The floor a breached wall becomes, matched to the room beside it. */
+const FLOOR_COLOR: Record<FloorMaterial, number> = {
+  wood: COLORS.floor, deck: COLORS.deck, tile: COLORS.tile, screed: COLORS.screed, concrete: COLORS.concrete, grass: COLORS.grass, water: COLORS.water,
+};
 /** Pellet spread either side of a hider's aim, in degrees. */
 const ENEMY_SHOTGUN_SPREAD = 7;
 /**
@@ -107,6 +116,8 @@ export interface HudState {
   securing: number | null;
   /** A countdown at the top of the screen: the hostage clock, or a guard setting off an alarm. */
   clock: { label: string; seconds: number } | null;
+  /** The breach charge, once issued: whether it's still in hand, or the fuse if it's set. */
+  charge: { ready: boolean; fuse: number | null } | null;
   /** The crosshair while the operator is in control: how far the aim is wandering, in degrees. */
   aim: { spread: number; reloading: boolean } | null;
   outcome: Outcome | null;
@@ -117,6 +128,8 @@ type Hittable = Target | Enemy | Civilian;
 
 interface Tracer { x0: number; y0: number; x1: number; y1: number; age: number; color: number }
 type Keys = Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'SPACE', Phaser.Input.Keyboard.Key>;
+/** A breach charge on a wall: where, which wall tiles it takes out, and the floor beyond. */
+interface Charge { x: number; y: number; tiles: { tx: number; ty: number }[]; material: FloorMaterial; dark: boolean; wall: number; fuse: number; beep: number; gfx: Phaser.GameObjects.Graphics }
 
 /**
  * Plays one level: the Range (stations and cardboard targets) or a mission (enemies and
@@ -175,6 +188,9 @@ export class GameScene extends Phaser.Scene {
   private arming = 0;
   /** Guns on the number keys: primary then pistol in a mission, everything unlocked on the Range. */
   private guns: WeaponId[] = ['pistol'];
+  /** Breach charges in hand (one, once issued), and the one set on a wall. */
+  private charges = 0;
+  private charge: Charge | null = null;
   /** Set when this run earned a promotion; shown on the way back to the menu. */
   private promotion: string | null = null;
   private leaving = false;
@@ -214,6 +230,8 @@ export class GameScene extends Phaser.Scene {
     this.arming = 0;
     this.promotion = null;
     this.leaving = false;
+    this.charges = 0;
+    this.charge = null;
   }
 
   create(): void {
@@ -325,6 +343,7 @@ export class GameScene extends Phaser.Scene {
     if (active && (this.triggerPressed || (this.input.activePointer.leftButtonDown() && p.weapon.def.auto))) this.tryFire(this.triggerPressed);
     this.triggerPressed = false;
 
+    this.updateCharge(dt);
     this.effects.update(dt, this.world.solid);
     this.drawLaserAndFx(dt, active);
     this.noise.update(dt);
@@ -790,8 +809,112 @@ export class GameScene extends Phaser.Scene {
         case 'KeyR':
           this.reload();
           break;
+        case 'KeyG':
+          this.plantCharge();
+          break;
       }
     });
+  }
+
+  // ---------------------------------------------------------------- breach charge
+
+  /** Sets the charge on the wall the operator faces, if there's one in hand and the wall will do. */
+  private plantCharge(): void {
+    if (this.charge || this.charges <= 0) return;
+    const spot = this.breachSpot();
+    if (!spot) {
+      this.toast('Face a wall with a room behind it');
+      return;
+    }
+    this.charges--;
+    const g = this.add.graphics().setDepth(DEPTH.targets);
+    this.charge = { ...spot, fuse: CHARGE.fuse, beep: 0, gfx: g };
+    sfx.reload();
+    this.toast('Charge set. Stand back');
+  }
+
+  /**
+   * The wall in front of the operator, within reach, if a charge can go on it: an inside wall
+   * (not the edge of the level, not a door or glass) with open floor on the far side. The hole
+   * is two tiles wide where the wall runs on, otherwise one.
+   */
+  private breachSpot(): Omit<Charge, 'fuse' | 'beep' | 'gfx'> | null {
+    const p = this.player, lvl = this.world.level;
+    const along = Math.abs(Math.cos(p.facing)) >= Math.abs(Math.sin(p.facing));
+    const dx = along ? Math.sign(Math.cos(p.facing)) : 0, dy = along ? 0 : Math.sign(Math.sin(p.facing));
+    const ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE);
+    const tx = ptx + dx, ty = pty + dy;
+    const face = along ? (dx > 0 ? tx * TILE : (tx + 1) * TILE) : (dy > 0 ? ty * TILE : (ty + 1) * TILE);
+    if (Math.abs(face - (along ? p.x : p.y)) > TILE * 0.9) return null;
+    const inner = (x: number, y: number) => x > 0 && y > 0 && x < lvl.width - 1 && y < lvl.height - 1;
+    const wallAt = (x: number, y: number) => inner(x, y) && blocksSight(this.world.tileAt(x, y)) && !this.world.doorAtTile(x, y);
+    const open = (x: number, y: number) => this.world.tileAt(x, y) === 'floor' && !this.world.doorAtTile(x, y);
+    if (!wallAt(tx, ty) || !open(tx + dx, ty + dy)) return null;
+    // Widen towards whichever side of the tile the operator stands nearer.
+    const sx = along ? 0 : 1, sy = along ? 1 : 0;
+    const off = along ? p.y / TILE - pty : p.x / TILE - ptx;
+    const order = off >= 0.5 ? [1, -1] : [-1, 1];
+    const tiles = [{ tx, ty }];
+    for (const k of order) {
+      const nx = tx + sx * k, ny = ty + sy * k;
+      if (wallAt(nx, ny) && open(nx + dx, ny + dy) && open(nx - dx, ny - dy)) {
+        tiles.push({ tx: nx, ty: ny });
+        break;
+      }
+    }
+    const cx = tiles.reduce((a, t) => a + t.tx + 0.5, 0) / tiles.length * TILE;
+    const cy = tiles.reduce((a, t) => a + t.ty + 0.5, 0) / tiles.length * TILE;
+    const behind = (ty + dy) * lvl.width + (tx + dx);
+    const kind = this.world.tileAt(tx, ty);
+    return {
+      x: along ? face - dx * 3 : cx, y: along ? cy : face - dy * 3, tiles,
+      material: lvl.material[behind], dark: lvl.dark[behind],
+      wall: kind === 'plywood' ? COLORS.plywood : kind === 'interior' ? COLORS.interior : COLORS.wall,
+    };
+  }
+
+  /** The fuse: a blinking light and a beep that quickens, then the blast. */
+  private updateCharge(dt: number): void {
+    const c = this.charge;
+    if (!c) return;
+    c.fuse -= dt;
+    c.beep -= dt;
+    if (c.beep <= 0) {
+      c.beep = Math.max(0.12, c.fuse * 0.22);
+      sfx.chargeBeep(this.soundAt(c.x, c.y, 500));
+    }
+    // The light flashes with each beep.
+    const on = c.beep > Math.max(0.12, c.fuse * 0.22) - 0.08;
+    c.gfx.clear();
+    c.gfx.fillStyle(0x000000, 0.4).fillRect(c.x - 6, c.y - 5, 13, 11);
+    c.gfx.fillStyle(0x3f3f46, 1).fillRect(c.x - 7, c.y - 6, 13, 11);
+    c.gfx.fillStyle(0xd6d3d1, 0.9).fillRect(c.x - 5, c.y - 4, 9, 2);
+    c.gfx.fillStyle(on ? 0xef4444 : 0x7f1d1d, 1).fillCircle(c.x + 2, c.y + 2, 1.8);
+    if (c.fuse <= 0) this.detonate(c);
+  }
+
+  private detonate(c: Charge): void {
+    this.charge = null;
+    c.gfx.destroy();
+    this.world.breach(c.tiles, c.material, c.dark);
+    const floor = FLOOR_COLOR[c.material];
+    this.effects.breach(c.x, c.y, c.tiles, c.dark ? COLORS.floorDark : floor, c.wall);
+    sfx.blast(this.soundAt(c.x, c.y, 2000));
+    if (settings.shake) this.cameras.main.shake(520, 0.012);
+    this.worldNoise(c.x, c.y, CHARGE.noise, 'shot');
+    for (const e of this.enemies) {
+      const d = Math.hypot(e.x - c.x, e.y - c.y);
+      if (!e.alive || d > CHARGE.stunRadius || !this.world.lineOfSight(c.x, c.y, e.x, e.y)) continue;
+      if (d < CHARGE.hurtRadius) e.hit(1, c.x, c.y);
+      e.stun(CHARGE.stun * (1 - d / CHARGE.stunRadius * 0.4));
+    }
+    const p = this.player;
+    if (p.alive && Math.hypot(p.x - c.x, p.y - c.y) < CHARGE.hurtRadius) {
+      this.damaged = true;
+      this.hurt = 1;
+      if (p.damage()) this.toast('Operator down');
+      sfx.hurt();
+    }
   }
 
   private skipIntro(): void {
@@ -807,6 +930,8 @@ export class GameScene extends Phaser.Scene {
     this.guns = this.def.stations ? unlockedWeapons(progress) : [...new Set<WeaponId>([this.params.primary ?? 'pistol', 'pistol'])];
     this.player.suppressors = !this.def.stations && !!this.params.suppressed;
     this.player.equip(this.guns[0]);
+    // Not from a rooftop: overwatch never goes in.
+    this.charges = hasBreachCharge(progress) && !this.def.mission?.overwatch ? 1 : 0;
   }
 
   private switchWeapon(id: WeaponId): void {
@@ -1134,6 +1259,7 @@ export class GameScene extends Phaser.Scene {
       aim: !this.intro.active && !this.outcome && this.player.alive
         ? { spread: this.player.instability * this.player.weapon.def.wobble, reloading: this.player.weapon.reloading }
         : null,
+      charge: hasBreachCharge(progress) && !this.def.mission?.overwatch ? { ready: this.charges > 0, fuse: this.charge?.fuse ?? null } : null,
       clock: this.clock !== null ? { label: 'HOSTAGE', seconds: this.clock }
         : this.alarmRunner?.atErrand ? { label: 'ALARM', seconds: Math.max(0, ALARM_ARM_TIME - this.arming) } : null,
       outcome: this.outcome,

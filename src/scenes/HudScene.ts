@@ -19,6 +19,7 @@ const CONTROLS: [string, string][] = [
   ['Reload', 'R'],
   ['Primary / pistol', '1 / 2'],
   ['Scope (sniper rifle)', 'Hold Space'],
+  ['Breach charge (Captain)', 'G, facing a wall'],
   ['Skip intro', 'Space'],
   ['Frame rate', 'F3'],
 ];
@@ -41,6 +42,7 @@ export class HudScene extends Phaser.Scene {
   private lastStation: string | undefined;
 
   private weaponName!: Phaser.GameObjects.Text;
+  private chargeKey!: Phaser.GameObjects.Text;
   private reserve!: Phaser.GameObjects.Text;
   private gfx!: Phaser.GameObjects.Graphics;
   private overlay!: Phaser.GameObjects.Graphics;
@@ -87,6 +89,7 @@ export class HudScene extends Phaser.Scene {
     this.gfx = this.add.graphics();
     this.weaponName = this.add.text(VIEW_W - 28, VIEW_H - 63, '', display(12, DIM)).setOrigin(1, 0);
     this.reserve = this.add.text(VIEW_W - 28, VIEW_H - 44, '', style(15, TEXT, { fontStyle: 'bold' })).setOrigin(1, 0);
+    this.chargeKey = this.add.text(VIEW_W - 28 - 66 - 34, VIEW_H - 81, 'G', display(11, DIM)).setOrigin(1, 0.5);
     this.subtitle = this.add.text(VIEW_W / 2, VIEW_H - BAR_HEIGHT - 34, '', style(16, TEXT)).setOrigin(0.5, 0);
     this.skipHint = this.add.text(VIEW_W - 28, VIEW_H - 44, 'SPACE TO SKIP', display(11, DIM)).setOrigin(1, 0);
     this.securing = this.add.text(VIEW_W / 2, VIEW_H * 0.62, 'Securing', style(12, TEXT)).setOrigin(0.5, 0);
@@ -131,6 +134,7 @@ export class HudScene extends Phaser.Scene {
     if (!cut) this.drawStatus(s);
     this.drawReticle(s);
     for (const t of [this.weaponName, this.reserve]) t.setVisible(!cut);
+    this.chargeKey.setVisible(!cut && !!s.charge?.ready);
     this.drawOverlay(s);
     this.subtitle.setText(cut?.subtitle ?? '');
     this.skipHint.setVisible(!!cut);
@@ -261,6 +265,18 @@ export class HudScene extends Phaser.Scene {
       g.fillStyle(p.on ? p.color : 0xef4444, p.on ? 0.95 : 0.35);
       g.fillRect(x, VIEW_H - 84, 18, 6);
     });
+
+    // The breach charge, left of the pips: amber while in hand, flashing red on the fuse.
+    if (s.charge) {
+      const x = VIEW_W - 28 - 66 - 28, y = VIEW_H - 86;
+      const color = s.charge.fuse !== null ? (Math.sin(s.charge.fuse * 30) > 0 ? 0xef4444 : 0x7f1d1d) : s.charge.ready ? 0xf59e0b : 0x3f3f46;
+      g.fillStyle(0x000000, 0.45);
+      g.fillRect(x + 1, y + 1, 16, 10);
+      g.fillStyle(color, s.charge.ready || s.charge.fuse !== null ? 0.95 : 0.5);
+      g.fillRect(x, y, 16, 10);
+      g.fillStyle(0x000000, 0.35);
+      g.fillRect(x + 3, y + 3, 10, 2);
+    }
 
     if (s.securing !== null) {
       g.fillStyle(0x000000, 0.5);

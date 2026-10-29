@@ -3,6 +3,22 @@
 All notable changes to Breach. Versions before the full web release (`1.0.0`) followed
 `0.<milestone>.<patch>`. See [Versioning](README.md#versioning).
 
+## v1.5.0
+
+The breach charge, the last unlock.
+
+- Issued with promotion to Captain: one per mission (not on the rooftop overwatch). Face an
+  inside wall with a room behind it and press G; after a 2.5 s fuse it blows a hole one or two
+  tiles wide. Anyone with a line to the blast within five tiles is stunned for a few seconds;
+  anyone right next to it takes a hit, the operator included. The loudest thing in the game:
+  the alarm goes up and the house comes to look.
+- Shown on the HUD beside armour and health, on the briefing's loadout, in the controls and on
+  the promotion screen.
+- Bookcases, cabinets and benches that stood against a wall at one end are no longer turned
+  onto that end (Police Headquarters, the archive, the depot, Pier Seven, Marsh Lane).
+- Corvan Depot: the staff annex's south wall is back; the mess room no longer opens onto the
+  car park.
+
 ## v1.4.0
 
 The Captain campaign, Inside job: four cases on the leak inside headquarters, ending in the
