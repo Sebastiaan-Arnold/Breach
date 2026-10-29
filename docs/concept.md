@@ -2,9 +2,7 @@
 
 ## Pitch
 
-Breach is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from recruit to superintendent in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes, which suits a browser tab now and a phone later.
-
-The closest references are Door Kickers (top-down, line of sight, room clearing) and Ready or Not (tension, uncertainty, procedure). Breach sits between them: simpler to control than Door Kickers, far more readable than Ready or Not.
+Breach is a top-down tactical shooter where you lead a single SWAT operator into a building you've only seen on a rough briefing map. You plan from incomplete intel, go in seeing only what your operator sees, and clear every room without getting hit or harming civilians. Between missions, a story campaign takes you from recruit to superintendent in the fictional harbour city of Port Ardley. Missions last 3 to 8 minutes.
 
 **Design pillars**
 
@@ -45,8 +43,6 @@ The briefing is a single screen styled like a police tablet: a floor plan on the
 
 Each level has a fixed layout, but the game rolls the actual situation on deploy. The real enemy count falls inside the stated range most of the time. On "Unverified" intel, there's a chance of one extra enemy, a different weapon or a marked room that turns out empty. That keeps replays fresh and stops players memorising a solution. It also makes the reliability rating meaningful without being unfair: the game never lies outright, it just isn't sure.
 
-An optional extra: players place up to three pins on the map ("check here first") that stay visible as faint markers during the mission. It rewards planning without giving away the layout.
-
 ## Vision and fog of war
 
 The camera is top-down and centred on the operator, but the screen only reveals what the operator can actually see. A cone of vision (around 60 degrees, plus a short radius all round for peripheral awareness) is cast from the operator's position and blocked by walls and closed doors. Everything outside it is dark.
@@ -83,10 +79,6 @@ Combat is real time, fast and lethal on both sides: one or two hits down an enem
 **Controls on web**
 
 WASD to move, mouse to aim, left click to shoot, E or right click to open or close a door, R to reload and Shift to sprint.
-
-**Controls on iOS (later)**
-
-Parked until after a successful web release. The laser helps here, because touch players can see exactly where they're pointing. A left stick for movement and a right stick that aims and fires on release is the likely setup.
 
 ## Enemies and civilians
 
@@ -187,7 +179,7 @@ Levels are built on a tile grid of 32 px tiles, which makes line of sight, enemy
 
 **Story and campaigns**
 
-The structure borrows from L.A. Noire, where the protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of four to six cases. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men, the people running it and finally the leak inside headquarters that tipped them off all along.
+The protagonist works his way up through police desks and each desk tells part of a bigger story. Here, each rank is a campaign of four to six cases. The cases look unrelated at first, but a thread runs through them: the small-time dealers raided as a rookie turn out to work for a smuggling ring, which leads to the money men, the people running it and finally the leak inside headquarters that tipped them off all along.
 
 | Rank | Campaign | Locations | Story thread |
 | --- | --- | --- | --- |
@@ -220,20 +212,15 @@ The tone is grounded and serious. Blood is an optional effect, on by default: a 
 
 ## Tech plan
 
-The game is built once as a web game, and the same code is wrapped for iOS later rather than writing two games.
-
 - **Engine:** Phaser 3 with TypeScript: a free, well-documented 2D game framework for the browser with built-in support for tile maps, keyboard and touch input, and sound.
 - **Line of sight:** a raycast visibility polygon from the operator's position against wall edges.
 - **Levels:** ASCII grids in TypeScript; the same data drives collision, line of sight, pathfinding and the briefing map.
 - **Hosting:** GitHub Pages. Every push to the repository runs a GitHub Action that builds and publishes the game.
-- **Saves:** progress (stars, unlocks) in the browser's local storage. On iOS it carries over inside the app.
-- **Path to iOS:** Capacitor wraps the web build into a native Xcode project. This requires a Mac, Xcode and an Apple Developer account. Apple accepts wrapped web games when they feel like a proper app, so offline play, touch controls and no browser-looking UI are a must.
+- **Saves:** progress (stars, unlocks) in the browser's local storage.
 
-The web version is played with a mouse and keyboard. The 16:9 layout and the laser already suit a phone screen; touch controls are the main work of the iOS version.
+The web version is played with a mouse and keyboard.
 
 ## Roadmap and MVP scope
-
-The biggest risk with a game like this is building too much before finding out whether the core is fun. So the first milestone is one room, not one campaign.
 
 1. **Prototype: the Range.** Movement, vision cone, laser aim, doors and cardboard targets. The training level doubles as the test bed, so nothing gets thrown away. The question to answer: does walking through a door into darkness feel tense?
 2. **Vertical slice: first Officer mission.** Briefing screen, one house, two enemy types, civilians, the debrief with stars. Published on GitHub Pages for a small group of playtesters.
@@ -243,7 +230,6 @@ The biggest risk with a game like this is building too much before finding out w
 6. **Places.** A pass over every campaign so each one is a place, thought through: Street crime one estate, Supply chain Corvan's dockland sites, Clean money one hotel, The top the homes of the powerful. Rooms are furnished for what they are. Released as 1.1 to 1.3.
 7. **Epilogue: the Captain campaign.** The thread ends inside headquarters, in the largest level in the game, with a final rank above it. Released as 1.4.
 8. **Final unlock: the breach charge.** One per mission, for a way in of your own. Released as 1.5, completing the game.
-9. **iOS, after a successful web release.** Touch controls, Capacitor wrap, offline support and App Store review.
 
 Left out on purpose: multiple floors, squad members and multiplayer. One operator on one floor is the game.
 
@@ -267,4 +253,3 @@ Left out on purpose: multiple floors, squad members and multiplayer. One operato
 - **Vision cone of about 60 degrees.**
 - **Doors open and close only:** one action, no door menu.
 - **Port Ardley**, a fictional harbour city.
-- **Web first**, iOS only after a successful web release.
